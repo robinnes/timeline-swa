@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interactive Zoomable Timeline</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { background:#000; color:#fff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+  #canvas { display:block; width:100vw; height:100vh; }
+  .hint {
+    position: fixed; left: 12px; bottom: 12px; color:#bbb; font-size: 12px; opacity:.85;
+    background: rgba(20,20,20,.6); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.1);
+    user-select:none; pointer-events:none; backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="0"></canvas>
+<div class="hint">Powered by Iced Tea</div>
+<script src="events.js"></script>
+<script src="render.js"></script>
+<script src="timeline.js"></script>
+</body>
+</html>
