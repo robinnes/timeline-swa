@@ -1,6 +1,8 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const ZOOM_FACTOR = 1.1;
+const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
+const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
 
 // --- Timeline state
 //const midY = () => Math.floor(window.innerHeight / 2);
@@ -38,12 +40,10 @@ function tick(now) {
 
 function zoom(mouseX, factor) {
   const tAtMouse = pxToTime(mouseX);
-
   const newMsPerPx = msPerPx * factor;
-  // clamp zoom between ~hour-level and ~5-years-level
-  const minMsPerPx = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
-  const maxMsPerPx = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
-  msPerPx = Math.max(minMsPerPx, Math.min(maxMsPerPx, newMsPerPx));
+  
+  // clamp zoom between min and max thresholds
+  msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
   offsetMs = tAtMouse - EPOCH - mouseX * msPerPx;
