@@ -54,6 +54,7 @@ canvas.addEventListener('pointermove', (e)=>{
       const scale = pinchStartDist / dist; // >1 when pinching out
       msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, pinchStartMsPerPx * scale));
       offsetMs = pinchMidT - EPOCH - pinchMidX * msPerPx;
+      updatePositions();
       draw();
     }
   } else if (isTouchPanning && active.size === 1) {
@@ -61,6 +62,8 @@ canvas.addEventListener('pointermove', (e)=>{
     const dx = only.x - lastTouchX;
     lastTouchX = only.x;
     offsetMs -= dx * msPerPx;
+    lastDragSpeed = dx * msPerPx;  // for momentum
+    updatePositions();
     draw();
   }
 }, { passive:false });
