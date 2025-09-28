@@ -11,7 +11,7 @@ const events = [
 ].map(e => ({...e, t: Date.parse(e.date)}));
 */
 
-const events = [
+const eventsTX = [
   { significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15'},
   { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
   { significance:2, label:'Chi & Kim\'s anniversary', date:'2017-06-24' },
@@ -235,7 +235,7 @@ const eventsANH = [
   { significance:3, label:'10th Anniversary', date:'2022-12-12' }
 ];
 
-const eventsIS = [
+const events = [
   { significance:6, label:'Pre-State: Zionist Movement & British Mandate', dateFrom:'1897-08-29', dateTo:'1948-05-14', fadeLeft:'1920-01-15', fadeRight:'1948-05-14', color:'blue' },
   { significance:6, label:'David Ben-Gurion (I)', dateFrom:'1948-05-14', dateTo:'1953-12-07', color:'green' },
   { significance:6, label:'Moshe Sharett', dateFrom:'1953-12-07', dateTo:'1955-11-03', color:'yellow' },

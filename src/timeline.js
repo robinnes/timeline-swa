@@ -24,7 +24,7 @@ let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = p
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
-  //if (!lastTick) { lastTick = now; return; }  // giving time up front seems to work ok
+  
   const dt = (now - lastTick) / 1000;
   lastTick = now;
 
@@ -41,7 +41,7 @@ function tick(now) {
 function zoom(mouseX, factor) {
   const tAtMouse = pxToTime(mouseX);
   const newMsPerPx = msPerPx * factor;
-  
+
   // clamp zoom between min and max thresholds
   msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
 
@@ -68,6 +68,8 @@ function resize(){
 window.addEventListener('resize', resize);
 
 canvas.addEventListener('pointerdown', (e)=>{
+  if (e.pointerType !== 'mouse') return;
+  
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
