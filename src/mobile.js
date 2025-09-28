@@ -76,6 +76,11 @@ function endPointer(e){
   }
   if (active.size === 0) {
     isTouchPanning = false;
+    // Convert last drag frame delta into per-second velocity estimate using last frame dt
+    const now = performance.now();
+    const dt = Math.max(16.7, now - (lastTick || now)) / 1000; // ~1 frame if unknown
+    vOffsetMs = (lastDragSpeed || 0) / dt;
+    lastDragSpeed = 0
   } else if (active.size === 1) {
     const only = [...active.values()][0];
     isTouchPanning = true;
