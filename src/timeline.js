@@ -11,8 +11,8 @@ const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
 const EPOCH = Date.UTC(2000,0,1);
 
 // msPerPx controls zoom. offsetMs shifts timeline relative to EPOCH at x=0
-let msPerPx = MS_PER_DAY * 3.5; // ~3.5 days per pixel (years visible at start)
-let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/2) * msPerPx; // center on "now"
+let msPerPx = MS_PER_DAY * 30  // ~30 days per pixel (years visible at start)
+let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/1.2) * msPerPx; // center near "now"
 const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 // --- Helpers
@@ -69,7 +69,7 @@ window.addEventListener('resize', resize);
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
-  
+
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
