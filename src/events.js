@@ -235,7 +235,7 @@ const eventsANH = [
   { significance:3, label:'10th Anniversary', date:'2022-12-12' }
 ];
 
-const eventsISRAEL = [
+const eventsIsrael = [
   { significance:6, label:'Pre-State: Zionist Movement & British Mandate', dateFrom:'1897-08-29', dateTo:'1948-05-14', fadeLeft:'1920-01-15', fadeRight:'1948-05-14', color:'blue' },
   { significance:6, label:'David Ben-Gurion (I)', dateFrom:'1948-05-14', dateTo:'1953-12-07', color:'green' },
   { significance:6, label:'Moshe Sharett', dateFrom:'1953-12-07', dateTo:'1955-11-03', color:'yellow' },

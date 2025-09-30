@@ -79,6 +79,7 @@ canvas.addEventListener('pointerdown', (e)=>{
 });
 
 canvas.addEventListener('pointermove', (e)=>{
+  if (e.pointerType !== 'mouse') return;
   if (!isPanning) return;
   const dx = e.clientX - lastX;
   lastX = e.clientX;
@@ -88,6 +89,7 @@ canvas.addEventListener('pointermove', (e)=>{
 }, { passive:false });
 
 window.addEventListener('pointerup', (e)=>{
+  if (e.pointerType !== 'mouse') return;
   if(!isPanning) return;
   isPanning = false;
   // Convert last drag frame delta into per-second velocity estimate using last frame dt
