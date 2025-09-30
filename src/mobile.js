@@ -69,6 +69,7 @@ canvas.addEventListener('pointermove', (e)=>{
 }, { passive:false });
 
 function endPointer(e){
+  if (e.pointerType === 'mouse') return;
   if (active.has(e.pointerId)) active.delete(e.pointerId);
   if (active.size < 2) {
     pinching = false;
