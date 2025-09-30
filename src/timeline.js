@@ -24,11 +24,11 @@ let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = p
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
-  
+
   const dt = (now - lastTick) / 1000;
   lastTick = now;
 
-  if (isPanning) { lastDragSpeed = 0; return; }
+  if (isPanning || isTouchPanning) { lastDragSpeed = 0; return; }
 
   const drag = Math.exp(-4.0 * dt);
   vOffsetMs *= drag;
@@ -91,6 +91,7 @@ canvas.addEventListener('pointermove', (e)=>{
 window.addEventListener('pointerup', (e)=>{
   if (e.pointerType !== 'mouse') return;
   if(!isPanning) return;
+
   isPanning = false;
   // Convert last drag frame delta into per-second velocity estimate using last frame dt
   const now = performance.now();

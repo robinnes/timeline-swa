@@ -528,6 +528,7 @@ function draw(){
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   drawTicks();
   drawEvents();
+
 /*  
   const sig = 4;
   const spec = zoomSpec(sig);
