@@ -11,7 +11,7 @@ const events = [
 ].map(e => ({...e, t: Date.parse(e.date)}));
 */
 
-const eventsTX = [
+const events = [
   { significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15'},
   { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
   { significance:2, label:'Chi & Kim\'s anniversary', date:'2017-06-24' },
@@ -328,18 +328,18 @@ const eventsIsrael = [
   { significance:2, label:'Hezbollah pager attack', dateFrom:'2024-09-17', dateTo:'2024-09-18' }
   ];
 
-const events = [
-  { significance:1, label:'Born in Orlando, FL', date:'1942-09-17' },
+const eventsMom = [
+  { significance:3, label:'Born in Orlando, FL', date:'1942-09-17' },
   { significance:6, label:'Orlando, FL', dateFrom:'1942-09-17', dateTo:'1943-03-15', fadeLeft:'1942-09-17', fadeRight:'1943-01-15', color:'yellow', colorRight:'green' },
   { significance:6, label:'Denver, CO', dateFrom:'1943-03-16', dateTo:'1945-06-15', fadeLeft:'1943-05-15', fadeRight:'1945-03-15', colorLeft:'yellow', color:'green', colorRight:'blue' },
   { significance:6, label:'Seymore Texas (farm)', dateFrom:'1945-06-16', dateTo:'1957-12-31', fadeLeft:'1945-09-30', fadeRight:'1957-12-01', colorLeft:'green', color:'blue', colorRight:'yellow' },
   { significance:6, label:'Iowa Park', dateFrom:'1958-01-01', dateTo:'1960-06-15', fadeLeft:'1958-01-31', fadeRight:'1960-01-01', colorLeft:'blue', color:'yellow', colorRight:'red' },
-  { significance:6, label:'Alamosa', dateFrom:'1960-06-16', dateTo:'1962-06-15', fadeLeft:'1960-11-15', fadeRight:'1962-02-15', colorLeft:'yellow', color:'red', colorRight:'purple' },
+  { significance:6, label:'Alamosa', dateFrom:'1960-06-15', dateTo:'1962-06-15', fadeLeft:'1960-11-15', fadeRight:'1962-02-15', colorLeft:'yellow', color:'red', colorRight:'purple' },
   { significance:3, label:'Graduated High School', dateFrom:'1961-05-01', dateTo:'1961-05-30', fadeLeft:'1961-05-10', fadeRight:'1961-05-20' },
   { significance:6, label:'Colorado Springs', dateFrom:'1962-06-16', dateTo:'1964-05-15', fadeLeft:'1962-09-15', fadeRight:'1964-05-01', colorLeft:'red', color:'purple', colorRight:'blue' },
   { significance:5, label:'Dating Bob Innes', dateFrom:'1962-06-15', dateTo:'1964-07-23', fadeLeft:'1962-06-30', fadeRight:'1964-07-23', color:'yellow' },
   { significance:6, label:'Huntington Beach', dateFrom:'1964-05-16', dateTo:'1964-07-15', fadeLeft:'1964-05-30', fadeRight:'1964-07-01', colorLeft:'purple', color:'blue', colorRight:'green' },
-  { significance:3, label:'Move to Alaska', dateFrom:'1964-07-01', dateTo:'1964-07-30', fadeLeft:'1964-07-10', fadeRight:'1964-07-20' },
+  { significance:4, label:'Move to Alaska', dateFrom:'1964-07-01', dateTo:'1964-07-23', fadeLeft:'1964-07-08', fadeRight:'1964-07-15', color:'green' },
   { significance:6, label:'Anchorage', dateFrom:'1964-07-16', dateTo:'1966-06-15', fadeLeft:'1964-07-30', fadeRight:'1966-03-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
   { significance:3, label:'Married Bob', date:'1964-07-23' },
   { significance:6, label:'Valdez', dateFrom:'1966-06-15', dateTo:'1967-06-15', fadeLeft:'1966-09-01', fadeRight:'1967-03-01', colorLeft:'green', color:'yellow', colorRight:'red' },
@@ -356,7 +356,7 @@ const events = [
   { significance:2, label:'20 year high school reunion', dateFrom:'1981-05-01', dateTo:'1981-05-30', fadeLeft:'1981-05-10', fadeRight:'1981-05-20' },
   { significance:5, label:'Trip to Machu Picchu', dateFrom:'2001-08-27', dateTo:'2001-09-07', color:'yellow' },
   { significance:2, label:'Sister Sandy died', dateFrom:'1975-01-01', dateTo:'1975-01-31', fadeLeft:'1975-01-10', fadeRight:'1975-01-20' },
-  { significance:5, label:'Barstow, CA', dateFrom:'1965-01-15', dateTo:'1965-05-15', fadeLeft:'1965-01-31', fadeRight:'1965-05-01' },
+  { significance:5, label:'Barstow, CA', dateFrom:'1965-01-15', dateTo:'1965-05-15', fadeLeft:'1965-01-31', fadeRight:'1965-05-01', color:'yellow' },
   { significance:4, label:'Inca Trail trek', dateFrom:'2001-09-03', dateTo:'2001-09-06', color:'blue' },
   { significance:1, label:'Fly to Cuzco', date:'2001-08-30' },
   { significance:2, label:'Explore Machu Picchu ruins', date:'2001-09-06' },

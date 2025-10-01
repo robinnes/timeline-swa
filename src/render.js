@@ -3,6 +3,9 @@ const PADDING = 20;
 const MS_PER_DAY = 86400000; // 1000*60*60*24
 const MAX_LABEL_WIDTH = 150;
 const LABEL_LINE_HEIGHT = 18;
+const HIGHLIGHT_SHADOW = 'rgba(0,102,255,40)';
+const HIGHLIGHT_GLOW = 30;
+const LABEL_BRIGHTNESS = 0.85;  // default for label text
 
 function timeZoneNow(){
   const now = new Date();
@@ -54,15 +57,15 @@ function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric
 
 const midY = () => Math.floor(window.innerHeight / 2);
 
-function colorRGB(color) {
-  if (color === "blue") { return { r:0, g:100, b:255 }} else
-    if (color === "red") { return { r:255, g:0, b:100 } } else
-      if (color === "green") { return { r:0, g:255, b:100 } } else
-        if (color === "yellow") {return { r:255, g:255, b:100 } } else
-          if (color === "purple") {return { r:100, g:0, b:255 } } else
-            if (color === "white") {return { r:255, g:255, b:255 } } else
-              if (color === "black") { return { r:0, g:0, b:0 } };
-}
+const colorRGB = new Map([
+  ["black",  { r:0,   g:0,   b:0   }],
+  ["white",  { r:255, g:255, b:255 }],
+  ["blue",   { r:0,   g:100, b:255 }],
+  ["red",    { r:255, g:0,   b:100 }],
+  ["green",  { r:0,   g:255, b:100 }],
+  ["yellow", { r:255, g:255, b:100 }],
+  ["purple", { r:100, g:0,   b:255 }]
+]);
 
 function colorTrunc(rgb) {
   return rgb.r + "," + rgb.g + "," + rgb.b; 
@@ -255,10 +258,10 @@ function drawEvent(e, y, spec) {
   const yTop = Math.round(y - size / 2);
   const yBot = Math.round(y + size / 2);
 
-  const c = colorRGB(e.color ?? "white");
+  const c = colorRGB.get(e.color ?? "white");
   const color = colorTrunc(c);
-  const colorLeft = (e.colorLeft === undefined) ? color : colorTrunc(colorMix(c, colorRGB(e.colorLeft)));
-  const colorRight = (e.colorRight === undefined) ? color : colorTrunc(colorMix(c, colorRGB(e.colorRight)));
+  const colorLeft = (e.colorLeft === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorLeft)));
+  const colorRight = (e.colorRight === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorRight)));
 
   if (((xRight - xLeft) >= 6) || spec.fadeNear) {
 
@@ -278,10 +281,6 @@ function drawEvent(e, y, spec) {
         if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
         ctx.fillStyle = grad;
   } else ctx.fillStyle = `rgba(${color}, ${fade})`;
-  
-    //const alpha = 40, glow = 30;
-    //ctx.shadowColor = `rgba(0,102,255,${Math.min(0.9, alpha)})`;
-    //ctx.shadowBlur = glow;
 
     ctx.beginPath();
     ctx.moveTo(xFadeLeft, yTop);
@@ -315,73 +314,113 @@ function drawEvent(e, y, spec) {
   }
 }
 
-function drawLabelBubble(e, x, y) {
+function drawLabelBubble(e, spec, x, y) {
   
     // situate the label
-    const boxW = Math.ceil(e.parsedWidth) + EDGE_GAP*2;
-    const boxH = Math.ceil(e.parsedLabel.length * LABEL_LINE_HEIGHT) + EDGE_GAP;
-    const bx = Math.round(x - boxW/2);
-    //const by = Math.round(y - 24 - ((LABEL_LINE_HEIGHT + EDGE_GAP) * 3 * e.layer));
-    const by = Math.round(y - 24 - e.yOffset);
+    const width = Math.ceil(e.parsedWidth) + EDGE_GAP*2;
+    const height = Math.ceil(e.parsedLabel.length * LABEL_LINE_HEIGHT) + EDGE_GAP;
+    const left = Math.round(x - width/2);
+    const right = left + width;
+    const top = Math.round(y - 24 - e.yOffset);
+    const bottom = top + height;
+    const eventTop = y - (spec.size/2);
 
-    // stem
+    ctx.save();
+
+    // stem: from top of the event line/dot to bottom of label box
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(x + 0.5, y + 0.5);
-    ctx.lineTo(x + 0.5, by + boxH + 0.5);
+    ctx.moveTo(x, eventTop);
+    ctx.lineTo(x, bottom);
     ctx.stroke();
 
     // label box
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillStyle = 'rgb(40,40,40)';
     ctx.strokeStyle = 'rgba(255,255,255,0.18)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(bx, by, boxW, boxH, 8);
+    ctx.roundRect(left, top, width, height, 8);
+
+    // register as a screen element that can be interacted with
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, event:e});
+
+    // check here if mouse is over this element; it may have moved under the mouse
+    //highlightedLabel = (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) ? e : null;
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
+
+    if (e === highlightedLabel)
+      ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
+
     ctx.fill();
     ctx.stroke();
 
     // label text
     ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillStyle = `rgba(255,255,255,${LABEL_BRIGHTNESS})`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     for (let i=0; i<e.parsedLabel.length; i++) 
-      ctx.fillText(e.parsedLabel[i], x - (e.parsedWidth/2), by + EDGE_GAP + (LABEL_LINE_HEIGHT * i));
+      ctx.fillText(e.parsedLabel[i], left + EDGE_GAP, top + EDGE_GAP + (LABEL_LINE_HEIGHT * i));
+  
+    ctx.restore();
 }
 
-function drawLabelBelow(e, x, y, xFrom, xTo, spec) {
-  const thickness = spec.size, zoomFade = spec.fade;
+function drawLabelBelow(e, spec, x, y, xFrom, xTo) {
+  const thickness = spec.size;
   const w = window.innerWidth;
-  const by = Math.round(y + thickness/2 + EDGE_GAP);
+  const top = Math.round(y + thickness/2 + EDGE_GAP);
+  let zoomFade = spec.fade;
 
-  //let bx = Math.max(Math.round(x - (e.labelWidth/2)), xFrom + EDGE_GAP);
-  let bx = Math.round(x - (e.labelWidth/2));
-  if (bx < (xFrom + EDGE_GAP)) bx = xFrom + EDGE_GAP;
-  if ((bx + e.labelWidth) > (xTo - EDGE_GAP)) bx = xTo - e.labelWidth - EDGE_GAP;
+  let left = Math.round(x - (e.labelWidth/2));
+  if (left < (xFrom + EDGE_GAP)) left = xFrom + EDGE_GAP;
+  if ((left + e.labelWidth) > (xTo - EDGE_GAP)) left = xTo - e.labelWidth - EDGE_GAP;
   
   // keep on the screen as much as possible
-  if (bx < EDGE_GAP) {
-    bx = EDGE_GAP;
-    if ((bx + e.labelWidth + EDGE_GAP) > xTo) bx = xTo - EDGE_GAP - e.labelWidth;
+  if (left < EDGE_GAP) {
+    left = EDGE_GAP;
+    if ((left + e.labelWidth + EDGE_GAP) > xTo) left = xTo - EDGE_GAP - e.labelWidth;
   }
-  if ((bx + e.labelWidth + EDGE_GAP) > w) {
-    bx = w - EDGE_GAP - e.labelWidth;
-    if (bx < xFrom + EDGE_GAP) bx = xFrom + EDGE_GAP;
+  if ((left + e.labelWidth + EDGE_GAP) > w) {
+    left = w - EDGE_GAP - e.labelWidth;
+    if (left < xFrom + EDGE_GAP) left = xFrom + EDGE_GAP;
   }
-    
+  
+  const right = left + e.labelWidth;
+  const bottom = top + LABEL_LINE_HEIGHT;
+
+  // register as a screen element that can be interacted with
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, event:e});
+
+  // check here if mouse is over this element; it may have moved under the mouse
+  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
+
+  ctx.save();
+  
+  if (e === highlightedLabel) {
+    ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.roundRect(left - EDGE_GAP, top - EDGE_GAP, e.labelWidth + EDGE_GAP*2, LABEL_LINE_HEIGHT + EDGE_GAP, 8);
+    ctx.fill();
+    zoomFade = LABEL_BRIGHTNESS; // label text always bright when highlighted
+  }
   ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'; 
   ctx.fillStyle = `rgba(255, 255, 255, ${zoomFade})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(e.label, bx, by);
+  ctx.fillText(e.label, left, top);
+
+  ctx.restore();
 }
 
 function drawEvents(){
-  //const w = window.innerWidth;  //, h = window.innerHeight;
   const rangeLeft = 0 - MAX_LABEL_WIDTH / 2;
-  const rangeRight = window.innerwidth + MAX_LABEL_WIDTH / 2;
-  
+  const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
+
+  screenElements.length = 0;  // reset list of screen elements
+  highlightedLabel = null;
+
   events.forEach(event => {
     if (event.yOffset === null) return; // don't display
 
@@ -397,8 +436,8 @@ function drawEvents(){
     drawEvent(event, y, spec);
 
     // draw bubble label above
-    if (event.yOffset > 0) drawLabelBubble(event, x, y)
-      else if (event.yOffset < 0) drawLabelBelow(event, x, y, xFrom, xTo, spec);
+    if (event.yOffset > 0) drawLabelBubble(event, spec, x, y)
+      else if (event.yOffset < 0) drawLabelBelow(event, spec, x, y, xFrom, xTo);
 
   });
 }
@@ -477,7 +516,7 @@ function updatePositions(){
     events.forEach(e => {
       if (e.significance !== sig) return; // not this significance
 
-      if (!spec.displayLabel) { e.layer = 0; e.yOffset = 0; return; }   // also need to check for spec.fade === 0 ???
+      if (!spec.displayLabel || spec.fade === 0) { e.layer = 0; e.yOffset = 0; return; }   // don't position if...
 
       // can we place label below? (will display wide enough)
       const lineWidth = (timeToPx(e.tTo) - timeToPx(e.tFrom));
@@ -495,8 +534,6 @@ function updatePositions(){
       while (top > -200 && !(open)) {
         // Check each already place event (c) for overlap...
         for (let c = 0; c < events.length; c++){
-//if (e.label === "Yitzhak Rabin (I)" && events[c].label === "Golda Meir") {
-//  console.log({e:e.label, c:events[c].label});}
           if (events[c] === e) continue; // self
           if (!events[c].yOffset || events[c].yOffset === -1) continue; // not placed yet
           

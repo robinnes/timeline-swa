@@ -11,16 +11,23 @@ const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
 const EPOCH = Date.UTC(2000,0,1);
 
 // msPerPx controls zoom. offsetMs shifts timeline relative to EPOCH at x=0
-let msPerPx = MS_PER_DAY * 30  // ~30 days per pixel (years visible at start)
-let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/1.2) * msPerPx; // center near "now"
+let msPerPx = MS_PER_DAY * 1  // ~30 days per pixel (years visible at start)
+let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/0.5) * msPerPx; // center near "now"
 const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 // --- Helpers
 const pxToTime = x => EPOCH + offsetMs + x * msPerPx;
 const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
 
+// Retain mouse positions for non-event handler access
+let mouseX = 0, mouseY = 0;
+
 // Zoom & pan variables
 let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = performance.now();
+
+// Elements currently rendered on screen that can be interacted with  
+const screenElements = [];
+let highlightedLabel = null;
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
@@ -38,21 +45,20 @@ function tick(now) {
   else draw();
 };
 
-function zoom(mouseX, factor) {
-  const tAtMouse = pxToTime(mouseX);
+function zoom(x, factor) {
+  const tAtMouse = pxToTime(x);
   const newMsPerPx = msPerPx * factor;
 
   // clamp zoom between min and max thresholds
   msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
-  offsetMs = tAtMouse - EPOCH - mouseX * msPerPx;
+  offsetMs = tAtMouse - EPOCH - x * msPerPx;
 
   updatePositions();
   draw();
 };
 
-// --- HiDPI canvas resize
 function resize(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
   const w = Math.floor(window.innerWidth);
@@ -80,12 +86,28 @@ canvas.addEventListener('pointerdown', (e)=>{
 
 canvas.addEventListener('pointermove', (e)=>{
   if (e.pointerType !== 'mouse') return;
-  if (!isPanning) return;
-  const dx = e.clientX - lastX;
-  lastX = e.clientX;
-  offsetMs -= dx * msPerPx; // drag right -> move timeline left
-  lastDragSpeed = dx * msPerPx;
-  draw();
+  
+  mouseX = e.clientX; mouseY = e.clientY;
+
+  if (isPanning) {
+    // drag and momentum
+    const dx = e.clientX - lastX;
+    lastX = e.clientX;
+    offsetMs -= dx * msPerPx; // drag right -> move timeline left
+    lastDragSpeed = dx * msPerPx;
+    draw();
+  } else {
+    // check if mouse is over any interactive elements
+    let found = null;
+    for (let i=0; i<screenElements.length; i++) {
+      const el = screenElements[i];
+      if (mouseX >= el.left && mouseX <= el.right && mouseY >= el.top && mouseY <= el.bottom) {
+        found = el.event;  break; };
+    }
+    // if so, draw, which will reset screenLements and highlight the one under mouseX/mouseY
+    if (found !== highlightedLabel) draw();
+  }
+
 }, { passive:false });
 
 window.addEventListener('pointerup', (e)=>{
@@ -110,18 +132,19 @@ canvas.addEventListener('wheel', (e)=>{
 
 /*
 canvas.addEventListener('dblclick', (e)=>{
-  const mouseX = e.clientX;
+  const x = e.clientX;
   const factor =  Math.pow(ZOOM_FACTOR, -1);
-  zoom(mouseX, factor)
+  zoom(x, factor)
 });
 */
 
 canvas.addEventListener('keydown', function (e) {
-  const mouseX = window.innerWidth / 2;
-  if (e.key === 'ArrowUp') zoom(mouseX, Math.pow(ZOOM_FACTOR, -1));
-  else if (e.key === 'ArrowDown') zoom(mouseX, Math.pow(ZOOM_FACTOR, 1));
+  const midX = window.innerWidth / 2;
+  if (e.key === 'ArrowUp') zoom(midX, Math.pow(ZOOM_FACTOR, -1));
+  else if (e.key === 'ArrowDown') zoom(midX, Math.pow(ZOOM_FACTOR, 1));
   else if (e.key === 'ArrowRight') vOffsetMs -= 200 * msPerPx;
   else if (e.key === 'ArrowLeft') vOffsetMs += 200 * msPerPx;
+  else return;
 });
 
 // Polyfill roundRect if needed
