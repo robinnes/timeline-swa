@@ -1,3 +1,4 @@
+
 /*
 const events = [
   { date:'1969-07-20', label:'Apollo 11 Moon Landing', importance:3 },
@@ -381,3 +382,69 @@ const eventsMom = [
   { significance:3, label:'First grandchild (Brooke)', date:'2004-07-15' },
   { significance:3, label:'Lisa\'s wedding', date:'2002-08-03' }
 ];
+
+
+function parseLabel(label) {
+  // attempt to minimize label width by splitting longer values up
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  const labelWidth = ctx.measureText(label).width;
+  const words = label.split(" "); // what about hyphens?
+  let line = "", labels = [], maxWidth = 0;
+
+  // parse label by words, start a new line when width exceeds MAX_LABEL_WIDTH
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const testWidth = ctx.measureText(testLine).width;
+    if (testWidth > MAX_LABEL_WIDTH && n > 0) {
+      line = line.trimEnd();
+      if (ctx.measureText(line).width > maxWidth) maxWidth = ctx.measureText(line).width;
+      labels.push(line);
+      line = words[n] + " ";
+    } else {
+      line = testLine;
+    }
+  }
+  line = line.trimEnd();
+  labels.push(line);
+  if (ctx.measureText(line).width > maxWidth) maxWidth = ctx.measureText(line).width;
+
+  // if there are 2 rows, try to balance the widths
+  if (labels.length === 2) {
+    const words = labels[0].split(" ");
+    let try0 = labels[0], try1 = labels[1];
+    for (w = words.length-1; w > 0; w--) {
+      const word = words[w];
+      try0 = try0.slice(0, (word.length+1) * -1);
+      try1 = word + " " + try1;
+      if (ctx.measureText(try1).width > ctx.measureText(try0).width) break;
+      labels[0] = try0; labels[1] = try1;
+      maxWidth = ctx.measureText(try0).width;
+    }
+  }
+
+  return {labels, width:maxWidth, labelWidth};
+}
+
+function initializeEvents() {
+
+  events.sort((a, b) => b.significance - a.significance);  // attempt to solve hover problem where the label is written over...
+
+  events.forEach(e => {
+    
+    // Establish properties for positioning labels
+    const parsed = parseLabel(e.label);
+    e.labelWidth = parsed.labelWidth;
+    e.parsedLabel = parsed.labels;
+    e.parsedWidth = parsed.width;
+    e.yOffset = null;
+
+    // When only date supplied, convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
+    const d = Date.parse(e.date), h = 60*60*1000;
+    e.tFrom = (e.dateFrom === undefined) ? d + (8 * h) : Date.parse(e.dateFrom) + (12 * h);
+    e.tTo = (e.dateTo === undefined) ? d + (16 * h) : Date.parse(e.dateTo) + (12 * h);
+    e.fLeft = (e.fadeLeft === undefined) ? ((e.dateFrom === undefined) ? d + (11 * h) : e.tFrom) : Date.parse(e.fadeLeft) + (12 * h);
+    e.fRight = (e.fadeRight === undefined) ? ((e.dateTo === undefined) ? d + (13 * h) : e.tTo) : Date.parse(e.fadeRight) + (12 * h);
+    e.dateTime = (e.date === undefined) ? (e.fRight + e.fLeft) / 2 : d + (12 * h);
+    e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
+  });
+}

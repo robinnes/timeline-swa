@@ -3,6 +3,7 @@ const ctx = canvas.getContext('2d');
 const ZOOM_FACTOR = 1.1;
 const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
 const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
+const MS_PER_DAY = 86400000; // 1000*60*60*24
 
 // --- Timeline state
 //const midY = () => Math.floor(window.innerHeight / 2);
@@ -165,6 +166,29 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     this.closePath();
     return this;
   };
+}
+
+function draw(){
+  ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
+  drawTicks();
+  drawEvents();
+
+/*  
+  const sig = 4;
+  const spec = zoomSpec(sig);
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.fillText("mxPerPx:", window.innerWidth - 111, window.innerHeight - 95);
+  ctx.fillText(Math.round(msPerPx), window.innerWidth - 30, window.innerHeight - 95);
+  ctx.fillText("factor:", window.innerWidth - 111, window.innerHeight - 75);
+  ctx.fillText(Math.round((spec.factor)*1000)/1000, window.innerWidth - 30, window.innerHeight - 75);
+  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
+  ctx.fillText(Math.round((spec.fade)*1000)/1000, window.innerWidth - 30, window.innerHeight - 55);
+  ctx.fillText(`size(${sig}):`, window.innerWidth - 111, window.innerHeight - 35);
+  ctx.fillText(Math.round((spec.size)*1000)/1000, window.innerWidth - 30, window.innerHeight - 35);
+*/
 }
 
 initializeEvents();
