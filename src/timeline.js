@@ -1,5 +1,6 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
 const ZOOM_FACTOR = 1.1;
 const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
 const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
@@ -170,6 +171,8 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 function draw(){
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
+  screenElements.length = 0;  // reset list of screen elements
+  highlightedLabel = null;
   drawTicks();
   drawEvents();
 

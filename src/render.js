@@ -136,7 +136,7 @@ function drawEvent(e, y, spec) {
     const eBottom = Math.max(bottom, Math.round(y + DOT_HOVER_PAD));
     
     // register as a screen element that can be interacted with
-    screenElements.push({left:eLeft, right:eRight, top:eTop, bottom:eBottom, event:e});
+    screenElements.push({left:eLeft, right:eRight, top:eTop, bottom:eBottom, type:'event', event:e});
     
     // check for mouse over
     if (mouseX >= eLeft && mouseX <= eRight && mouseY >= eTop && mouseY <= eBottom) {
@@ -203,7 +203,7 @@ function drawLabelAbove(e, spec, x, y) {
   ctx.restore();
   
   // register as a screen element that can be interacted with
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, event:e});
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
 
   // check here if mouse is over this element; it may have moved under the mouse
   if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
@@ -236,7 +236,7 @@ function drawLabelBelow(e, spec, x, y, xFrom, xTo) {
   const bottom = top + LABEL_LINE_HEIGHT;
 
   // register as a screen element that can be interacted with
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, event:e});
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
 
   // check here if mouse is over this element; it may have moved under the mouse
   if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
@@ -265,8 +265,8 @@ function drawEvents(){
   const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
   const y = midY();
 
-  screenElements.length = 0;  // reset list of screen elements
-  highlightedLabel = null;
+//  screenElements.length = 0;  // reset list of screen elements
+//  highlightedLabel = null;
   
   // draw each event that should be displayed
   events.filter(e => e.yOffset !== null).forEach(event => {

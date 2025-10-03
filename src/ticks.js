@@ -1,3 +1,5 @@
+const PUSHING_THRESHOLD = 150; // px distance from corner label to start "pushing"
+const MAX_TICK_LABEL_BRIGHT = 0.85; // max brightness for tick labels
 
 // Helper functions
 function timeZoneNow(){
@@ -63,55 +65,69 @@ function tickSpec(){
   }
 }
 
-function drawTicks(){
+function drawTick(text, left, width, fade) {
+  const top = EDGE_GAP;
+  const bottom = top + LABEL_LINE_HEIGHT;
+  const right = left + width;
+  let highlight = false;
+
+  // register the tick label for mouse hit detection
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'tick', event:text });
+
+  // check here if mouse is over this tick label; it may have moved under the mouse
+  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+    highlightedLabel = text;
+    highlight = true;
+  }
+
+  ctx.save();
+  if (highlight) {
+    ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.roundRect(left - EDGE_GAP, top - EDGE_GAP, width + EDGE_GAP*2, LABEL_LINE_HEIGHT + EDGE_GAP, 8);
+    ctx.fill();
+    fade = LABEL_BRIGHTNESS; // label text always bright when highlighted
+  }
+  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.fillStyle = `rgba(255, 255, 255, ${fade})`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(text, left, top);
+  ctx.restore();
+}
+
+function drawTicks() {
   const spec = tickSpec();
   const w = window.innerWidth, h = window.innerHeight;
   const t0 = pxToTime(0), t1 = pxToTime(w);
-  
-  // Calculate the width of a tick in pixels; used for fade logic
   const tickWidth = spec.msPerTick / msPerPx;
-
-  // Find first tick at/left of viewport
+  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';  // need this for measureText
   let t = spec.start(t0);
-  /*
-  if (t < t0) {
-    // advance until we reach visible range
-    let guard = 0;
-    while (t < t0 && guard++ < 10000) t = spec.step(t, 1);
-  } else {
-    // step back to ensure we include the one just before
-    t = spec.step(t, -1);
-  }
-*/
+
   // Corner label (display year or month+year in top-left if necessary)
   let cornerLabelX = EDGE_GAP, cornerLabelWidth = 0; 
   let pushing = false, pushingT = 0, pushingLabel = '', pushingX = 0, pushingWidth = 0;
   if ((spec.mode==='day') || ((spec.mode==='month') && (tickWidth * spec.majorEvery * 2.0)) >= w) {
 
-    ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
     const cornerLabelText = spec.mode==='day' ? formatMonthYear(t0) : formatYear(t0);
     
     // Determine whether a major tick is close to the corner label
     const firstMajorTick = spec.mode==='day' ? nextMonth(t0) : nextYear(t0);
     const firstMajorX = timeToPx(firstMajorTick);
 
-    if (firstMajorX < 150) { 
-      cornerLabelX -= (150 - firstMajorX); // push left if major tick is close
+    if (firstMajorX < PUSHING_THRESHOLD) { 
+      cornerLabelX -= (PUSHING_THRESHOLD - firstMajorX); // push left if major tick is close
       pushing = true;
       pushingT = firstMajorTick;
       pushingLabel = spec.mode==='day' ? formatMonthYear(pushingT) : formatYear(pushingT);
       pushingWidth = ctx.measureText(pushingLabel).width; 
       pushingX = Math.max(firstMajorX, EDGE_GAP + (pushingWidth / 2));
     }
-    
-    // Draw corner label
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(cornerLabelText, cornerLabelX, EDGE_GAP);
     cornerLabelWidth = ctx.measureText(cornerLabelText).width;
-    ctx.restore();
+
+    // Draw corner label
+    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT);
   }
 
   // Current date/time blue line
@@ -127,13 +143,11 @@ function drawTicks(){
     ctx.restore();
   }
 
-  // Draw ticks...
-  ctx.save();
+  // Tick lines and labels across the top
   ctx.lineWidth = 1;
   for (let i=0; i<10000; i++){
     if (t > t1 + 2 * MS_PER_DAY) break;
 
-    // Tick line
     const x = Math.round(timeToPx(t)) + 0.5; // crisp lines
     
     // major = whether this is a "major" tick (1st of month, Jan 1, decade start, etc)
@@ -153,36 +167,27 @@ function drawTicks(){
     // display tick label if wide enough
     if (major || tickWidth >= spec.minWidth) {
       const label = (pushing && t===pushingT) ? pushingLabel : (major ? spec.majorLabel(t) : spec.label(t));
-
-      // need this now for measureText
-      ctx.font = (major ? '14px' : '14px') + ' system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
-      
+      const labelWidth = ctx.measureText(label).width;
+        
       // position label on the line, but if it's pushing the corner label, move it right
       const labelX = (pushing && t===pushingT) ? pushingX : x;
-     
+      const left = labelX - (labelWidth / 2);
+
       // fade out label based on available space (tickWidth)
       let fadeFactor = major ? 0.85 : Math.min((tickWidth - spec.minWidth) / spec.minWidth, 0.85);
       
       if (cornerLabelWidth > 0) {
-      // fade out labels that overlap the corner label
-      const labelWidth = ctx.measureText(label).width;
-      if (labelX - (labelWidth / 2) < cornerLabelX + cornerLabelWidth + PADDING)
-        fadeFactor = Math.min(fadeFactor, Math.max(0, ((labelX - (ctx.measureText(label).width / 2) - (cornerLabelX + cornerLabelWidth)) / PADDING)));
+        // fade out labels that overlap the corner label
+        if (left < cornerLabelX + cornerLabelWidth + PADDING)
+          fadeFactor = Math.min(fadeFactor, Math.max(0, ((left - (cornerLabelX + cornerLabelWidth)) / PADDING)));
 
-      // fade out labels that overlap the "pushing" tick
-      if (!(t===pushingT) && (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth / 2) < PADDING))
-        fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / PADDING));
+        // fade out labels that overlap the "pushing" tick
+        if (!(t===pushingT) && (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth / 2) < PADDING))
+          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / PADDING));
       }
-
       // draw the label
-      ctx.fillStyle = `rgba(255, 255, 255, ${fadeFactor})`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(label, labelX, EDGE_GAP);
-      //ctx.textBaseline = 'bottom';
-      //ctx.fillText(label, x, h - EDGE_GAP);
+      if (fadeFactor > 0) drawTick(label, left, labelWidth, fadeFactor);
     }
     t = spec.step(t, 1);
   }
-  ctx.restore();
 }
