@@ -18,7 +18,7 @@ let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/0.5) * msPerPx; // cent
 const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 // --- Helpers
-const pxToTime = x => EPOCH + offsetMs + x * msPerPx;
+const pxToTime = x => EPOCH + offsetMs + (x * msPerPx);
 const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
 
 // Retain mouse positions for non-event handler access
@@ -29,7 +29,11 @@ let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = p
 
 // Elements currently rendered on screen that can be interacted with  
 const screenElements = [];
-let highlightedLabel = null;
+let highlightIdx = -1;
+let highlightedEvent = null;
+
+let fixedPanMode = null;  // controls keyboard navigation
+let zoomInProgress = null;  // automatic zoom/pan in progress
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
@@ -39,9 +43,25 @@ function tick(now) {
 
   if (isPanning || isTouchPanning) { lastDragSpeed = 0; return; }
 
-  const drag = Math.exp(-4.0 * dt);
+  if (zoomInProgress) {
+    // move pan and zoom towards target
+    const dOffset = zoomInProgress.newOffset - offsetMs;
+    const dMsPerPx = zoomInProgress.newMsPerPx - msPerPx;
+    offsetMs += dOffset * dt * 10;
+    msPerPx += dMsPerPx * dt * 10;
+    // stop when movement is smaller than a pixel
+    if (Math.abs(dOffset) < msPerPx) zoomInProgress = null;
+    updatePositions();
+    draw();
+    return;
+  }
+  
+  // carry on momentum, if there is velocity
+  if (vOffsetMs === 0) return;
+
+  const drag = Math.exp(-4.0 * dt);  // apply drag
   vOffsetMs *= drag;
-  offsetMs -= vOffsetMs * dt; // apply velocity
+  offsetMs -= vOffsetMs * dt;
 
   if (Math.abs(vOffsetMs) < (1 * msPerPx)) vOffsetMs = 0;
   else draw();
@@ -81,6 +101,8 @@ canvas.addEventListener('pointerdown', (e)=>{
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
+  zoomInProgress = null;  // stop any zooming in progress
+
   isPanning = true;
   vOffsetMs = 0;
   lastX = e.clientX;
@@ -92,6 +114,8 @@ canvas.addEventListener('pointermove', (e)=>{
   mouseX = e.clientX; mouseY = e.clientY;
 
   if (isPanning) {
+    fixedPanMode = null;
+
     // drag and momentum
     const dx = e.clientX - lastX;
     lastX = e.clientX;
@@ -104,10 +128,10 @@ canvas.addEventListener('pointermove', (e)=>{
     for (let i=0; i<screenElements.length; i++) {
       const el = screenElements[i];
       if (mouseX >= el.left && mouseX <= el.right && mouseY >= el.top && mouseY <= el.bottom) {
-        found = el.event;  break; };
+        found = i;  break; };
     }
-    // if so, draw, which will reset screenLements and highlight the one under mouseX/mouseY
-    if (found !== highlightedLabel) draw();
+    // if so, draw, which will reset screenElements and highlight the one under mouseX/mouseY
+    if (found !== highlightIdx) draw();
   }
 
 }, { passive:false });
@@ -127,6 +151,7 @@ window.addEventListener('pointerup', (e)=>{
 // Wheel to zoom (Ctrl/Trackpad friendly) - gesturestart/gesturechange?
 canvas.addEventListener('wheel', (e)=>{
   e.preventDefault();
+  zoomInProgress = null;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(ZOOM_FACTOR, direction);
   zoom(e.clientX, factor);
@@ -141,12 +166,54 @@ canvas.addEventListener('dblclick', (e)=>{
 */
 
 canvas.addEventListener('keydown', function (e) {
+  
+  zoomInProgress = null; // stop any zooming in progress
   const midX = window.innerWidth / 2;
-  if (e.key === 'ArrowUp') zoom(midX, Math.pow(ZOOM_FACTOR, -1));
-  else if (e.key === 'ArrowDown') zoom(midX, Math.pow(ZOOM_FACTOR, 1));
-  else if (e.key === 'ArrowRight') vOffsetMs -= 200 * msPerPx;
-  else if (e.key === 'ArrowLeft') vOffsetMs += 200 * msPerPx;
+
+  if (e.key === 'ArrowUp') {
+    fixedPanMode = null;
+    zoom(midX, Math.pow(ZOOM_FACTOR, -1));
+  }
+  else if (e.key === 'ArrowDown') {
+    if (fixedPanMode) {
+      fixedPanMode = tickSpec.get(fixedPanMode.major);  // zoom out one level
+      zoomToTick(fixedPanMode.start(offsetMs + EPOCH));
+    } else zoom(midX, Math.pow(ZOOM_FACTOR, 1));
+  }
+  else if (e.key === 'ArrowRight') {
+    if (fixedPanMode) zoomToTick(fixedPanMode.step(fixedPanMode.start(offsetMs + EPOCH),2));
+    else vOffsetMs -= 200 * msPerPx;
+  }
+  else if (e.key === 'ArrowLeft') {
+    if (fixedPanMode) zoomToTick(fixedPanMode.start(offsetMs + EPOCH));
+    else vOffsetMs += 200 * msPerPx;
+  }
   else return;
+});
+
+function zoomToTick(t) {
+  // determine where to zoom/pan
+  const w = window.innerWidth;
+  const tNext = fixedPanMode.step(t, 1);
+  const width = tNext - t;
+  const newOffsetMs = (t - (width / 10)) - EPOCH;  // just to the left of clicked label
+  const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
+
+  // set in motion; picked up in tick()
+  zoomInProgress = {origOffset: offsetMs, newOffset:newOffsetMs, origMsPerPx:msPerPx, newMsPerPx:newMsPerPx };
+}
+
+canvas.addEventListener('click', function (e) {
+  if (highlightIdx >= 0) {
+    const elem = screenElements[highlightIdx];
+    if (elem.type === 'event') {
+      console.log("click:", highlightedEvent.label);
+    } else if (elem.type === 'tick') {
+      // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
+      fixedPanMode = tickSpec.get(elem.mode);
+      zoomToTick(elem.t);
+    }
+  }
 });
 
 // Polyfill roundRect if needed
@@ -172,31 +239,29 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 function draw(){
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
-  highlightedLabel = null;
+  highlightIdx = -1;
   drawTicks();
   drawEvents();
 
-/*  
-  const sig = 4;
-  const spec = zoomSpec(sig);
+  const factor = Math.log10(msPerPx);
+  const spec = getTickSpec();
   ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
-  ctx.fillText("mxPerPx:", window.innerWidth - 111, window.innerHeight - 95);
-  ctx.fillText(Math.round(msPerPx), window.innerWidth - 30, window.innerHeight - 95);
-  ctx.fillText("factor:", window.innerWidth - 111, window.innerHeight - 75);
-  ctx.fillText(Math.round((spec.factor)*1000)/1000, window.innerWidth - 30, window.innerHeight - 75);
-  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
+  ctx.fillText("factor:", window.innerWidth - 111, window.innerHeight - 95);
+  ctx.fillText(Math.round(factor * 1000) / 1000, window.innerWidth - 30, window.innerHeight - 95);
+  ctx.fillText("mode:", window.innerWidth - 111, window.innerHeight - 75);
+  ctx.fillText(spec.mode, window.innerWidth - 30, window.innerHeight - 75);
+/*  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
   ctx.fillText(Math.round((spec.fade)*1000)/1000, window.innerWidth - 30, window.innerHeight - 55);
   ctx.fillText(`size(${sig}):`, window.innerWidth - 111, window.innerHeight - 35);
   ctx.fillText(Math.round((spec.size)*1000)/1000, window.innerWidth - 30, window.innerHeight - 35);
 */
 }
 
-initializeEvents();
-
 // Kick things off
+initializeEvents();
 resize();
 requestAnimationFrame(tick);
 canvas.focus();

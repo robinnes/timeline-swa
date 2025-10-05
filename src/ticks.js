@@ -50,33 +50,36 @@ function formatMonth(t){ return new Date(t).toLocaleString(undefined,{month:'sho
 function formatDayMonth(t){ return new Date(t).toLocaleString(undefined,{month:'short', day:'numeric', timeZone:'UTC'}); }
 function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric', timeZone:'UTC'}); }
 
-function tickSpec(){
-  const px = pxPerDay();
-  if (px < 0.007) {
-    return { mode: 'century', start:startOfCentury, step:addCenturies, label:formatYear, majorLabel:formatYear, majorEvery:1000, msPerTick:86400000*365*100, minWidth:30 };
-  } else if (px < 0.07) {
-    return { mode: 'decade', start:startOfDecade, step:addDecades, label:formatYear, majorLabel:formatYear, majorEvery:100, msPerTick:86400000*365*10, minWidth:30 };
-  } else if (px < 0.7) {
-    return { mode:'year', start:startOfYear, step:addYears, label:formatYear, majorLabel:formatYear, majorEvery:10, msPerTick:86400000*365, minWidth:30 };
-  } else if (px < 12) {
-    return { mode:'month', start:startOfMonth, step:addMonths, label:formatMonth, majorLabel:formatYear, majorEvery:12, msPerTick:86400000*30, minWidth:30 };
-  } else {
-    return { mode:'day', start:startOfDay, step:addDays, label:formatDay, majorLabel:formatMonth, majorEvery:30, msPerTick:86400000, minWidth:18 };
-  }
+const tickSpec = new Map([
+  ['day',     { mode:'day', major:'month', start:startOfDay, step:addDays, label:formatDay, majorLabel:formatMonth, majorEvery:30, msPerTick:86400000, minWidth:18 }],
+  ['month',   { mode:'month', major:'year', start:startOfMonth, step:addMonths, label:formatMonth, majorLabel:formatYear, majorEvery:12, msPerTick:86400000*30, minWidth:30 }],
+  ['year',    { mode:'year', major:'decade', start:startOfYear, step:addYears, label:formatYear, majorLabel:formatYear, majorEvery:10, msPerTick:86400000*365, minWidth:30 }],
+  ['decade',  { mode:'decade', major:'century', start:startOfDecade, step:addDecades, label:formatYear, majorLabel:formatYear, majorEvery:100, msPerTick:86400000*365*10, minWidth:30 }],
+  ['century', { mode:'century', major:'century', start:startOfCentury, step:addCenturies, label:formatYear, majorLabel:formatYear, majorEvery:1000, msPerTick:86400000*365*100, minWidth:30 }]
+]);
+
+function getTickSpec(){
+  const f = Math.log10(msPerPx);
+  if (f >= 10) return tickSpec.get('century')
+  else if (f >= 9) return tickSpec.get('decade')
+  else if (f >= 8) return tickSpec.get('year')
+  else if (f >= 7) return tickSpec.get('month')
+  else return tickSpec.get('day');
 }
 
-function drawTick(text, left, width, fade) {
+function drawTick(text, left, width, fade, t, mode) {
   const top = EDGE_GAP;
   const bottom = top + LABEL_LINE_HEIGHT;
   const right = left + width;
   let highlight = false;
 
   // register the tick label for mouse hit detection
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'tick', event:text });
+  // t,mode direct the click to zoom/pan to 'mode' (year/month/etc.) at location t
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'tick', t:t, mode:mode });
 
   // check here if mouse is over this tick label; it may have moved under the mouse
   if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
-    highlightedLabel = text;
+    highlightIdx = screenElements.length - 1;
     highlight = true;
   }
 
@@ -98,7 +101,7 @@ function drawTick(text, left, width, fade) {
 }
 
 function drawTicks() {
-  const spec = tickSpec();
+  const spec = getTickSpec();
   const w = window.innerWidth, h = window.innerHeight;
   const t0 = pxToTime(0), t1 = pxToTime(w);
   const tickWidth = spec.msPerTick / msPerPx;
@@ -106,8 +109,13 @@ function drawTicks() {
   let t = spec.start(t0);
 
   // Corner label (display year or month+year in top-left if necessary)
-  let cornerLabelX = EDGE_GAP, cornerLabelWidth = 0; 
-  let pushing = false, pushingT = 0, pushingLabel = '', pushingX = 0, pushingWidth = 0;
+  let cornerLabelX = EDGE_GAP;
+  let cornerLabelWidth = 0; 
+  let pushing = false;
+  let pushingT = 0;
+  let pushingLabel = '';
+  let pushingX = 0;
+  let pushingWidth = 0;
   if ((spec.mode==='day') || ((spec.mode==='month') && (tickWidth * spec.majorEvery * 2.0)) >= w) {
 
     const cornerLabelText = spec.mode==='day' ? formatMonthYear(t0) : formatYear(t0);
@@ -125,9 +133,9 @@ function drawTicks() {
       pushingX = Math.max(firstMajorX, EDGE_GAP + (pushingWidth / 2));
     }
     cornerLabelWidth = ctx.measureText(cornerLabelText).width;
-
+    const cornerLabelT = spec.mode==='day' ? startOfMonth(t) : startOfYear(t);
     // Draw corner label
-    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT);
+    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT, cornerLabelT, spec.major);
   }
 
   // Current date/time blue line
@@ -152,10 +160,11 @@ function drawTicks() {
     
     // major = whether this is a "major" tick (1st of month, Jan 1, decade start, etc)
     const major = (function(){
-      if (spec.mode==='day') return (new Date(t).getUTCDate())===1; // 1st of month as major
-      if (spec.mode==='month') return new Date(t).getUTCMonth()===0; // January as major
-      return (new Date(t).getUTCFullYear() % spec.majorEvery)===0;
+      if (spec.mode==='day') return new Date(t).getUTCDate() === 1; // 1st of month as major
+      if (spec.mode==='month') return new Date(t).getUTCMonth() === 0; // January as major
+      return new Date(t).getUTCFullYear() % spec.majorEvery === 0;
     })();
+    const tag = (major) ? spec.major : spec.mode;  // drives what happens when label is clicked
 
     // draw the tick line
     ctx.beginPath();
@@ -186,7 +195,7 @@ function drawTicks() {
           fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / PADDING));
       }
       // draw the label
-      if (fadeFactor > 0) drawTick(label, left, labelWidth, fadeFactor);
+      if (fadeFactor > 0) drawTick(label, left, labelWidth, fadeFactor, t, tag);
     }
     t = spec.step(t, 1);
   }

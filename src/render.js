@@ -61,8 +61,8 @@ function zoomSpec(sig){
 
 function drawEvent(e, y, spec) {
 
-  const height = spec.size, fade = spec.fade;
-
+  const height = spec.size;
+  const fade = spec.fade;
   const x = timeToPx(e.dateTime);
   const left = Math.round(timeToPx(e.tFrom));
   const right = Math.round(timeToPx(e.tTo));
@@ -94,7 +94,7 @@ function drawEvent(e, y, spec) {
         grad.addColorStop(gradRight, `rgba(${color},${fade})`);
         if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
         ctx.fillStyle = grad;
-  } else ctx.fillStyle = `rgba(${color}, ${fade})`;
+    } else ctx.fillStyle = `rgba(${color}, ${fade})`;
 
     ctx.beginPath();
     ctx.moveTo(xFadeLeft, top);
@@ -140,7 +140,8 @@ function drawEvent(e, y, spec) {
     
     // check for mouse over
     if (mouseX >= eLeft && mouseX <= eRight && mouseY >= eTop && mouseY <= eBottom) {
-      highlightedLabel = e;
+      highlightIdx = screenElements.length - 1;
+      highlightedEvent = e;
     }
   }
 }
@@ -206,10 +207,11 @@ function drawLabelAbove(e, spec, x, y) {
   screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
 
   // check here if mouse is over this element; it may have moved under the mouse
-  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
-  const highlight = (e === highlightedLabel);
-
-  drawLabelBubble(e, left, width, top, height, highlight);
+  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+    highlightIdx = screenElements.length - 1;
+    highlightedEvent = e;
+  }
+  drawLabelBubble(e, left, width, top, height, (highlightedEvent === e));
 }
 
 function drawLabelBelow(e, spec, x, y, xFrom, xTo) {
@@ -239,11 +241,13 @@ function drawLabelBelow(e, spec, x, y, xFrom, xTo) {
   screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
 
   // check here if mouse is over this element; it may have moved under the mouse
-  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightedLabel = e;
-
-  ctx.save();
+  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+    highlightIdx = screenElements.length - 1;
+    highlightedEvent = e;
+  }
   
-  if (e === highlightedLabel) {
+  ctx.save();
+  if (highlightedEvent === e) {
     ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
     ctx.fillStyle = "black";
     ctx.beginPath();
@@ -264,10 +268,9 @@ function drawEvents(){
   const rangeLeft = 0 - MAX_LABEL_WIDTH / 2;
   const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
   const y = midY();
-
-//  screenElements.length = 0;  // reset list of screen elements
-//  highlightedLabel = null;
   
+  highlightedEvent = null;
+
   // draw each event that should be displayed
   events.filter(e => e.yOffset !== null).forEach(event => {
     const x = timeToPx(event.dateTime);
@@ -287,9 +290,10 @@ function drawEvents(){
     else if (event.yOffset < 0) drawLabelBelow(event, spec, x, y, xFrom, xTo);
   });
 
-  // if highlighted label has been identified but no label is displayed...
-  if (highlightedLabel !== null && highlightedLabel.yOffset === 0)
-    drawLabelHover(highlightedLabel, timeToPx(highlightedLabel.dateTime), y);
+  // if highlightedEvent has been identified but no label is displayed, draw it hovering
+  if (highlightedEvent) {
+    if (highlightedEvent.yOffset === 0) drawLabelHover(highlightedEvent, timeToPx(highlightedEvent.dateTime), y);
+  }
 }
 
 function updatePositions(){
