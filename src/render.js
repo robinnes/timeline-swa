@@ -6,6 +6,7 @@ const HIGHLIGHT_SHADOW = 'rgba(0,102,255,40)';
 const HIGHLIGHT_GLOW = 30;
 const LABEL_BRIGHTNESS = 0.85;  // default for label text
 const DOT_HOVER_PAD = 6;  // maximum padding around dots for hover detection
+const FADE_HIGHLIGHT_THRESHOLD = 0.4;  // lines where fade is below will not highlight
 
 const midY = () => Math.floor(window.innerHeight / 2);
 
@@ -36,14 +37,14 @@ function zoomSpec(sig){
   const sizeAdj = 3;
   const persistence = 1;
   const fadeIn = 0.4;
-  const fadeOut = 1;
+  const fadeOut = 2;
   const zoomMaster = [
     { threshold:7, growth:1.5, fadeNear:false, maxBright:1 },
     { threshold:8, growth:1.5, fadeNear:false, maxBright:1 },
     { threshold:9, growth:1.5, fadeNear:false, maxBright:1 },
     { threshold:7, growth:7, fadeNear:true, maxBright:0.6 },
     { threshold:8.5, growth:9, fadeNear:true, maxBright:0.6 },
-    { threshold:10.4, growth:7, fadeNear:true, maxBright:0.6 }
+    { threshold:10.4, growth:9, fadeNear:true, maxBright:0.6 }
   ];
 
   const factor = Math.log10(msPerPx);
@@ -77,6 +78,8 @@ function drawEvent(e, y, spec) {
   const colorLeft = (e.colorLeft === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorLeft)));
   const colorRight = (e.colorRight === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorRight)));
 
+  ctx.save();
+
   if (width >= 6 || spec.fadeNear) {
 
     const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (colorLeft === color);
@@ -94,7 +97,23 @@ function drawEvent(e, y, spec) {
         grad.addColorStop(gradRight, `rgba(${color},${fade})`);
         if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
         ctx.fillStyle = grad;
+      
     } else ctx.fillStyle = `rgba(${color}, ${fade})`;
+
+    // check for mouse hover over the line
+    if (fade > FADE_HIGHLIGHT_THRESHOLD) {
+      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
+
+      // allow small dots, already highlighted, to take priority
+      if (!highlightedEvent || highlightedEvent === e) {
+        // check here if mouse is over this element; it may have moved under the mouse
+        if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+          highlightIdx = screenElements.length - 1;
+          highlightedEvent = e;
+        }
+        if (highlightedEvent===e) { ctx.shadowColor = `rgba(${color},40)` /*HIGHLIGHT_SHADOW*/;  ctx.shadowBlur = HIGHLIGHT_GLOW; }
+      }
+    }
 
     ctx.beginPath();
     ctx.moveTo(xFadeLeft, top);
@@ -144,6 +163,7 @@ function drawEvent(e, y, spec) {
       highlightedEvent = e;
     }
   }
+  ctx.restore();
 }
 
 function drawLabelHover(e, x, y) {
@@ -237,23 +257,19 @@ function drawLabelBelow(e, spec, x, y, xFrom, xTo) {
   const right = left + e.labelWidth;
   const bottom = top + LABEL_LINE_HEIGHT;
 
-  // register as a screen element that can be interacted with
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
-
-  // check here if mouse is over this element; it may have moved under the mouse
-  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
-    highlightIdx = screenElements.length - 1;
-    highlightedEvent = e;
-  }
-  
   ctx.save();
-  if (highlightedEvent === e) {
-    ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
-    ctx.fillStyle = "black";
-    ctx.beginPath();
-    ctx.roundRect(left - EDGE_GAP, top - EDGE_GAP, e.labelWidth + EDGE_GAP*2, LABEL_LINE_HEIGHT + EDGE_GAP, 8);
-    ctx.fill();
-    zoomFade = LABEL_BRIGHTNESS; // label text always bright when highlighted
+
+  // check for mouse over label
+  if (zoomFade > FADE_HIGHLIGHT_THRESHOLD) {
+    // register as a screen element that can be interacted with
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'event', event:e});
+
+    // check here if mouse is over this element; it may have moved under the mouse
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+      highlightIdx = screenElements.length - 1;
+      highlightedEvent = e;
+    }
+    if (highlightedEvent === e) zoomFade = LABEL_BRIGHTNESS; // label text always bright when highlighted
   }
   ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'; 
   ctx.fillStyle = `rgba(255, 255, 255, ${zoomFade})`;
@@ -278,16 +294,23 @@ function drawEvents(){
     const xTo = timeToPx(event.tTo);
 
     if ((xTo < rangeLeft) || (xFrom > rangeRight)) return;  // off-screen
-   
+
     const spec = zoomSpec(event.significance);
     if (spec.fade === 0) return; // too small to display
 
+    // order matters here: if mouse is over label below, then dot/line will highlight
+    if (event.yOffset < 0) drawLabelBelow(event, spec, x, y, xFrom, xTo);
+    
     // draw dot or line
     drawEvent(event, y, spec);
 
+if (highlightedEvent) {
+  if (highlightedEvent.label === "Bought Buz")
+    console.log(highlightedEvent.label);
+}
+
     // draw bubble label above
-    if (event.yOffset > 0) drawLabelAbove(event, spec, x, y)
-    else if (event.yOffset < 0) drawLabelBelow(event, spec, x, y, xFrom, xTo);
+    if (event.yOffset > 0) drawLabelAbove(event, spec, x, y);
   });
 
   // if highlightedEvent has been identified but no label is displayed, draw it hovering

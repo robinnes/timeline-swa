@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 const ZOOM_FACTOR = 1.1;
+const PAN_FACTOR = 200;
 const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
 const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
 const MS_PER_DAY = 86400000; // 1000*60*60*24
@@ -30,9 +31,10 @@ let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = p
 // Elements currently rendered on screen that can be interacted with  
 const screenElements = [];
 let highlightIdx = -1;
-let highlightedEvent = null;
 
-let fixedPanMode = null;  // controls keyboard navigation
+// Keyboard navigation
+let fixedPanMode = null;  // points to tickSpec to control navigation
+const fixedPanZoomHist = [];  // a stack that provides "breadcrumb" for zooming out and back in
 let zoomInProgress = null;  // automatic zoom/pan in progress
 
 function tick(now) {
@@ -49,8 +51,9 @@ function tick(now) {
     const dMsPerPx = zoomInProgress.newMsPerPx - msPerPx;
     offsetMs += dOffset * dt * 10;
     msPerPx += dMsPerPx * dt * 10;
+    msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
     // stop when movement is smaller than a pixel
-    if (Math.abs(dOffset) < msPerPx) zoomInProgress = null;
+    if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) zoomInProgress = null;
     updatePositions();
     draw();
     return;
@@ -169,26 +172,40 @@ canvas.addEventListener('keydown', function (e) {
   
   zoomInProgress = null; // stop any zooming in progress
   const midX = window.innerWidth / 2;
+  const midT = pxToTime(midX);
 
-  if (e.key === 'ArrowUp') {
-    fixedPanMode = null;
-    zoom(midX, Math.pow(ZOOM_FACTOR, -1));
+  if (fixedPanMode)  // navigate by whole units of time (month, year, etc.)
+  {
+    if (e.key === 'ArrowUp') {
+      // allow user to zoom out and immediately back in to the same spot
+      let t = midT;
+      if (fixedPanZoomHist.length > 0) {
+        t = fixedPanZoomHist[fixedPanZoomHist.length-1];
+        fixedPanZoomHist.length--;
+      }
+      fixedPanMode = tickSpec.get(fixedPanMode.zoomIn);  // zoom in one level
+      zoomToTick(fixedPanMode.start(t));
+    }
+    else if (e.key === 'ArrowDown') {
+      fixedPanZoomHist.push(midT);
+      fixedPanMode = tickSpec.get(fixedPanMode.zoomOut);  // zoom out one level
+      zoomToTick(fixedPanMode.start(midT));
+    }
+    else if (e.key === 'ArrowRight') {
+      fixedPanZoomHist.length = 0;
+      zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),1));
+    }
+    else if (e.key === 'ArrowLeft') {
+      fixedPanZoomHist.length = 0;
+      zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),-1));
+    }
+    
+  } else {  // zoom/pan by increments
+    if (e.key === 'ArrowUp') zoom(midX, Math.pow(ZOOM_FACTOR, -1))
+    else if (e.key === 'ArrowDown') zoom(midX, Math.pow(ZOOM_FACTOR, 1))
+    else if (e.key === 'ArrowRight') vOffsetMs -= PAN_FACTOR * msPerPx
+    else if (e.key === 'ArrowLeft') vOffsetMs += PAN_FACTOR * msPerPx;
   }
-  else if (e.key === 'ArrowDown') {
-    if (fixedPanMode) {
-      fixedPanMode = tickSpec.get(fixedPanMode.major);  // zoom out one level
-      zoomToTick(fixedPanMode.start(offsetMs + EPOCH));
-    } else zoom(midX, Math.pow(ZOOM_FACTOR, 1));
-  }
-  else if (e.key === 'ArrowRight') {
-    if (fixedPanMode) zoomToTick(fixedPanMode.step(fixedPanMode.start(offsetMs + EPOCH),2));
-    else vOffsetMs -= 200 * msPerPx;
-  }
-  else if (e.key === 'ArrowLeft') {
-    if (fixedPanMode) zoomToTick(fixedPanMode.start(offsetMs + EPOCH));
-    else vOffsetMs += 200 * msPerPx;
-  }
-  else return;
 });
 
 function zoomToTick(t) {
@@ -210,7 +227,9 @@ canvas.addEventListener('click', function (e) {
       console.log("click:", highlightedEvent.label);
     } else if (elem.type === 'tick') {
       // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-      fixedPanMode = tickSpec.get(elem.mode);
+      fixedPanZoomHist.length = 0;
+      const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
+      fixedPanMode = tickSpec.get(m);
       zoomToTick(elem.t);
     }
   }
@@ -249,11 +268,14 @@ function draw(){
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
-  ctx.fillText("factor:", window.innerWidth - 111, window.innerHeight - 95);
-  ctx.fillText(Math.round(factor * 1000) / 1000, window.innerWidth - 30, window.innerHeight - 95);
+  if (highlightedEvent) {
+    const t = highlightedEvent.label;
+    ctx.fillText(t, window.innerWidth - 30, window.innerHeight - 95);
+  }
+/*
   ctx.fillText("mode:", window.innerWidth - 111, window.innerHeight - 75);
   ctx.fillText(spec.mode, window.innerWidth - 30, window.innerHeight - 75);
-/*  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
+  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
   ctx.fillText(Math.round((spec.fade)*1000)/1000, window.innerWidth - 30, window.innerHeight - 55);
   ctx.fillText(`size(${sig}):`, window.innerWidth - 111, window.innerHeight - 35);
   ctx.fillText(Math.round((spec.size)*1000)/1000, window.innerWidth - 30, window.innerHeight - 35);

@@ -13,7 +13,7 @@ const events = [
 */
 
 const events = [
-  { significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15'},
+  { significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15', color:'blue' },
   { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
   { significance:2, label:'Chi & Kim\'s anniversary', date:'2017-06-24' },
   { significance:1, label:'In San Antonio', date:'2017-06-26' },
@@ -333,6 +333,7 @@ const eventsMom = [
   { significance:3, label:'Born in Orlando, FL', date:'1942-09-17' },
   { significance:6, label:'Orlando, FL', dateFrom:'1942-09-17', dateTo:'1943-03-15', fadeLeft:'1942-09-17', fadeRight:'1943-01-15', color:'yellow', colorRight:'green' },
   { significance:6, label:'Denver, CO', dateFrom:'1943-03-16', dateTo:'1945-06-15', fadeLeft:'1943-05-15', fadeRight:'1945-03-15', colorLeft:'yellow', color:'green', colorRight:'blue' },
+  { significance:3, label:'Sister Sandy born', date:'1944-10-05' },
   { significance:6, label:'Seymore Texas (farm)', dateFrom:'1945-06-16', dateTo:'1957-12-31', fadeLeft:'1945-09-30', fadeRight:'1957-12-01', colorLeft:'green', color:'blue', colorRight:'yellow' },
   { significance:6, label:'Iowa Park', dateFrom:'1958-01-01', dateTo:'1960-06-15', fadeLeft:'1958-01-31', fadeRight:'1960-01-01', colorLeft:'blue', color:'yellow', colorRight:'red' },
   { significance:6, label:'Alamosa', dateFrom:'1960-06-15', dateTo:'1962-06-15', fadeLeft:'1960-11-15', fadeRight:'1962-02-15', colorLeft:'yellow', color:'red', colorRight:'purple' },
@@ -356,7 +357,7 @@ const eventsMom = [
   { significance:5, label:'Marriage to Richard', dateFrom:'1989-10-15', dateTo:'1991-02-15', fadeLeft:'1990-01-15', fadeRight:'1990-11-15', color:'red' },
   { significance:2, label:'20 year high school reunion', dateFrom:'1981-05-01', dateTo:'1981-05-30', fadeLeft:'1981-05-10', fadeRight:'1981-05-20' },
   { significance:5, label:'Trip to Machu Picchu', dateFrom:'2001-08-27', dateTo:'2001-09-07', color:'yellow' },
-  { significance:2, label:'Sister Sandy died', dateFrom:'1975-01-01', dateTo:'1975-01-31', fadeLeft:'1975-01-10', fadeRight:'1975-01-20' },
+  { significance:2, label:'Sister Sandy died at 30', dateFrom:'1975-01-01', dateTo:'1975-01-31', fadeLeft:'1975-01-10', fadeRight:'1975-01-20' },
   { significance:5, label:'Barstow, CA', dateFrom:'1965-01-15', dateTo:'1965-05-15', fadeLeft:'1965-01-31', fadeRight:'1965-05-01', color:'yellow' },
   { significance:4, label:'Inca Trail trek', dateFrom:'2001-09-03', dateTo:'2001-09-06', color:'blue' },
   { significance:1, label:'Fly to Cuzco', date:'2001-08-30' },
@@ -427,7 +428,8 @@ function parseLabel(label) {
 
 function initializeEvents() {
 
-  events.sort((a, b) => b.significance - a.significance);  // attempt to solve hover problem where the label is written over...
+  events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
+  //events.sort((a, b) => b.significance - a.significance);  // attempt to solve hover problem where the label is written over...
 
   events.forEach(e => {
     
