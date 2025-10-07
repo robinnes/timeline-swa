@@ -15,31 +15,22 @@ function timeZoneNow(){
   );
 }
 
-function startOfMillenium(t) {
+function yearFloor(t, n) {
+  // return beginning of n-year period
   const d = new Date(t);
-  const m = Math.floor(d.getUTCFullYear() / 1000) * 1000;
+  const m = Math.floor(d.getUTCFullYear() / n) * n;
   d.setUTCFullYear(m, 0, 1);
   d.setUTCHours(0, 0, 0, 0);
   return d.getTime();
 }
+
+function startOfMillenium(t) { return yearFloor(t, 1000); }
 function addMillenia(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*1000); return d.getTime(); }
 
-function startOfCentury(t) {
-  const d = new Date(t);
-  const c = Math.floor(d.getUTCFullYear() / 100) * 100;
-  d.setUTCFullYear(c, 0, 1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d.getTime();
-}
+function startOfCentury(t) { return yearFloor(t, 100); }
 function addCenturies(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*100); return d.getTime(); }
 
-function startOfDecade(t) {
-  const d = new Date(t);
-  const decade = Math.floor(d.getUTCFullYear() / 10) * 10;
-  d.setUTCFullYear(decade, 0, 1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d.getTime();
-}
+function startOfDecade(t) { return yearFloor(t, 10); }
 function addDecades(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*10); return d.getTime(); }
 
 function startOfYear(t){ const d = new Date(t); d.setUTCMonth(0,1); d.setUTCHours(0,0,0,0); return d.getTime(); }
@@ -148,8 +139,9 @@ function drawTicks() {
     }
     cornerLabelWidth = ctx.measureText(cornerLabelText).width;
     const cornerLabelT = spec.mode==='day' ? startOfMonth(t) : startOfYear(t);
+    const cornerLabelMode = spec.mode==='day' ? 'month' : 'year';
     // Draw corner label
-    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT, cornerLabelT, spec.zoomOut);
+    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT, cornerLabelT, cornerLabelMode);
   }
 
   // Current date/time blue line

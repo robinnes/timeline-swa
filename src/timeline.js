@@ -54,7 +54,7 @@ function tick(now) {
     msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
     // stop when movement is smaller than a pixel
     if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) zoomInProgress = null;
-    updatePositions();
+    positionLabels();
     draw();
     return;
   }
@@ -80,7 +80,7 @@ function zoom(x, factor) {
   // keep the date under the mouse fixed
   offsetMs = tAtMouse - EPOCH - x * msPerPx;
 
-  updatePositions();
+  positionLabels();
   draw();
 };
 
@@ -93,7 +93,7 @@ function resize(){
   canvas.width = Math.floor(w * dpr);
   canvas.height = Math.floor(h * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
-  updatePositions();
+  positionLabels();
   draw();
 }
 window.addEventListener('resize', resize);
@@ -127,7 +127,7 @@ canvas.addEventListener('pointermove', (e)=>{
     draw();
   } else {
     // check if mouse is over any interactive elements
-    let found = null;
+    let found = -1;
     for (let i=0; i<screenElements.length; i++) {
       const el = screenElements[i];
       if (mouseX >= el.left && mouseX <= el.right && mouseY >= el.top && mouseY <= el.bottom) {

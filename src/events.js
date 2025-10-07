@@ -236,7 +236,7 @@ const eventsANH = [
   { significance:3, label:'10th Anniversary', date:'2022-12-12' }
 ];
 
-const eventsIsrael = [
+const eventsIS = [
   { significance:6, label:'Pre-State: Zionist Movement & British Mandate', dateFrom:'1897-08-29', dateTo:'1948-05-14', fadeLeft:'1920-01-15', fadeRight:'1948-05-14', color:'blue' },
   { significance:6, label:'David Ben-Gurion (I)', dateFrom:'1948-05-14', dateTo:'1953-12-07', color:'green' },
   { significance:6, label:'Moshe Sharett', dateFrom:'1953-12-07', dateTo:'1955-11-03', color:'yellow' },
@@ -329,7 +329,7 @@ const eventsIsrael = [
   { significance:2, label:'Hezbollah pager attack', dateFrom:'2024-09-17', dateTo:'2024-09-18' }
   ];
 
-const eventsMom = [
+const eventsMOM = [
   { significance:3, label:'Born in Orlando, FL', date:'1942-09-17' },
   { significance:6, label:'Orlando, FL', dateFrom:'1942-09-17', dateTo:'1943-03-15', fadeLeft:'1942-09-17', fadeRight:'1943-01-15', color:'yellow', colorRight:'green' },
   { significance:6, label:'Denver, CO', dateFrom:'1943-03-16', dateTo:'1945-06-15', fadeLeft:'1943-05-15', fadeRight:'1945-03-15', colorLeft:'yellow', color:'green', colorRight:'blue' },
