@@ -428,8 +428,7 @@ function parseLabel(label) {
 
 function initializeEvents() {
 
-  events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
-  //events.sort((a, b) => b.significance - a.significance);  // attempt to solve hover problem where the label is written over...
+  //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
 
   events.forEach(e => {
     

@@ -128,9 +128,10 @@ canvas.addEventListener('pointermove', (e)=>{
   } else {
     // check if mouse is over any interactive elements
     let found = -1;
-    for (let i=0; i<screenElements.length; i++) {
-      const el = screenElements[i];
-      if (mouseX >= el.left && mouseX <= el.right && mouseY >= el.top && mouseY <= el.bottom) {
+    //for (let i=0; i<screenElements.length; i++) {
+    for (let i=screenElements.length-1; i>0; i--) {  
+      const se = screenElements[i];
+      if (mouseX >= se.left && mouseX <= se.right && mouseY >= se.top && mouseY <= se.bottom) {
         found = i;  break; };
     }
     // if so, draw, which will reset screenElements and highlight the one under mouseX/mouseY
@@ -223,7 +224,7 @@ function zoomToTick(t) {
 canvas.addEventListener('click', function (e) {
   if (highlightIdx >= 0) {
     const elem = screenElements[highlightIdx];
-    if (elem.type === 'event') {
+    if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
       console.log("click:", highlightedEvent.label);
     } else if (elem.type === 'tick') {
       // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
