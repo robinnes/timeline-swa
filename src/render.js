@@ -16,10 +16,11 @@ const colorRGB = new Map([
   ["black",  { r:0,   g:0,   b:0   }],
   ["white",  { r:255, g:255, b:255 }],
   ["blue",   { r:0,   g:100, b:255 }],
+  ["purple", { r:100, g:0,   b:255 }],
   ["red",    { r:255, g:0,   b:100 }],
-  ["green",  { r:0,   g:255, b:100 }],
+  ["orange", { r:255, g:100, b:100 }],
   ["yellow", { r:255, g:255, b:100 }],
-  ["purple", { r:100, g:0,   b:255 }]
+  ["green",  { r:0,   g:255, b:100 }]
 ]);
 
 function colorTrunc(rgb) {
@@ -62,7 +63,7 @@ function zoomSpec(sig){
   };
 }
 
-function positionEvents(y) {
+function positionEvents(t, y) {
   // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
   const rangeLeft = 0 - MAX_LABEL_WIDTH / 2;
   const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
@@ -73,7 +74,7 @@ function positionEvents(y) {
     const height = spec.size;
     
     // process each event (determined to be visible) of this significance
-    events.filter(e => e.significance === sig && e.yOffset !== null).forEach(e => {
+    t.events.filter(e => e.significance === sig && e.yOffset !== null).forEach(e => {
       const x = timeToPx(e.dateTime);
       let left = Math.round(timeToPx(e.tFrom));
       let right = Math.round(timeToPx(e.tTo));
@@ -95,7 +96,6 @@ function positionEvents(y) {
     
       // check for mouseover
       if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
-        //console.log("mouse over:", e.label);
         highlightIdx = screenElements.length - 1;
         highlightedEvent = e;
       }
@@ -314,24 +314,25 @@ function drawLabelBelow(e, y, highlight) {
 function drawEvents() {
   const y = midY();
   highlightedEvent = null;
-  positionEvents(y);
+  positionEvents(timeline, y);
 
   // iterate through screenElements (events and their labels)
   screenElements.filter(se => se.type !== 'tick').forEach(se => {
     const e = se.event;
-    const highlight = (e === highlightedEvent);
+    const highlight = (e===highlightedEvent || e===selectedEvent);
     if (se.type === 'line') drawEventLine(e, y, highlight);
     if (se.type === 'bubble') drawLabelAbove(e, y, highlight);
     if (se.type === 'label') drawLabelBelow(e, y, highlight);
   });
 
-  // if highlightedEvent has been identified but no label is displayed, draw it hovering
-  if (highlightedEvent) {
-    if (highlightedEvent.yOffset === 0) drawLabelHover(highlightedEvent, timeToPx(highlightedEvent.dateTime), y);
-  }
+  // if highlighted or selected event has been identified but no label is displayed, draw it hovering
+  const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), y)}};
+  f(highlightedEvent);
+  f(selectedEvent);
 }
 
 function positionLabels(){
+  const events = timeline.events;
   events.forEach(e => { e.x = timeToPx(e.dateTime); e.yOffset = null; });  // reset assignments
 
   // find a place for each event, if possible - most important first

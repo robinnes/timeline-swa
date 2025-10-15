@@ -1,19 +1,5 @@
-
-/*
-const events = [
-  { date:'1969-07-20', label:'Apollo 11 Moon Landing', importance:3 },
-  { date:'1989-11-09', label:'Fall of Berlin Wall', importance:3 },
-  { date:'2001-09-11', label:'9/11', importance:3 },
-  { date:'2008-09-15', label:'Lehman Brothers Collapse', importance:2 },
-  { date:'2012-06-06', label:'Transit of Venus', importance:1 },
-  { date:'2016-06-23', label:'Brexit Referendum', importance:2 },
-  { date:'2020-03-11', label:'WHO declares COVID-19 pandemic', importance:2 },
-  { date:'2024-04-08', label:'Total Solar Eclipse (US)', importance:1 }
-].map(e => ({...e, t: Date.parse(e.date)}));
-*/
-
-const events = [
-  { significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15', color:'blue' },
+const eventsX = [
+  //{ significance:6, label:'Move to Texas', dateFrom:'2019-07-01', dateTo:'2023-08-15', fadeLeft:'2021-02-15', fadeRight:'2023-05-15', color:'blue' },
   { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
   { significance:2, label:'Chi & Kim\'s anniversary', date:'2017-06-24' },
   { significance:1, label:'In San Antonio', date:'2017-06-26' },
@@ -116,21 +102,11 @@ const events = [
   { significance:1, label:'Pool construction begins', date:'2023-09-19' },
   { significance:1, label:'Pool delivered and paid for', date:'2023-09-21' },
   { significance:2, label:'Pool and concrete pad finished', date:'2023-10-12' },
-  { significance:1, label:'Pool School with Paul Hippo; back yard landscaping finished', date:'2023-10-20' }
-];
+  { significance:1, label:'Pool School with Paul Hippo; back yard landscaping finished', date:'2023-10-20' },
+//];
 
-const eventsTEST = [
-  //{ date:'2014-09-15', dateFrom:'2012-03-01', dateTo:'2021-09-30', fadeLeft:'2012-03-15', fadeRight:'2021-09-15', label:'Six', significance:6, color:'blue' },
-  //{ date:'2021-02-02', dateFrom:'2021-01-01', dateTo:'2021-03-30', fadeLeft:'2021-01-15', fadeRight:'2021-03-15', label:'Five', significance:5, color:'green' },
-  //{ dateFrom:'2021-01-10', dateTo:'2021-01-13', label:'Green', significance:5, color:'green', colorRight:'blue' },
-  //{ dateFrom:'2021-01-13', dateTo:'2021-01-17', label:'Blue', significance:5, color:'blue', colorLeft:'green' }
-  { date:'2021-02-15', label:'One', significance:1 },
-  { date:'2021-02-20', label:'Two', significance:2 },
-  { date:'2021-03-01', label:'Three', significance:3 }
-];
-
-const eventsANH = [
-  { significance:6, label:'Rob and Anh', dateFrom:'2011-09-20', dateTo:'2025-09-25', fadeLeft:'2017-09-21', fadeRight:'2017-09-22', colorLeft:'green', color:'blue', colorRight:'green' },
+//const eventsANH = [
+  { significance:6, label:'Rob and Anh', dateFrom:'2011-09-20', dateTo:'2025-09-25', fadeLeft:'2017-09-21', fadeRight:'2017-09-22', colorLeft:'green', color:'green', colorRight:'green' },
   { significance:5, label:'Dating', dateFrom:'2011-09-20', dateTo:'2012-10-27', fadeLeft:'2011-09-21', fadeRight:'2012-10-26', color:'green', colorRight:'yellow' },
   { significance:2, label:'First phone call', date:'2011-09-20' },
   { significance:3, label:'First date: Spaghetti Factory', date:'2011-09-21' },
@@ -213,7 +189,7 @@ const eventsANH = [
   { significance:1, label:'Parents arrive', date:'2012-12-09' },
   { significance:1, label:'Big dinner at Buca de Beppo', date:'2012-12-10' },
   { significance:2, label:'The Boys appear, surprising Rob', date:'2012-12-11' },
-  { significance:5, label:'Married life', dateFrom:'2012-12-12', dateTo:'2025-09-25', fadeLeft:'2012-12-13', fadeRight:'2025-09-25', colorLeft:'yellow', color:'blue' },
+  //{ significance:5, label:'Married life', dateFrom:'2012-12-12', dateTo:'2025-09-25', fadeLeft:'2012-12-13', fadeRight:'2025-09-25', colorLeft:'yellow', color:'blue' },
   { significance:3, label:'Rob and Anh get married', date:'2012-12-12' },
   { significance:1, label:'Visiting and midnight showing of "The Hobbit"', date:'2012-12-13' },
   { significance:1, label:'Rescinded offer on the Bothell townhouse', date:'2012-12-14' },
@@ -235,6 +211,37 @@ const eventsANH = [
   { significance:3, label:'Arrive in Rome', date:'2014-05-02' },
   { significance:3, label:'10th Anniversary', date:'2022-12-12' }
 ];
+
+const timeline = {
+  title:'Life of Rob Innes',
+  dateFrom:'1969-08-06', dateTo:'2025-10-14', 
+  events:[
+    { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
+    { significance:6, label:'The Boys', dateFrom:'1981-08-06', dateTo:'1987-09-01', fadeLeft:'1982-08-06', fadeRight:'1987-08-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
+    { significance:6, label:'Rock \'n\' Roll', dateFrom:'1987-09-01', dateTo:'1997-01-01', fadeLeft:'1988-11-01', fadeRight:'1996-08-31', colorLeft:'green', color:'yellow', colorRight:'orange' },
+    { significance:6, label:'Career as a Programmer', dateFrom:'1997-01-01', dateTo:'2006-06-30', fadeLeft:'1997-07-28', fadeRight:'2005-06-01', colorLeft:'yellow', color:'orange', colorRight:'red' },
+    { significance:6, label:'World of Warcraft', dateFrom:'2006-06-30', dateTo:'2012-10-27', fadeLeft:'2007-04-15', fadeRight:'2011-09-20', colorLeft:'orange', color:'red', colorRight:'purple' },
+    { significance:6, label:'Married Life', dateFrom:'2012-10-27', dateTo:'2025-10-14', fadeLeft:'2012-12-12', colorLeft:'red', color:'purple' },
+    { significance:3, label:'Born in Seward, AK', date:'1969-08-06' },
+    { significance:3, label:'Dad died', date:'1980-05-27' },
+    { significance:3, label:'Met Dean Carignan', date:'1980-07-23' },
+    { significance:2, label:'Mom married Bo Bennett', date:'1983-04-04' },
+    { significance:3, label:'Graduate high school', date:'1987-05-21' },
+    { significance:3, label:'First concert', date:'1988-01-30' },
+    { significance:2, label:'Took Lisa to Butthole Surfers concert', date:'1988-10-28' },
+    { significance:2, label:'First Lollapalooza', date:'1991-08-28' },
+    { significance:3, label:'First journal entry', date:'1992-12-02' },
+    { significance:2, label:'Bought first PC', date:'1995-02-28' },
+    { significance:2, label:'First day at IPC', date:'1997-04-21' },
+    { significance:3, label:'Offered programming job at IPC', date:'1997-07-28' },
+    { significance:2, label:'Opened brokerage account', date:'1999-05-28' },
+    { significance:3, label:'Bought World of Warcraft', date:'2005-07-26' },
+    { significance:3, label:'Marriage to Anh', date:'2012-12-12' },
+    { significance:2, label:'Move into Tacara apartments', date:'2022-09-30' },
+    { significance:5, label:'Move to Texas', dateFrom:'2019-11-09', dateTo:'2023-05-15', fadeLeft:'2021-10-17', fadeRight:'2023-02-16', color:'blue' }
+  ]
+}
+
 
 const eventsIS = [
   { significance:6, label:'Pre-State: Zionist Movement & British Mandate', dateFrom:'1897-08-29', dateTo:'1948-05-14', fadeLeft:'1920-01-15', fadeRight:'1948-05-14', color:'blue' },
@@ -327,7 +334,7 @@ const eventsIS = [
   { significance:5, label:'Hostage-prisoner pause and exchanges', dateFrom:'2023-11-24', dateTo:'2023-11-30', color:'black' },
   { significance:3, label:'Iran direct attack with drones and missiles', date:'2024-04-14' },
   { significance:2, label:'Hezbollah pager attack', dateFrom:'2024-09-17', dateTo:'2024-09-18' }
-  ];
+];
 
 const eventsMOM = [
   { significance:3, label:'Born in Orlando, FL', date:'1942-09-17' },
@@ -426,26 +433,27 @@ function parseLabel(label) {
   return {labels, width:maxWidth, labelWidth};
 }
 
+function initializeEvent(e) {
+  // Establish properties for positioning labels
+  const parsed = parseLabel(e.label);
+  e.labelWidth = parsed.labelWidth;
+  e.parsedLabel = parsed.labels;
+  e.parsedWidth = parsed.width;
+  e.yOffset = null;
+
+  // When only date supplied, convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
+  const d = Date.parse(e.date), h = 60*60*1000;
+  e.tFrom = (e.dateFrom === undefined) ? d + (8 * h) : Date.parse(e.dateFrom) + (12 * h);
+  e.tTo = (e.dateTo === undefined) ? d + (16 * h) : Date.parse(e.dateTo) + (12 * h);
+  e.fLeft = (e.fadeLeft === undefined) ? ((e.dateFrom === undefined) ? d + (11 * h) : e.tFrom) : Date.parse(e.fadeLeft) + (12 * h);
+  e.fRight = (e.fadeRight === undefined) ? ((e.dateTo === undefined) ? d + (13 * h) : e.tTo) : Date.parse(e.fadeRight) + (12 * h);
+  e.dateTime = (e.date === undefined) ? (e.fRight + e.fLeft) / 2 : d + (12 * h);
+  e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
+};
+
 function initializeEvents() {
-
   //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
-
-  events.forEach(e => {
-    
-    // Establish properties for positioning labels
-    const parsed = parseLabel(e.label);
-    e.labelWidth = parsed.labelWidth;
-    e.parsedLabel = parsed.labels;
-    e.parsedWidth = parsed.width;
-    e.yOffset = null;
-
-    // When only date supplied, convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-    const d = Date.parse(e.date), h = 60*60*1000;
-    e.tFrom = (e.dateFrom === undefined) ? d + (8 * h) : Date.parse(e.dateFrom) + (12 * h);
-    e.tTo = (e.dateTo === undefined) ? d + (16 * h) : Date.parse(e.dateTo) + (12 * h);
-    e.fLeft = (e.fadeLeft === undefined) ? ((e.dateFrom === undefined) ? d + (11 * h) : e.tFrom) : Date.parse(e.fadeLeft) + (12 * h);
-    e.fRight = (e.fadeRight === undefined) ? ((e.dateTo === undefined) ? d + (13 * h) : e.tTo) : Date.parse(e.fadeRight) + (12 * h);
-    e.dateTime = (e.date === undefined) ? (e.fRight + e.fLeft) / 2 : d + (12 * h);
-    e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
+  timeline.events.forEach(e => {
+    initializeEvent(e);
   });
 }

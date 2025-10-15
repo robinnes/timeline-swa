@@ -1,36 +1,45 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const sidebar = document.getElementById('sidebar');
 
 const ZOOM_FACTOR = 1.1;
 const PAN_FACTOR = 200;
 const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
 const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
 const MS_PER_DAY = 86400000; // 1000*60*60*24
-
-// --- Timeline state
-//const midY = () => Math.floor(window.innerHeight / 2);
-
-// Reference epoch used for math (Jan 1, 2000 UTC)
 const EPOCH = Date.UTC(2000,0,1);
+const MAX_CLICK_MOVE = 1;  // maximum mouse movement allowed for a mouse click
+
+// --- Helper functions
+const pxToTime = x => EPOCH + offsetMs + (x * msPerPx);
+const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
+const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 // msPerPx controls zoom. offsetMs shifts timeline relative to EPOCH at x=0
 let msPerPx = MS_PER_DAY * 1  // ~30 days per pixel (years visible at start)
 let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/0.5) * msPerPx; // center near "now"
-const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
-// --- Helpers
-const pxToTime = x => EPOCH + offsetMs + (x * msPerPx);
-const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
+const timelines = [];
 
 // Retain mouse positions for non-event handler access
-let mouseX = 0, mouseY = 0;
+let mouseX = 0;
+let mouseY = 0;
 
 // Zoom & pan variables
-let isPanning = false, lastX = 0, vOffsetMs = 0, lastDragSpeed = 0, lastTick = performance.now();
+let isPanning = false;
+let ignoreClick = false;  // ignore click event if panning
+
+// Momentum variables
+let lastX = 0;
+let vOffsetMs = 0
+let lastDragSpeed = 0;
+let lastTick = performance.now();
 
 // Elements currently rendered on screen that can be interacted with  
 const screenElements = [];
-let highlightIdx = -1;
+let highlightIdx = -1;  // index in screenElements array of the highlighed element
+let highlightedEvent = null;  // event object if the highlighted element is an event (not a tick)
+let selectedEvent = null;  // event selected (opened in the side panel)
 
 // Keyboard navigation
 let fixedPanMode = null;  // points to tickSpec to control navigation
@@ -54,8 +63,7 @@ function tick(now) {
     msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
     // stop when movement is smaller than a pixel
     if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) zoomInProgress = null;
-    positionLabels();
-    draw();
+    draw(true);
     return;
   }
   
@@ -67,7 +75,7 @@ function tick(now) {
   offsetMs -= vOffsetMs * dt;
 
   if (Math.abs(vOffsetMs) < (1 * msPerPx)) vOffsetMs = 0;
-  else draw();
+  else draw(false);
 };
 
 function zoom(x, factor) {
@@ -80,8 +88,7 @@ function zoom(x, factor) {
   // keep the date under the mouse fixed
   offsetMs = tAtMouse - EPOCH - x * msPerPx;
 
-  positionLabels();
-  draw();
+  draw(true);
 };
 
 function resize(){
@@ -93,8 +100,7 @@ function resize(){
   canvas.width = Math.floor(w * dpr);
   canvas.height = Math.floor(h * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
-  positionLabels();
-  draw();
+  draw(true);
 }
 window.addEventListener('resize', resize);
 
@@ -106,15 +112,18 @@ canvas.addEventListener('pointerdown', (e)=>{
 
   zoomInProgress = null;  // stop any zooming in progress
 
+  //ignoreClick = false;
   isPanning = true;
   vOffsetMs = 0;
   lastX = e.clientX;
+  ignoreClick = false;
 });
 
 canvas.addEventListener('pointermove', (e)=>{
   if (e.pointerType !== 'mouse') return;
   
   mouseX = e.clientX; mouseY = e.clientY;
+  if (Math.abs(e.clientX - lastX) >= MAX_CLICK_MOVE) ignoreClick = true;
 
   if (isPanning) {
     fixedPanMode = null;
@@ -124,7 +133,7 @@ canvas.addEventListener('pointermove', (e)=>{
     lastX = e.clientX;
     offsetMs -= dx * msPerPx; // drag right -> move timeline left
     lastDragSpeed = dx * msPerPx;
-    draw();
+    draw(false);
   } else {
     // check if mouse is over any interactive elements
     let found = -1;
@@ -135,7 +144,7 @@ canvas.addEventListener('pointermove', (e)=>{
         found = i;  break; };
     }
     // if so, draw, which will reset screenElements and highlight the one under mouseX/mouseY
-    if (found !== highlightIdx) draw();
+    if (found !== highlightIdx) draw(false);
   }
 
 }, { passive:false });
@@ -152,8 +161,8 @@ window.addEventListener('pointerup', (e)=>{
   lastDragSpeed = 0
 });
 
-// Wheel to zoom (Ctrl/Trackpad friendly) - gesturestart/gesturechange?
 canvas.addEventListener('wheel', (e)=>{
+  // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
   zoomInProgress = null;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
@@ -221,23 +230,67 @@ function zoomToTick(t) {
   zoomInProgress = {origOffset: offsetMs, newOffset:newOffsetMs, origMsPerPx:msPerPx, newMsPerPx:newMsPerPx };
 }
 
+function centerOnTimeline(t) {
+  // adjust offsetMs and msPerPx to fit timeline t
+  const w = window.innerWidth;
+  const tFrom = Date.parse(t.dateFrom);
+  const tTo = Date.parse(t.dateTo);
+  const width = tTo - tFrom;
+
+  offsetMs = (tFrom - (width / 10)) - EPOCH;
+  msPerPx = width / (w / 1.2);
+}
+
 canvas.addEventListener('click', function (e) {
+  
+  if (ignoreClick) return;
+  //console.log("clickX:", clickX);
+
   if (highlightIdx >= 0) {
     const elem = screenElements[highlightIdx];
-    if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-      console.log("click:", highlightedEvent.label);
-    } else if (elem.type === 'tick') {
+
+    if (elem.type === 'tick') {
       // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
       fixedPanZoomHist.length = 0;
       const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
       fixedPanMode = tickSpec.get(m);
       zoomToTick(elem.t);
+
+      // if clicked on the highlighted bubble/line/label then open it in the side panel
+    } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
+      selectedEvent = highlightedEvent;
+      openEvent(selectedEvent);
+
+      /*
+      setSidebarData({
+        label: 'Road Trip: Alaska to Seattle',
+        date: { from: 'July 1, 1995', to: 'August 8, 1995' },
+        significance: 3,
+        detailsHTML: `
+          <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
+          <h3>Notes</h3>
+          <ul>
+            <li>Highlights included views of volcanoes from Kenai and a long ferry segment.</li>
+            <li>Planned around music and photo stops for the personal archive.</li>
+          </ul>
+        `
+      });
+      */
+
+      if (!sidebar.classList.contains('open')) openPanel();
+    }
+  } else {
+    // clicked in open space; if side panel is open then close it
+    if (sidebar.classList.contains('open')) {
+      selectedEvent = null;
+      closePanel();
+      draw(false);
     }
   }
 });
 
-// Polyfill roundRect if needed
 if (!CanvasRenderingContext2D.prototype.roundRect) {
+  // Polyfill roundRect if needed
   CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
     if (typeof r === 'number') r = {tl:r, tr:r, br:r, bl:r};
     else r = Object.assign({tl:0,tr:0,br:0,bl:0}, r);
@@ -256,13 +309,15 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-function draw(){
+function draw(repositionLabels){
+  if (repositionLabels) positionLabels();
+
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
   highlightIdx = -1;
   drawTicks();
   drawEvents();
-
+/*
   const factor = Math.log10(msPerPx);
   const spec = getTickSpec();
   ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
@@ -273,7 +328,7 @@ function draw(){
     const t = highlightedEvent.label;
     ctx.fillText(t, window.innerWidth - 30, window.innerHeight - 95);
   }
-/*
+
   ctx.fillText("mode:", window.innerWidth - 111, window.innerHeight - 75);
   ctx.fillText(spec.mode, window.innerWidth - 30, window.innerHeight - 75);
   ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
@@ -285,6 +340,7 @@ function draw(){
 
 // Kick things off
 initializeEvents();
+centerOnTimeline(timeline);
 resize();
 requestAnimationFrame(tick);
 canvas.focus();
