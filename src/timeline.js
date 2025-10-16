@@ -43,8 +43,8 @@ let selectedEvent = null;  // event selected (opened in the side panel)
 
 // Keyboard navigation
 let fixedPanMode = null;  // points to tickSpec to control navigation
-const fixedPanZoomHist = [];  // a stack that provides "breadcrumb" for zooming out and back in
 let zoomInProgress = null;  // automatic zoom/pan in progress
+
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
@@ -55,15 +55,7 @@ function tick(now) {
   if (isPanning || isTouchPanning) { lastDragSpeed = 0; return; }
 
   if (zoomInProgress) {
-    // move pan and zoom towards target
-    const dOffset = zoomInProgress.newOffset - offsetMs;
-    const dMsPerPx = zoomInProgress.newMsPerPx - msPerPx;
-    offsetMs += dOffset * dt * 10;
-    msPerPx += dMsPerPx * dt * 10;
-    msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
-    // stop when movement is smaller than a pixel
-    if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) zoomInProgress = null;
-    draw(true);
+    zoom(dt); 
     return;
   }
   
@@ -78,7 +70,45 @@ function tick(now) {
   else draw(false);
 };
 
-function zoom(x, factor) {
+function zoom(dt) {
+  // move pan and zoom towards target
+  const ZOOM_FACTOR = 10;
+
+  // incrementally move window offset and zoom toward new values
+  const dOffset = zoomInProgress.newOffset - offsetMs;
+  const dMsPerPx = zoomInProgress.newMsPerPx - msPerPx;
+
+  offsetMs += dOffset * dt * ZOOM_FACTOR;
+  msPerPx += dMsPerPx * dt * ZOOM_FACTOR;
+  msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
+
+  // if timelines are repositioned, move those, too
+  for (let i=0; i<timelines.length; i++) {
+    const tl = timelines[i];
+    if (tl.newYPos) {
+      const dCeiling = tl.newCeiling - tl.ceiling;
+      const dYPos = tl.newYPos - tl.yPos;
+      tl.ceiling += dCeiling * dt * ZOOM_FACTOR;
+      tl.yPos += dYPos * dt * ZOOM_FACTOR;
+    }
+  }
+
+  // stop when movement is smaller than a pixel
+  if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) {
+    zoomInProgress = null;
+    // reset zoom variables for the timelines
+    for (let i=0; i<timelines.length; i++) {
+      const tl = timelines[i];
+      if (tl.newYPos) {
+        tl.ceiling = tl.newCeiling; tl.yPos = tl.newYPos;
+        tl.newCeiling = null; tl.newYPos = null;
+      }
+    }
+  }
+  draw(true);
+}
+
+function mouseZoom(x, factor) {
   const tAtMouse = pxToTime(x);
   const newMsPerPx = msPerPx * factor;
 
@@ -167,7 +197,7 @@ canvas.addEventListener('wheel', (e)=>{
   zoomInProgress = null;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(ZOOM_FACTOR, direction);
-  zoom(e.clientX, factor);
+  mouseZoom(e.clientX, factor);
 }, { passive:false });
 
 /*
@@ -187,41 +217,33 @@ canvas.addEventListener('keydown', function (e) {
   if (fixedPanMode)  // navigate by whole units of time (month, year, etc.)
   {
     if (e.key === 'ArrowUp') {
-      // allow user to zoom out and immediately back in to the same spot
-      let t = midT;
-      if (fixedPanZoomHist.length > 0) {
-        t = fixedPanZoomHist[fixedPanZoomHist.length-1];
-        fixedPanZoomHist.length--;
-      }
       fixedPanMode = tickSpec.get(fixedPanMode.zoomIn);  // zoom in one level
-      zoomToTick(fixedPanMode.start(t));
-    }
-    else if (e.key === 'ArrowDown') {
-      fixedPanZoomHist.push(midT);
-      fixedPanMode = tickSpec.get(fixedPanMode.zoomOut);  // zoom out one level
       zoomToTick(fixedPanMode.start(midT));
     }
+    else if (e.key === 'ArrowDown') {
+      fixedPanMode = tickSpec.get(fixedPanMode.zoomOut);  // zoom out one level
+      const w = fixedPanMode.step(midT, 1) - fixedPanMode.start(midT);
+      zoomToTick(midT - w/2, midT + w/2);
+    }
     else if (e.key === 'ArrowRight') {
-      fixedPanZoomHist.length = 0;
       zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),1));
     }
     else if (e.key === 'ArrowLeft') {
-      fixedPanZoomHist.length = 0;
       zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),-1));
     }
     
   } else {  // zoom/pan by increments
-    if (e.key === 'ArrowUp') zoom(midX, Math.pow(ZOOM_FACTOR, -1))
-    else if (e.key === 'ArrowDown') zoom(midX, Math.pow(ZOOM_FACTOR, 1))
+    if (e.key === 'ArrowUp') mouseZoom(midX, Math.pow(ZOOM_FACTOR, -1))
+    else if (e.key === 'ArrowDown') mouseZoom(midX, Math.pow(ZOOM_FACTOR, 1))
     else if (e.key === 'ArrowRight') vOffsetMs -= PAN_FACTOR * msPerPx
     else if (e.key === 'ArrowLeft') vOffsetMs += PAN_FACTOR * msPerPx;
   }
 });
 
-function zoomToTick(t) {
+function zoomToTick(t, t2) {
   // determine where to zoom/pan
   const w = window.innerWidth;
-  const tNext = fixedPanMode.step(t, 1);
+  const tNext = (t2 === undefined) ? fixedPanMode.step(t, 1): t2;
   const width = tNext - t;
   const newOffsetMs = (t - (width / 10)) - EPOCH;  // just to the left of clicked label
   const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
@@ -230,22 +252,33 @@ function zoomToTick(t) {
   zoomInProgress = {origOffset: offsetMs, newOffset:newOffsetMs, origMsPerPx:msPerPx, newMsPerPx:newMsPerPx };
 }
 
-function centerOnTimeline(t) {
-  // adjust offsetMs and msPerPx to fit timeline t
+function positionForTimeline(tl)
+{
+  // return offsetMs and msPerPx to fit timeline tl
   const w = window.innerWidth;
-  const tFrom = Date.parse(t.dateFrom);
-  const tTo = Date.parse(t.dateTo);
+  const tFrom = Date.parse(tl.dateFrom);
+  const tTo = Date.parse(tl.dateTo);
   const width = tTo - tFrom;
 
-  offsetMs = (tFrom - (width / 10)) - EPOCH;
-  msPerPx = width / (w / 1.2);
+  return {offsetMs:(tFrom - (width / 10)) - EPOCH, msPerPx:width / (w / 1.2)};
+}
+
+function centerOnTimeline(tl) {
+  const p = positionForTimeline(tl);
+  offsetMs = p.offsetMs;
+  msPerPx = p.msPerPx;
+}
+
+function zoomToTimeline(tl) {
+  const p = positionForTimeline(tl);
+  zoomInProgress = {origOffset: offsetMs, newOffset:p.offsetMs, origMsPerPx:msPerPx, newMsPerPx:p.msPerPx };
+  positionTimelines(true);
 }
 
 canvas.addEventListener('click', function (e) {
   
   if (ignoreClick) return;
-  //console.log("clickX:", clickX);
-
+  
   if (highlightIdx >= 0) {
     const elem = screenElements[highlightIdx];
 
@@ -258,9 +291,21 @@ canvas.addEventListener('click', function (e) {
 
       // if clicked on the highlighted bubble/line/label then open it in the side panel
     } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
+if (highlightedEvent.label === 'Move to Texas') {
+  const tl = initializeTimeline(timelineTX);
+  tl.yPos = elem.event.yPos;
+  tl.ceiling = timelines[0].ceiling;
+  zoomToTimeline(tl);
+} else if (highlightedEvent.label === 'Marriage to Anh') {
+  const tl = initializeTimeline(timelineAnh);
+  tl.yPos = elem.event.yPos;
+  tl.ceiling = timelines[0].ceiling;
+  zoomToTimeline(tl);
+} else {
       selectedEvent = highlightedEvent;
       openEvent(selectedEvent);
-
+      if (!sidebar.classList.contains('open')) openPanel();
+}
       /*
       setSidebarData({
         label: 'Road Trip: Alaska to Seattle',
@@ -276,8 +321,6 @@ canvas.addEventListener('click', function (e) {
         `
       });
       */
-
-      if (!sidebar.classList.contains('open')) openPanel();
     }
   } else {
     // clicked in open space; if side panel is open then close it
@@ -309,8 +352,8 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-function draw(repositionLabels){
-  if (repositionLabels) positionLabels();
+function draw(reposition){
+  if (reposition) positionLabels();
 
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
@@ -339,8 +382,9 @@ function draw(repositionLabels){
 }
 
 // Kick things off
-initializeEvents();
-centerOnTimeline(timeline);
+initializeTimeline(timelineRob);
+positionTimelines(false);
+centerOnTimeline(timelines[timelines.length-1]);
 resize();
 requestAnimationFrame(tick);
 canvas.focus();

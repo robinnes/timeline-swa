@@ -1,5 +1,8 @@
 const PUSHING_THRESHOLD = 150; // px distance from corner label to start "pushing"
 const MAX_TICK_LABEL_BRIGHT = 0.85; // max brightness for tick labels
+const TICK_TOP = 6;
+const TICK_LABEL_HEIGHT = 18;
+const TICK_BOTTOM = TICK_TOP + TICK_LABEL_HEIGHT;
 
 // Helper functions
 function timeZoneNow(){
@@ -63,7 +66,7 @@ const tickSpec = new Map([
   ['millenium', { mode:'millenium', zoomOut:'millenium', zoomIn:'century', start:startOfMillenium, step:addMillenia, label:formatYear, majorLabel:formatYear, majorEvery:10000, msPerTick:86400000*365*1000, minWidth:30 }]
 ]);
 
-function getTickSpec(){
+function getTickSpec() {
   const f = Math.log10(msPerPx);
   if (f >= 10) return tickSpec.get('century')
   else if (f >= 9) return tickSpec.get('decade')
@@ -73,17 +76,15 @@ function getTickSpec(){
 }
 
 function drawTick(text, left, width, fade, t, mode) {
-  const top = EDGE_GAP;
-  const bottom = top + LABEL_LINE_HEIGHT;
   const right = left + width;
   let highlight = false;
 
   // register the tick label for mouse hit detection
   // t,mode direct the click to zoom/pan to 'mode' (year/month/etc.) at location t
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'tick', t:t, mode:mode });
+  screenElements.push({left:left, right:right, top:TICK_TOP, bottom:TICK_BOTTOM, type:'tick', t:t, mode:mode });
 
   // check here if mouse is over this tick label; it may have moved under the mouse
-  if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
+  if (mouseX >= left && mouseX <= right && mouseY >= TICK_TOP && mouseY <= TICK_BOTTOM) {
     highlightIdx = screenElements.length - 1;
     highlight = true;
   }
@@ -93,7 +94,7 @@ function drawTick(text, left, width, fade, t, mode) {
     ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.roundRect(left - EDGE_GAP, top - EDGE_GAP, width + EDGE_GAP*2, LABEL_LINE_HEIGHT + EDGE_GAP, 8);
+    ctx.roundRect(left - EDGE_GAP, TICK_TOP - EDGE_GAP, width + EDGE_GAP*2, TICK_LABEL_HEIGHT + EDGE_GAP, 8);
     ctx.fill();
     fade = LABEL_BRIGHTNESS; // label text always bright when highlighted
   }
@@ -101,7 +102,7 @@ function drawTick(text, left, width, fade, t, mode) {
   ctx.fillStyle = `rgba(255, 255, 255, ${fade})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(text, left, top);
+  ctx.fillText(text, left, TICK_TOP);
   ctx.restore();
 }
 

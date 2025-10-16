@@ -63,10 +63,11 @@ function zoomSpec(sig){
   };
 }
 
-function positionEvents(t, y) {
+function positionEvents(tl) {
   // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
   const rangeLeft = 0 - MAX_LABEL_WIDTH / 2;
   const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
+  const y = tl.yPos;
 
   // iterate through events, highest significance first to check the lowest ones for mouseover last
   for (let sig = MAX_SIGNIFICANCE; sig > 0; sig--) {
@@ -74,7 +75,7 @@ function positionEvents(t, y) {
     const height = spec.size;
     
     // process each event (determined to be visible) of this significance
-    t.events.filter(e => e.significance === sig && e.yOffset !== null).forEach(e => {
+    tl.events.filter(e => e.significance === sig && e.yOffset !== null).forEach(e => {
       const x = timeToPx(e.dateTime);
       let left = Math.round(timeToPx(e.tFrom));
       let right = Math.round(timeToPx(e.tTo));
@@ -164,12 +165,13 @@ function getLabelPosition(e, y) {
   return null;
 }
 
-function drawEventLine(e, y, highlight) {
+function drawEventLine(e, highlight) {
 
   const spec = zoomSpec(e.significance);
   const height = spec.size;
   const fade = spec.fade;
   const x = timeToPx(e.dateTime);
+  const y = e.yPos;
   const left = Math.round(timeToPx(e.tFrom));
   const right = Math.round(timeToPx(e.tTo));
   const width = right - left;
@@ -274,7 +276,8 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   ctx.restore();
 }
 
-function drawLabelAbove(e, y, highlight) {
+function drawLabelAbove(e, highlight) {
+  const y = e.yPos;
   const p = getLabelPosition(e, y);
   const spec = zoomSpec(e.significance);
   const lineTop = y - (spec.size/2);
@@ -292,7 +295,8 @@ function drawLabelAbove(e, y, highlight) {
   drawLabelBubble(e, p.left, p.width, p.top, p.height, highlight);
 }
 
-function drawLabelBelow(e, y, highlight) {
+function drawLabelBelow(e, highlight) {
+  const y = e.yPos;
   const p = getLabelPosition(e, y);
   const spec = zoomSpec(e.significance);
   let zoomFade = spec.fade;
@@ -312,28 +316,31 @@ function drawLabelBelow(e, y, highlight) {
 }
 
 function drawEvents() {
-  const y = midY();
   highlightedEvent = null;
-  positionEvents(timeline, y);
+
+  for (let i=0; i<timelines.length; i++) {
+    const tl = timelines[i];
+    positionEvents(tl);
+  }
 
   // iterate through screenElements (events and their labels)
   screenElements.filter(se => se.type !== 'tick').forEach(se => {
     const e = se.event;
     const highlight = (e===highlightedEvent || e===selectedEvent);
-    if (se.type === 'line') drawEventLine(e, y, highlight);
-    if (se.type === 'bubble') drawLabelAbove(e, y, highlight);
-    if (se.type === 'label') drawLabelBelow(e, y, highlight);
+    if (se.type === 'line') drawEventLine(e, highlight);
+    if (se.type === 'bubble') drawLabelAbove(e, highlight);
+    if (se.type === 'label') drawLabelBelow(e, highlight);
   });
 
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
-  const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), y)}};
+  const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), e.yPos)}};
   f(highlightedEvent);
-  f(selectedEvent);
+  if (selectedEvent != highlightedEvent) f(selectedEvent);
 }
 
-function positionLabels(){
-  const events = timeline.events;
-  events.forEach(e => { e.x = timeToPx(e.dateTime); e.yOffset = null; });  // reset assignments
+function positionLabelsForTL(tl){
+  const events = tl.events;
+  events.forEach(e => { e.x = timeToPx(e.dateTime); e.yPos = tl.yPos; e.yOffset = null; });  // reset assignments
 
   // find a place for each event, if possible - most important first
   for (let sig = MAX_SIGNIFICANCE; sig > 0; sig--) {
@@ -384,5 +391,34 @@ function positionLabels(){
       // place this event
       if (open) e.yOffset = 0 - top;
     });
+  }
+}
+
+function positionLabels() {
+  // iterate through timelines
+  for (let i=0; i<timelines.length; i++) {
+    positionLabelsForTL(timelines[i]);
+  }
+}
+
+function positionTimelines(zoom) {
+  const wh = window.innerHeight;
+  const c = timelines.length;
+  const h = (c===1) ? wh/2 : ((wh-TICK_BOTTOM)/(c+1)) + ((wh-TICK_BOTTOM)/((c+1)*c*2));
+  let p = h;
+
+  // iterate through timelines in reverse
+  for (let i=c-1; i>=0; i--) {
+    const tl = timelines[i];
+    if (zoom) {
+      tl.origCeiling = tl.ceiling;
+      tl.newCeiling = h;
+      tl.origYPos = tl.yPos;
+      tl.newYPos = Math.floor(p);
+    } else {
+      tl.ceiling = h;  // to do: use ceiling to limit above labels
+      tl.yPos = Math.floor(p);
+    }
+    p += h;
   }
 }
