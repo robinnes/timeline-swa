@@ -40,6 +40,7 @@ const screenElements = [];
 let highlightIdx = -1;  // index in screenElements array of the highlighed element
 let highlightedEvent = null;  // event object if the highlighted element is an event (not a tick)
 let selectedEvent = null;  // event selected (opened in the side panel)
+let highlightedTimeline = null;
 
 // Keyboard navigation
 let fixedPanMode = null;  // points to tickSpec to control navigation
@@ -83,8 +84,7 @@ function zoom(dt) {
   msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
 
   // if timelines are repositioned, move those, too
-  for (let i=0; i<timelines.length; i++) {
-    const tl = timelines[i];
+  for (const tl of timelines) {
     if (tl.newYPos) {
       const dCeiling = tl.newCeiling - tl.ceiling;
       const dYPos = tl.newYPos - tl.yPos;
@@ -97,8 +97,7 @@ function zoom(dt) {
   if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) {
     zoomInProgress = null;
     // reset zoom variables for the timelines
-    for (let i=0; i<timelines.length; i++) {
-      const tl = timelines[i];
+    for (const tl of timelines) {
       if (tl.newYPos) {
         tl.ceiling = tl.newCeiling; tl.yPos = tl.newYPos;
         tl.newCeiling = null; tl.newYPos = null;
@@ -167,7 +166,7 @@ canvas.addEventListener('pointermove', (e)=>{
   } else {
     // check if mouse is over any interactive elements
     let found = -1;
-    //for (let i=0; i<screenElements.length; i++) {
+    
     for (let i=screenElements.length-1; i>0; i--) {  
       const se = screenElements[i];
       if (mouseX >= se.left && mouseX <= se.right && mouseY >= se.top && mouseY <= se.bottom) {
@@ -275,37 +274,54 @@ function zoomToTimeline(tl) {
   positionTimelines(true);
 }
 
+function openTimeline(tl, y) {
+  if (timelines.indexOf(tl)===-1) {
+    initializeTimeline(tl);
+    tl.yPos = y;
+    tl.ceiling = timelines[0].ceiling;
+  }
+  zoomToTimeline(tl);
+}
+
+function closeTimeline(tl) {
+  const idx = timelines.indexOf(tl);
+  timelines.splice(idx, 1);
+  if (timelines.length > 0) {
+    const tl = timelines[timelines.length-1];
+    zoomToTimeline(tl);
+  }
+}
+
 canvas.addEventListener('click', function (e) {
   
   if (ignoreClick) return;
   
-  if (highlightIdx >= 0) {
-    const elem = screenElements[highlightIdx];
+  if (highlightIdx === -1) {
+    // clicked in open space; if side panel is open then close it
+    if (sidebar.classList.contains('open')) {
+      selectedEvent = null;
+      closePanel();
+      draw(false);
+    }
+    return;
+  }
 
-    if (elem.type === 'tick') {
-      // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-      fixedPanZoomHist.length = 0;
-      const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
-      fixedPanMode = tickSpec.get(m);
-      zoomToTick(elem.t);
+  const elem = screenElements[highlightIdx];
+  if (elem.type === 'tick') {
+    // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
+    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
+    fixedPanMode = tickSpec.get(m);
+    zoomToTick(elem.t);
 
-      // if clicked on the highlighted bubble/line/label then open it in the side panel
-    } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-if (highlightedEvent.label === 'Move to Texas') {
-  const tl = initializeTimeline(timelineTX);
-  tl.yPos = elem.event.yPos;
-  tl.ceiling = timelines[0].ceiling;
-  zoomToTimeline(tl);
-} else if (highlightedEvent.label === 'Marriage to Anh') {
-  const tl = initializeTimeline(timelineAnh);
-  tl.yPos = elem.event.yPos;
-  tl.ceiling = timelines[0].ceiling;
-  zoomToTimeline(tl);
-} else {
-      selectedEvent = highlightedEvent;
-      openEvent(selectedEvent);
-      if (!sidebar.classList.contains('open')) openPanel();
-}
+    // if clicked on the highlighted bubble/line/label then open it in the side panel
+  } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
+if (highlightedEvent.label === 'Move to Texas') openTimeline(timelineTX, elem.event.yPos);
+else if (highlightedEvent.label === 'Marriage to Anh') openTimeline(timelineAnh, elem.event.yPos);
+else {
+    selectedEvent = highlightedEvent;
+    openEvent(selectedEvent);
+    if (!sidebar.classList.contains('open')) openPanel();
+  }
       /*
       setSidebarData({
         label: 'Road Trip: Alaska to Seattle',
@@ -321,15 +337,10 @@ if (highlightedEvent.label === 'Move to Texas') {
         `
       });
       */
-    }
-  } else {
-    // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) {
-      selectedEvent = null;
-      closePanel();
-      draw(false);
-    }
+  } else if (elem.type === 'button') {
+    closeTimeline(elem.timeline);
   }
+  
 });
 
 if (!CanvasRenderingContext2D.prototype.roundRect) {

@@ -1,6 +1,6 @@
 const MAX_LABEL_WIDTH = 150;
 const LABEL_LINE_HEIGHT = 18;
-const LABEL_STEM_HEIGHT = 24;
+const LABEL_STEM_HEIGHT = 30;
 const EDGE_GAP = 6;
 const PADDING = 20;
 const HIGHLIGHT_SHADOW = 'rgba(0,102,255,40)';
@@ -9,8 +9,6 @@ const LABEL_BRIGHTNESS = 0.85;  // default for label text
 const DOT_HOVER_PAD = 6;  // maximum padding around dots for hover detection
 const FADE_HIGHLIGHT_THRESHOLD = 0.4;  // lines where fade is below will not highlight
 const MAX_SIGNIFICANCE = 6;  // largest possible value for event.significance
-
-const midY = () => Math.floor(window.innerHeight / 2);
 
 const colorRGB = new Map([
   ["black",  { r:0,   g:0,   b:0   }],
@@ -63,7 +61,7 @@ function zoomSpec(sig){
   };
 }
 
-function positionEvents(tl) {
+function registerEvents(tl) {
   // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
   const rangeLeft = 0 - MAX_LABEL_WIDTH / 2;
   const rangeRight = window.innerWidth + MAX_LABEL_WIDTH / 2;
@@ -315,27 +313,106 @@ function drawLabelBelow(e, highlight) {
   //}
 }
 
+function positionTimelineLabel(tl) {
+  const top = tl.yPos - LABEL_LINE_HEIGHT - EDGE_GAP;
+  const bottom = tl.yPos;
+  const left = 0;
+  const right = Math.round(tl.labelWidth + EDGE_GAP*2);
+  const height = LABEL_LINE_HEIGHT + EDGE_GAP;
+
+  return {left:left, right:right, top:top, bottom:bottom,
+    btnLeft:right, btnRight:right+height, btnTop:top, btnBottom:bottom};
+};
+
+function registerTimelineLabel(tl) {
+  const p = positionTimelineLabel(tl);
+  
+  // register label as a screen element and check mouseover
+  screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:'timeline', timeline:tl});
+  if (mouseX >= p.left && mouseX <= p.right && mouseY >= p.top && mouseY <= p.bottom) {
+    highlightIdx = screenElements.length - 1;
+    highlightedTimeline = tl;
+  }
+  screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', timeline:tl});
+  if (mouseX >= p.btnLeft && mouseX <= p.btnRight && mouseY >= p.btnTop && mouseY <= p.btnBottom) {
+    highlightIdx = screenElements.length - 1;
+    highlightedTimeline = tl;
+  }
+}
+
+function drawTimelineLabel(tl, highlight) {
+  const p = positionTimelineLabel(tl);
+  const width = p.right - p.left;
+  const height = p.bottom - p.top;
+  const brightness = (highlight) ? LABEL_BRIGHTNESS : 0.6;
+  const btnSize = p.btnBottom - p.btnTop;
+  const btnRadius = btnSize / 4;
+
+  ctx.save();
+  ctx.fillStyle = window.getComputedStyle(document.body).backgroundColor;
+  let grad = ctx.createLinearGradient(0, p.top, 0, p.bottom);
+  grad.addColorStop(0.0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.5, 'rgba(0,0,0,1)');
+  grad.addColorStop(1.0, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(p.left, p.top, width, height);
+
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'; 
+  ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(tl.title, EDGE_GAP, tl.yPos - LABEL_LINE_HEIGHT);
+
+  // close button
+  if (highlight) {
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.roundRect(p.btnLeft, p.btnTop, btnSize, btnSize, btnRadius);
+    ctx.fill();
+
+    // "X" symbol centered inside
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(p.btnLeft + 4, p.btnTop + 4);
+    ctx.lineTo(p.btnLeft + btnSize - 4, p.btnTop + btnSize - 4);
+    ctx.moveTo(p.btnLeft + btnSize - 4, p.btnTop + 4);
+    ctx.lineTo(p.btnLeft + 4, p.btnTop + btnSize - 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawEvents() {
   highlightedEvent = null;
+  highlightedTimeline = null;
 
-  for (let i=0; i<timelines.length; i++) {
-    const tl = timelines[i];
-    positionEvents(tl);
+  // populate screenElements
+  for (const tl of timelines) {
+    registerEvents(tl);
+    registerTimelineLabel(tl);
   }
 
   // iterate through screenElements (events and their labels)
-  screenElements.filter(se => se.type !== 'tick').forEach(se => {
+  screenElements.filter(se => se.type==='line' || se.type==='bubble' || se.type==='label').forEach(se => {
     const e = se.event;
     const highlight = (e===highlightedEvent || e===selectedEvent);
-    if (se.type === 'line') drawEventLine(e, highlight);
+    if (se.type === 'line') drawEventLine(e, highlight || e.timeline===highlightedTimeline);
     if (se.type === 'bubble') drawLabelAbove(e, highlight);
     if (se.type === 'label') drawLabelBelow(e, highlight);
   });
+
+  for (const tl of timelines) drawTimelineLabel(tl, tl===highlightedTimeline);
 
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
   const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), e.yPos)}};
   f(highlightedEvent);
   if (selectedEvent != highlightedEvent) f(selectedEvent);
+
+  // change pointer if mouse is over a button
+  if (highlightIdx === -1) canvas.style.cursor = 'default'
+  else canvas.style.cursor = (screenElements[highlightIdx].type === 'button') ? 'pointer' : 'default';
 }
 
 function positionLabelsForTL(tl){
@@ -366,15 +443,15 @@ function positionLabelsForTL(tl){
       scanUpwardLoop:
       while (top > -200 && !(open)) {
         // Check each already place event (c) for overlap...
-        for (let c = 0; c < events.length; c++){
-          if (events[c] === e) continue; // self
-          if (!events[c].yOffset || events[c].yOffset === -1) continue; // not placed yet
+        for (const event of events) {
+          if (event === e) continue; // self
+          if (!event.yOffset || event.yOffset === -1) continue; // not placed yet
           
-          const cX = events[c].x;
-          const cLeft = events[c].x - events[c].parsedWidth/2 - EDGE_GAP;
-          const cRight = events[c].x + events[c].parsedWidth/2 + EDGE_GAP;
-          const cTop = 0 - events[c].yOffset;
-          const cBot = cTop + Math.ceil(events[c].parsedLabel.length * LABEL_LINE_HEIGHT) + EDGE_GAP;
+          const cX = event.x;
+          const cLeft = event.x - event.parsedWidth/2 - EDGE_GAP;
+          const cRight = event.x + event.parsedWidth/2 + EDGE_GAP;
+          const cTop = 0 - event.yOffset;
+          const cBot = cTop + Math.ceil(event.parsedLabel.length * LABEL_LINE_HEIGHT) + EDGE_GAP;
 
           // if c's bubble is over e's stem (x) then can't display
           if (cLeft < x && cRight > x) { e.yOffset = 0; break scanUpwardLoop; }
@@ -396,9 +473,7 @@ function positionLabelsForTL(tl){
 
 function positionLabels() {
   // iterate through timelines
-  for (let i=0; i<timelines.length; i++) {
-    positionLabelsForTL(timelines[i]);
-  }
+  timelines.forEach(positionLabelsForTL);
 }
 
 function positionTimelines(zoom) {

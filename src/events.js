@@ -244,7 +244,8 @@ const timelineRob = {
     { significance:2, label:'Opened brokerage account', date:'1999-05-28' },
     { significance:3, label:'Bought World of Warcraft', date:'2005-07-26' },
     { significance:3, label:'Marriage to Anh', date:'2012-12-12' },
-    { significance:3, label:'Move to Texas', date:'2022-09-30' }
+    { significance:3, label:'Move to Texas', date:'2022-09-30' },
+    { significance:3, label:'Retired', date:'2021-12-28' }
   ]
 }
 
@@ -461,9 +462,16 @@ function initializeTimeline(timeline) {
   timelines.push(timeline);  // to do: 
   const tl = timelines[timelines.length - 1];
 
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  tl.labelWidth = ctx.measureText(tl.title).width;
+  
   //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
-  tl.events.forEach(e => {
-    initializeEvent(e);
-  });
+
+  //tl.events.forEach(initializeEvent);
+  for (const event of tl.events) {
+    event.timeline = timeline;
+    initializeEvent(event);
+  }
+
   return tl;
 }
