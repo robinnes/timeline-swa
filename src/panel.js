@@ -56,4 +56,17 @@ function openEvent(e) {
     $("sig-text").textContent = text;
     $("sig").setAttribute("aria-label", `Significance: ${text}`);
   }
+
+  retrieveEvent();
+}
+
+function retrieveEvent() {
+
+    (async function() {
+        const { text } = await( await fetch(`/api/getTimeline`)).json();
+        //document.querySelector('#name').textContent = text;
+        document.getElementById('details').innerHTML = text;
+    }());
+
+  //document.getElementById('details').innerHTML = 'test'';
 }
