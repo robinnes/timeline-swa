@@ -19,15 +19,15 @@ app.http('credentials', {
         // environments (Static Web Apps) may restrict creating a setting named
         // AzureWebJobsStorage. Allow a custom setting name (TIMELINE_STORAGE_CONN)
         // and fall back to AzureWebJobsStorage if present.
-        const conn = process.env.TIMELINE_STORAGE_CONN || process.env.AzureWebJobsStorage;
-        if (!conn) {
+        const conn = process.env.TIMELINE_STORAGE_CONN; // || process.env.AzureWebJobsStorage;
+        /*if (!conn) {
             context.log.error('Storage connection string not set (TIMELINE_STORAGE_CONN or AzureWebJobsStorage)');
             return {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ error: 'Server configuration error: storage connection string not set' })
             };
-        }
+        }*/
 
         try {
             const payload = generateSasToken(conn, container, permissions);
