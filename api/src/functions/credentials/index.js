@@ -12,14 +12,36 @@ app.http('credentials', {
     methods: ['GET', 'POST'],
     authLevel: 'anonymous',
     handler: async (request, context) => {
-        const permissions = 'r';  // was c for uploading blobs (?)
-        const container = 'timelines';  // was 'images';
-        return {
+        const permissions = 'r';  // read only
+        const container = 'timelines';
+
+        // Validate that the storage connection string is available
+        const conn = process.env.AzureWebJobsStorage;
+        if (!conn) {
+            context.log.error('AzureWebJobsStorage is not set in environment variables');
+            return {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ error: 'Server configuration error: AzureWebJobsStorage is not set' })
+            };
+        }
+
+        try {
+            const payload = generateSasToken(conn, container, permissions);
+            return {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(generateSasToken(process.env.AzureWebJobsStorage, container, permissions))
+                body: JSON.stringify(payload)
             };
+        } catch (err) {
+            context.log.error('Error generating SAS token', err);
+            return {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ error: 'Failed to generate SAS token', detail: err.message })
+            };
+        }
     }
 });
 
