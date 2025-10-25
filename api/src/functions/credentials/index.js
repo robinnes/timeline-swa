@@ -6,7 +6,7 @@ const {
     generateBlobSASQueryParameters
 } = require("@azure/storage-blob");
 
-const { extractConnectionStringParts } = require('./utils');
+const { extractConnectionStringParts } = require('../utils');
 
 app.http('credentials', {
     methods: ['GET', 'POST'],
