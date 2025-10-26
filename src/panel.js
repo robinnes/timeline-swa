@@ -61,10 +61,10 @@ function openEvent(e) {
 }
 
 async function retrieveEvent() {
-  try {
+  /*try {
     const tl = await loadFromStorage('timelines', 'timelineRob.json');
     document.getElementById('details').textContent = JSON.stringify(tl, null, 2);
   } catch (err) {
     document.getElementById('details').textContent = err.message;
-  }
+  }*/
 }

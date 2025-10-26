@@ -16,8 +16,8 @@ const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
 const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 // msPerPx controls zoom. offsetMs shifts timeline relative to EPOCH at x=0
-let msPerPx = MS_PER_DAY * 1  // ~30 days per pixel (years visible at start)
-let offsetMs = (Date.now() - EPOCH) - (window.innerWidth/0.5) * msPerPx; // center near "now"
+let msPerPx = MS_PER_DAY * 30  // ~30 days per pixel (years visible at start)
+let offsetMs = (Date.now() - EPOCH) - (window.innerWidth * 0.9) * msPerPx; // center near "now"
 
 const timelines = [];
 
@@ -395,14 +395,18 @@ function draw(reposition){
 async function initialLoad() {
     try {
         const tl = await loadFromStorage('timelines', 'timelineRob.json');
-        //const tl = timelineRob;
         initializeTimeline(tl);
         positionTimelines(false);
         //zoomToTimeline(tl);
         centerOnTimeline(tl); 
         draw(true);
     } catch (err) {
-        console.log(err.message);
+        console.log(err.message, "- Defaulting to local data.");
+        const tl = timelineTX;
+        initializeTimeline(tl);
+        positionTimelines(false);
+        centerOnTimeline(tl); 
+        draw(true);
     }
 }
 
