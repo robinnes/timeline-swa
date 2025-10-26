@@ -15,20 +15,8 @@ app.http('credentials', {
         const permissions = 'r';  // read only
         const container = 'timelines';
 
-        // Validate that the storage connection string is available. Some portal
-        // environments (Static Web Apps) may restrict creating a setting named
-        // AzureWebJobsStorage. Allow a custom setting name (TIMELINE_STORAGE_CONN)
-        // and fall back to AzureWebJobsStorage if present.
+        // locally, this is in local.settings.json; on prod in the Static Web App's Environment variables
         const conn = process.env.TIMELINE_STORAGE_CONN; // || process.env.AzureWebJobsStorage;
-        /*if (!conn) {
-            context.log.error('Storage connection string not set (TIMELINE_STORAGE_CONN or AzureWebJobsStorage)');
-            return {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ error: 'Server configuration error: storage connection string not set' })
-            };
-        }*/
-
         try {
             const payload = generateSasToken(conn, container, permissions);
             return {

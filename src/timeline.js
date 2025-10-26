@@ -392,10 +392,22 @@ function draw(reposition){
 */
 }
 
+async function initialLoad() {
+    try {
+        const tl = await loadFromStorage('timelines', 'timelineRob.json');
+        //const tl = timelineRob;
+        initializeTimeline(tl);
+        positionTimelines(false);
+        //zoomToTimeline(tl);
+        centerOnTimeline(tl); 
+        draw(true);
+    } catch (err) {
+        console.log(err.message);
+    }
+}
+
 // Kick things off
-initializeTimeline(timelineRob);
-positionTimelines(false);
-centerOnTimeline(timelines[timelines.length-1]);
 resize();
 requestAnimationFrame(tick);
 canvas.focus();
+initialLoad();
