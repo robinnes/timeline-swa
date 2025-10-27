@@ -1,7 +1,7 @@
 const controlLabel = document.getElementById('label');
 
 controlLabel.addEventListener('input', (e) => {
-  const s = e.target.value;
+  const s = e.target.textContent;
   selectedEvent.label = s;
   initializeEvent(selectedEvent);  // appearance of bubble label may change
   positionLabels();

@@ -96,6 +96,26 @@
         letter-spacing: .2px;
         font-weight: 650;
       }
+/* Show a caret + subtle focus for editable label */
+h2.label[contenteditable="true"] { 
+  outline: none; 
+  cursor: text; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+
+/* Placeholder when empty */
+h2.label[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+}
+
+/* Focus ring */
+h2.label[contenteditable="true"]:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 8px;
+}
 
       /* Significance (text only) */
       .sig { margin-top: 10px; }
@@ -171,7 +191,15 @@
               <span class="chip" id="date-single" hidden>Oct 10, 1998</span>
               <span class="chip" id="date-range" hidden>Jul 1, 1995 — Aug 8, 1995</span>
             </div>
-            <h2 class="label" id="label">A Short Event Title</h2>
+            <!-- <h2 class="label" id="label">A Short Event Title</h2> -->
+            <h2 class="label"
+  id="label"
+  contenteditable="true"
+  role="textbox"
+  aria-label="Edit event label"
+  aria-multiline="false"
+  spellcheck="true"
+  data-placeholder="Event title">A Short Event Title</h2>
             <div class="sig" id="sig" aria-label="Significance">
               <span class="pill"><span class="value" id="sig-text">3-Major</span></span>
             </div>

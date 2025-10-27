@@ -402,7 +402,7 @@ async function initialLoad() {
         draw(true);
     } catch (err) {
         console.log(err.message, "- Defaulting to local data.");
-        const tl = timelineTX;
+        const tl = timelineRob;
         initializeTimeline(tl);
         positionTimelines(false);
         centerOnTimeline(tl); 

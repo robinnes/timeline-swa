@@ -458,9 +458,9 @@ function initializeEvent(e) {
   e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
 };
 
-function initializeTimeline(timeline) {
-  timelines.push(timeline);  // to do: 
-  const tl = timelines[timelines.length - 1];
+function initializeTimeline(tl) {
+  timelines.push(tl);  // to do: 
+  //const tl = timelines[timelines.length - 1];
 
   ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
   tl.labelWidth = ctx.measureText(tl.title).width;
@@ -469,9 +469,21 @@ function initializeTimeline(timeline) {
 
   //tl.events.forEach(initializeEvent);
   for (const event of tl.events) {
-    event.timeline = timeline;
+    event.timeline = tl;
     initializeEvent(event);
   }
+}
 
-  return tl;
+function timelineString(tl) {
+  // Additional properties have been added to the original timeline object;
+  // reduce back to original form for export
+  const txt = {
+    title: tl.title,
+    dateFrom: tl.dateFrom,
+    dateTo: tl.dateTo,
+    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight}) => ({
+                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight
+    }))
+  };
+  return JSON.stringify(txt, null, 2);
 }
