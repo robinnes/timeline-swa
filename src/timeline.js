@@ -283,7 +283,20 @@ function openTimeline(tl, y) {
   zoomToTimeline(tl);
 }
 
+async function trySave()
+{
+  try {
+    const text = timelineString(timelines[0]);
+    await saveTimeline('timelines', 'timelineRob.json', text);
+  } catch (err) {
+    console.error('Save failed:', err.message);
+  }
+}
+
 function closeTimeline(tl) {
+
+  trySave();
+
   const idx = timelines.indexOf(tl);
   timelines.splice(idx, 1);
   if (timelines.length > 0) {

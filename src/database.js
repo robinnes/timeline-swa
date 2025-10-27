@@ -72,3 +72,25 @@ async function loadTimeline(container, file) {
     throw new Error(`Failed to load ${file} from storage: ${e.message}`);
   }
 }
+
+// --- saveTimeline: save text content to a blob using SAS token
+async function saveTimeline(container, file, text) {
+  try {
+    const {url, sasKey} = await acquireSasToken();
+    const blobUrl = formatURL(file, url, container, sasKey);
+
+    const resp = await fetch(blobUrl, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      body: text
+    });
+
+    if (!resp.ok) throw new Error(`Failed to upload blob: ${resp.status} ${resp.statusText}`);
+    return true;
+  } catch (e) {
+    throw new Error(`Failed to save ${file} to storage: ${e.message}`);
+  }
+}

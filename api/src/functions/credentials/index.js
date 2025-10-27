@@ -12,7 +12,7 @@ app.http('credentials', {
     methods: ['GET', 'POST'],
     authLevel: 'anonymous',
     handler: async (request, context) => {
-        const permissions = 'rw';  // read only + write?
+        const permissions = 'rcw';  // read only + write?
         const container = 'timelines';
 
         // locally, this is in local.settings.json; on prod in the Static Web App's Environment variables
