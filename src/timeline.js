@@ -394,7 +394,7 @@ function draw(reposition){
 
 async function initialLoad() {
     try {
-        const tl = await loadFromStorage('timelines', 'timelineRob.json');
+        const tl = await loadTimeline('timelines', 'timelineRob.json');
         initializeTimeline(tl);
         positionTimelines(false);
         //zoomToTimeline(tl);
@@ -402,7 +402,7 @@ async function initialLoad() {
         draw(true);
     } catch (err) {
         console.log(err.message, "- Defaulting to local data.");
-        const tl = timelineRob;
+        const tl = timelineTX;
         initializeTimeline(tl);
         positionTimelines(false);
         centerOnTimeline(tl); 

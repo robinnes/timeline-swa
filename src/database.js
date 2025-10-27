@@ -1,8 +1,9 @@
-
+/*
 async function loadFromStorage(container, file) {
   try {
     const response = await fetch("/api/credentials");
-    const {url, sasKey} = await response.json();
+    const {url, sasKey} = await response.json(); // --why await?
+    //const {url, sasKey} = response.json();
 
     // Load and return the blob (returns parsed JSON object)
     return await loadTimeline(file, url, container, sasKey);
@@ -15,14 +16,7 @@ async function loadFromStorage(container, file) {
 async function loadTimeline(file, url, container, sasKey) {
   if (!url) throw new Error('Missing storage URL');
 
-/*  const base = url.replace(/\/+$/, '');
-  const encodedFile = (file || '')
-    .split('/')
-    .map(segment => encodeURIComponent(segment))
-    .join('/');
-  const sas = sasKey ? (sasKey.startsWith('?') ? sasKey : `?${sasKey}`) : '';*/
-  const blobUrl = formatURL(file, url, container, sasKey);
-  
+  const blobUrl = formatURL(file, url, container, sasKey);  
   //console.log('Fetching from:', blobUrl.replace(sas, '?[redacted]'));
   const resp = await fetch(blobUrl);
   if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
@@ -36,6 +30,18 @@ async function loadTimeline(file, url, container, sasKey) {
     throw new Error(`Blob is not valid JSON: ${text.substring(0, 100)}...`);
   }
 }
+*/
+
+async function acquireSasToken() {
+  try {
+    const response = await fetch("/api/credentials");
+    const {url, sasKey} = await response.json();
+    return {url, sasKey};
+
+  } catch (err) {
+    throw new Error(`Failed to aquire SAS token: ${err.message}`);
+  }
+}
 
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
@@ -44,6 +50,25 @@ function formatURL(file, url, container, sasKey) {
     .map(segment => encodeURIComponent(segment))
     .join('/');
   const sas = sasKey ? (sasKey.startsWith('?') ? sasKey : `?${sasKey}`) : '';
-
+  
   return `${base}/${container}/${encodedFile}${sas}`;
+}
+
+async function loadTimeline(container, file) {
+  try {
+    // acquire SAS token
+    const {url, sasKey} = await acquireSasToken();
+    const blobUrl = formatURL(file, url, container, sasKey); 
+
+    // fetch the blob
+    const resp = await fetch(blobUrl);
+    if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
+    const text = await resp.text();
+
+    // parse and return JSON
+    return JSON.parse(text);
+
+  } catch (e) {
+    throw new Error(`Failed to load ${file} from storage: ${e.message}`);
+  }
 }

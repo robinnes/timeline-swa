@@ -12,17 +12,15 @@ app.http('credentials', {
     methods: ['GET', 'POST'],
     authLevel: 'anonymous',
     handler: async (request, context) => {
-        const permissions = 'r';  // read only
+        const permissions = 'rw';  // read only + write?
         const container = 'timelines';
 
         // locally, this is in local.settings.json; on prod in the Static Web App's Environment variables
-        const conn = process.env.TIMELINE_STORAGE_CONN; // || process.env.AzureWebJobsStorage;
+        const conn = process.env.TIMELINE_STORAGE_CONN;
         try {
             const payload = generateSasToken(conn, container, permissions);
             return {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             };
         } catch (err) {
