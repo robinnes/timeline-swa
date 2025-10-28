@@ -1,4 +1,5 @@
 const MAX_LABEL_WIDTH = 150;
+const LABEL_FONT = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
 const LABEL_LINE_HEIGHT = 18;
 const LABEL_STEM_HEIGHT = 30;
 const EDGE_GAP = 6;
@@ -264,7 +265,7 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   ctx.stroke();
 
   // label text
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.font = LABEL_FONT;
   ctx.fillStyle = `rgba(255,255,255,${LABEL_BRIGHTNESS})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -304,7 +305,7 @@ function drawLabelBelow(e, highlight) {
     if (highlight) zoomFade = LABEL_BRIGHTNESS; // label text always bright when highlighted
 
     ctx.save();
-    ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'; 
+    ctx.font = LABEL_FONT
     ctx.fillStyle = `rgba(255, 255, 255, ${zoomFade})`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -357,7 +358,7 @@ function drawTimelineLabel(tl, highlight) {
   ctx.fillStyle = grad;
   ctx.fillRect(p.left, p.top, width, height);
 
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'; 
+  ctx.font = LABEL_FONT;
   ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';

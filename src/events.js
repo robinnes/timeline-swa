@@ -401,7 +401,7 @@ const eventsMOM = [
 
 function parseLabel(label) {
   // attempt to minimize label width by splitting longer values up
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.font = LABEL_FONT;
   const labelWidth = ctx.measureText(label).width;
   const words = label.split(" "); // what about hyphens?
   let line = "", labels = [], maxWidth = 0;
@@ -462,7 +462,7 @@ function initializeTimeline(tl) {
   timelines.push(tl);  // to do: 
   //const tl = timelines[timelines.length - 1];
 
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.font = LABEL_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
   
   //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first

@@ -4,222 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Interactive Zoomable Timeline</title>
-    <style>
-      :root {
-        --bg: #0f1220;           /* panel background */
-        --bg-soft: #12162a;      /* slightly lighter for stripes/sections */
-        --fg: #e9edf3;           /* primary text */
-        --muted: #9aa3b2;        /* secondary text */
-        --accent: #6aa6ff;       /* accent (links, highlights) */
-        --accent-soft: color-mix(in srgb, var(--accent) 24%, transparent);
-        --border: #232842;       /* border color */
-        --shadow: 0 8px 24px rgba(0,0,0,.35);
-        --radius: 18px;
-        --w: 340px;              /* panel width */
-        --sidebar-w: min(360px, 92vw);
-      }
-      * { box-sizing: border-box; }
-      html, body {
-        height: 100%;
-        margin: 0;
-        overflow: hidden;
-        background: #0b0d17; /* page bg behind the panel */
-        color: var(--fg);
-        font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      /*body {
-        background:#000; 
-        color:#fff; 
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-        overflow: hidden;
-      }*/
-
-      .app {
-        display: grid;
-        grid-template-columns: var(--w) 1fr; /* sidebar + main area */
-        height: 100%;
-      }
-
-      aside.sidebar {
-        background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-        border-right: 1px solid var(--border);
-        box-shadow: var(--shadow);
-        padding: 18px 16px 16px 16px;
-        z-index: 20;
-        border-right: 1px solid rgba(255,255,255,0.08);
-        display: grid;
-        position: fixed;
-        grid-template-rows: auto 1fr;
-        inset: 0 auto 0 0; /* top, right, bottom, left */
-        width: var(--sidebar-w);
-        will-change: transform;
-        transform: translateX(-100%);
-        transition: transform 260ms ease;
-      }
-      .sidebar.open { transform: translateX(0); }
-
-      .sidebar__scroll {
-        height: 100%;
-        overflow: auto;
-        padding-right: 4px; /* gutter for scrollbar */
-      }
-
-      .sidebar__section + .sidebar__section {
-        margin-top: 18px;
-        padding-top: 14px;
-        border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
-      }
-
-      /* Header: date + label */
-      .date {
-        font-size: 12px;
-        letter-spacing: .3px;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
-      }
-      .date .chip {
-        border: 1px solid var(--border);
-        background: rgba(255,255,255,.02);
-        padding: 4px 8px;
-        border-radius: 999px;
-      }
-
-      h2.label {
-        margin: 8px 0 2px;
-        font-size: 18px;
-        line-height: 1.25;
-        letter-spacing: .2px;
-        font-weight: 650;
-      }
-/* Show a caret + subtle focus for editable label */
-h2.label[contenteditable="true"] { 
-  outline: none; 
-  cursor: text; 
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis;
-}
-
-/* Placeholder when empty */
-h2.label[contenteditable="true"]:empty:before {
-  content: attr(data-placeholder);
-  color: var(--muted);
-}
-
-/* Focus ring */
-h2.label[contenteditable="true"]:focus {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
-  border-radius: 8px;
-}
-
-      /* Significance (text only) */
-      .sig { margin-top: 10px; }
-      .sig .value { font-variant-numeric: tabular-nums; font-weight: 600; }
-
-      /* Details content area: generous typography + basic formatting */
-      .details {
-        background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 120px);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px 14px 16px;
-        max-height: 46vh;
-        overflow: auto;
-      }
-      .details p { margin: 0 0 10px; }
-      .details p:last-child { margin-bottom: 0; }
-      .details h3 { font-size: 14px; margin: 12px 0 6px; }
-      .details ul { margin: 8px 0 8px 18px; }
-      .details a { color: var(--accent); text-decoration: none; }
-      .details a:hover { text-decoration: underline; }
-
-      /* Little soft separators that align to content */
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: rgba(255,255,255,.02);
-      }
-
-      /* Scrollbar polish (WebKit)  */
-      .sidebar__scroll::-webkit-scrollbar,
-      .details::-webkit-scrollbar { width: 10px }
-      .sidebar__scroll::-webkit-scrollbar-thumb,
-      .details::-webkit-scrollbar-thumb {
-        background: #253056;
-        border-radius: 999px;
-        border: 2px solid transparent;
-        background-clip: padding-box;
-      }
-
-      /*.stage { 
-        width: 100vw; 
-        height: 100vh; 
-        margin-left: auto;
-        position: relative;
-        transition: width 0.3s ease;
-      }
-      .stage.shrink { width: calc(100vw - var(--sidebar-w)); }*/
-      .canvas { 
-        display: block;
-        width: 100vw; 
-        height: 100vw; 
-        touch-action: none; 
-      }
-      /*.hint {
-        position: fixed; left: 12px; bottom: 12px; color:#bbb; font-size: 12px; opacity:.85;
-        background: rgba(20,20,20,.6); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.1); pointer-events:none;
-         user-select:none; backdrop-filter: blur(4px);
-      }*/
-    </style>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <div class="app">
-      <!-- Event Sidebar -->
-      <aside class="sidebar" id="sidebar" role="complimentary" aria-hidden="true" aria-label="Line Controls">
+      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details">
+        <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
-          <!-- Header (Date + Label) -->
           <section class="sidebar__section">
-            <div class="date" id="date">
-              <span class="chip" id="date-single" hidden>Oct 10, 1998</span>
-              <span class="chip" id="date-range" hidden>Jul 1, 1995 — Aug 8, 1995</span>
-            </div>
-            <!-- <h2 class="label" id="label">A Short Event Title</h2> -->
-            <h2 class="label"
-  id="label"
-  contenteditable="true"
-  role="textbox"
-  aria-label="Edit event label"
-  aria-multiline="false"
-  spellcheck="true"
-  data-placeholder="Event title">A Short Event Title</h2>
-            <div class="sig" id="sig" aria-label="Significance">
-              <span class="pill"><span class="value" id="sig-text">3-Major</span></span>
-            </div>
+            <div class="date" id="date"></div>
+            <h2 class="label" id="label"></h2>
           </section>
           <section class="sidebar__section">
-            <div class="details" id="details">
-              <p>This area is for rich details about the selected event. It can span a few paragraphs and include basic formatting like <em>emphasis</em>, <strong>bold</strong>, links, and lists.</p>
-              <h3>Highlights</h3>
-              <ul>
-                <li>Opening act: Example Band</li>
-                <li>Venue: Hub Auditorium</li>
-                <li>City: Seattle, WA</li>
-              </ul>
-              <p>Here is a <a href="#">reference link</a> for more context.</p>
-            </div>
-          </section>
-
-          <!-- Optional: test results area -->
-          <section class="sidebar__section" aria-live="polite" aria-atomic="true">
-            <div id="test-results"></div>
+            <div class="details" id="details"></div>
           </section>
         </div>
       </aside>
@@ -227,7 +24,6 @@ h2.label[contenteditable="true"]:focus {
         <canvas id="canvas" tabindex="0"></canvas>
       </main>
     </div>
-    <!-- <div class="hint">Powered by Iced Tea</div> -->
     <script src="panel.js"></script>
     <script src="database.js"></script>
     <script src="events.js"></script>
@@ -236,5 +32,4 @@ h2.label[contenteditable="true"]:focus {
     <script src="mobile.js"></script>
     <script src="timeline.js"></script>
   </body>
-</div>
 </html>

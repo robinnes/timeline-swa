@@ -1,36 +1,3 @@
-/*
-async function loadFromStorage(container, file) {
-  try {
-    const response = await fetch("/api/credentials");
-    const {url, sasKey} = await response.json(); // --why await?
-    //const {url, sasKey} = response.json();
-
-    // Load and return the blob (returns parsed JSON object)
-    return await loadTimeline(file, url, container, sasKey);
-  } catch (err) {
-    // Re-throw any errors for the caller to handle
-    throw new Error(`Failed to load from storage: ${err.message}`);
-  }
-}
-
-async function loadTimeline(file, url, container, sasKey) {
-  if (!url) throw new Error('Missing storage URL');
-
-  const blobUrl = formatURL(file, url, container, sasKey);  
-  //console.log('Fetching from:', blobUrl.replace(sas, '?[redacted]'));
-  const resp = await fetch(blobUrl);
-  if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
-
-  const text = await resp.text();
-  console.log('Fetch successful');
-  
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    throw new Error(`Blob is not valid JSON: ${text.substring(0, 100)}...`);
-  }
-}
-*/
 
 async function acquireSasToken() {
   try {
@@ -73,7 +40,6 @@ async function loadTimeline(container, file) {
   }
 }
 
-// --- saveTimeline: save text content to a blob using SAS token
 async function saveTimeline(container, file, text) {
   try {
     const {url, sasKey} = await acquireSasToken();

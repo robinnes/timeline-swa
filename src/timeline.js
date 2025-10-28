@@ -312,9 +312,9 @@ canvas.addEventListener('click', function (e) {
   if (highlightIdx === -1) {
     // clicked in open space; if side panel is open then close it
     if (sidebar.classList.contains('open')) {
-      selectedEvent = null;
+      //selectedEvent = null;
       closePanel();
-      draw(false);
+      //draw(false);
     }
     return;
   }
@@ -387,7 +387,7 @@ function draw(reposition){
 /*
   const factor = Math.log10(msPerPx);
   const spec = getTickSpec();
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.font = LABEL_FONT;
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
