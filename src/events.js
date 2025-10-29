@@ -481,8 +481,8 @@ function timelineString(tl) {
     title: tl.title,
     dateFrom: tl.dateFrom,
     dateTo: tl.dateTo,
-    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight}) => ({
-                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight
+    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
+                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details
     }))
   };
   return JSON.stringify(txt, null, 2);

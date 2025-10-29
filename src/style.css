@@ -89,8 +89,20 @@ aside.sidebar {
   padding: 8px 10px;
   font: inherit;
   border-radius: 4px;
+  box-sizing: border-box;
 }
-.edit-textarea { resize: vertical; min-height: 120px; }
+
+.edit-input:focus,
+.edit-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.edit-textarea {
+  resize: none;
+  flex: 1;
+  min-height: 0;
+}
 
 .sidebar__section + .sidebar__section {
   margin-top: 18px;

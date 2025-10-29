@@ -1,6 +1,16 @@
+const sidebarClose = document.getElementById('sidebar-close');
 const editLabel = document.getElementById('edit-label');
 const editDetails = document.getElementById('edit-details');
-const sidebarClose = document.getElementById('sidebar-close');
+
+function closePanel() {
+  sidebar.classList.remove('open');
+  sidebar.setAttribute('aria-hidden', 'true');
+  //stage.classList.remove('shrink');
+  selectedEvent = null;
+  draw(false);
+  canvas.focus();
+}
+sidebarClose.addEventListener('click', closePanel);
 
 editLabel.addEventListener('input', (e) => {
   const s = e.target.value;
@@ -30,16 +40,6 @@ function openPanel() {
   sb.focus();
 }
 
-function closePanel() {
-  sidebar.classList.remove('open');
-  sidebar.setAttribute('aria-hidden', 'true');
-  //stage.classList.remove('shrink');
-  selectedEvent = null;
-  draw(false);
-  canvas.focus();
-}
-sidebarClose.addEventListener('click', closePanel);
-
 document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape') {
     if (sidebar.classList.contains('open')) closePanel();
@@ -47,9 +47,8 @@ document.addEventListener('keydown', (ev) => {
 });
 
 function openEvent() {
-  sidebar.classList.remove('is-edit'); // Show view mode
-
   const $ = (id) => document.getElementById(id);
+  sidebar.classList.remove('is-edit'); // Show view mode
 
   // Label
   $("label").textContent = selectedEvent.label ?? '';
