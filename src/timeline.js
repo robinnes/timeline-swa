@@ -332,7 +332,10 @@ if (highlightedEvent.label === 'Move to Texas') openTimeline(timelineTX, elem.ev
 else if (highlightedEvent.label === 'Marriage to Anh') openTimeline(timelineAnh, elem.event.yPos);
 else {
     selectedEvent = highlightedEvent;
-    openEvent(selectedEvent);
+    if (elem.type === 'line') // hack for now...
+      {openEventForEdit();} 
+    else openEvent();
+    
     if (!sidebar.classList.contains('open')) openPanel();
   }
       /*

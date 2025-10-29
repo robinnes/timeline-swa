@@ -11,7 +11,7 @@ const timelineTX = {
     { significance:1, label:'First U.S. Coronavirus death at Evergreen Hospital in Kirkland', date:'2020-02-29' },
     { significance:1, label:'BLM protests, even in Bellevue', date:'2020-06-01' },
     { significance:1, label:'Savings and retirement topped $1.5m', date:'2020-06-05' },
-    { significance:2, label:'Bought Buz', date:'2020-06-20' },
+    { significance:2, label:'Bought Buz', date:'2020-06-20', details:'We bought buz at Lexus of Lynnwood for about 42k.'},
     { significance:4, label:'Road trip to Yellowstone', dateFrom:'2020-07-03', dateTo:'2020-07-11', fadeLeft:'2020-07-04', fadeRight:'2020-07-10', color:'green' },
     { significance:1, label:'Arrive at Aunt Carol\'s', date:'2020-07-06' },
     { significance:1, label:'Thought about retirement and moving', date:'2020-08-20' },

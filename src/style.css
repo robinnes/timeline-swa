@@ -68,6 +68,30 @@ aside.sidebar {
   overflow: hidden; /* container handles scrolling on the details area */
 }
 
+/* Mode visibility: default is view mode. Toggle edit mode by adding the `is-edit` class to the sidebar. */
+.sidebar .mode { display: none; }
+.sidebar:not(.is-edit) .mode--view { display: block; }
+.sidebar.is-edit .mode--edit { display: block; }
+
+.control-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.edit-input,
+.edit-textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: var(--fg);
+  padding: 8px 10px;
+  font: inherit;
+  border-radius: 4px;
+}
+.edit-textarea { resize: vertical; min-height: 120px; }
+
 .sidebar__section + .sidebar__section {
   margin-top: 18px;
   padding-top: 14px;

@@ -11,13 +11,28 @@
       <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details">
         <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
-          <section class="sidebar__section">
-            <div class="date" id="date"></div>
-            <h2 class="label" id="label"></h2>
-          </section>
-          <section class="sidebar__section">
-            <div class="details" id="details"></div>
-          </section>
+          <!-- View mode (read-only) -->
+          <div class="mode mode--view">
+            <section class="sidebar__section">
+              <div class="date" id="date"></div>
+              <h2 class="label" id="label"></h2>
+            </section>
+            <section class="sidebar__section">
+              <div class="details" id="details"></div>
+            </section>
+          </div>
+
+          <!-- Edit mode (hidden by default). Toggle by adding/removing the `is-edit` class on the sidebar element. -->
+          <div class="mode mode--edit" aria-hidden="true">
+            <section class="sidebar__section">
+              <label for="edit-label" class="control-label">Label</label>
+              <input id="edit-label" class="edit-input" type="text" />
+            </section>
+            <section class="sidebar__section">
+              <label for="edit-details" class="control-label">Details</label>
+              <textarea id="edit-details" class="edit-textarea" rows="8"></textarea>
+            </section>
+          </div>
         </div>
       </aside>
       <main class="main">

@@ -1,19 +1,33 @@
-const controlLabel = document.getElementById('label');
+const editLabel = document.getElementById('edit-label');
+const editDetails = document.getElementById('edit-details');
 const sidebarClose = document.getElementById('sidebar-close');
 
-controlLabel.addEventListener('input', (e) => {
-  const s = e.target.textContent;
+editLabel.addEventListener('input', (e) => {
+  const s = e.target.value;
   selectedEvent.label = s;
   initializeEvent(selectedEvent);  // appearance of bubble label may change
   positionLabels();
   draw();
 });
 
+editDetails.addEventListener('input', (e) => {
+  const v = e.target.value;
+  selectedEvent.details = v;
+});
+
+function htmlToPlainText(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  return d.innerText;
+}
+
 function openPanel() {
-  sidebar.classList.add('open');
-  sidebar.setAttribute('aria-hidden', 'false');
+  const sb = document.getElementById('sidebar');
+  if (!sb) return;
+  sb.classList.add('open');
+  sb.setAttribute('aria-hidden', 'false');
   //stage.classList.add('shrink');
-  sidebar.focus();
+  sb.focus();
 }
 
 function closePanel() {
@@ -24,7 +38,6 @@ function closePanel() {
   draw(false);
   canvas.focus();
 }
-
 sidebarClose.addEventListener('click', closePanel);
 
 document.addEventListener('keydown', (ev) => {
@@ -33,49 +46,40 @@ document.addEventListener('keydown', (ev) => {
   }
 });
 
-function openEvent(e) {
+function openEvent() {
+  sidebar.classList.remove('is-edit'); // Show view mode
+
   const $ = (id) => document.getElementById(id);
 
   // Label
-  if (e.label != null) { $("label").textContent = e.label }
+  $("label").textContent = selectedEvent.label ?? '';
 
   // Date (choose single or range)
-  const single = e.date?.trim();
-  const from = e.dateFrom?.trim();
-  const to = e.dateTo?.trim();
+  const single = selectedEvent.date?.trim();
+  const from = selectedEvent.dateFrom?.trim();
+  const to = selectedEvent.dateTo?.trim();
   const showSingle = !!single && !(from || to);
-
-  /*$("date-single").hidden = !showSingle;
-  $("date-range").hidden = showSingle;
-
-  if (showSingle) {
-    $("date-single").textContent = single;
-  } else if (from || to) {
-    $("date-range").textContent = `${from ?? "?"} — ${to ?? "?"}`;
-  }*/
   const dateDisplay = showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
   $("date").innerHTML = dateDisplay;
 
-  // Details
-  const detailsHTML = `
-          <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
-          <h3>Notes</h3>
-          <ul>
-            <li>Highlights included views of volcanoes from Kenai and a long ferry segment.</li>
-            <li>Planned around music and photo stops for the personal archive.</li>
-          </ul>
-          <p>Here is a <a href="#">reference link</a> for more context.</p>`; 
-
-  if (typeof detailsHTML === 'string') {
-    $("details").innerHTML = detailsHTML; // ensure you sanitize upstream if content isn't trusted
-  }
-
-  // Significance (text only)
-  /*if (e.significance >= 1 && e.significance <= 6) {
-    const names = {1: 'Trace', 2: 'Minor', 3: 'Major', 4: 'Significant', 5: 'Critical', 6: 'Defining'};
-    const text = `${e.significance}-${names[e.significance] || ''}`;
-    $("sig-text").textContent = text;
-    $("sig").setAttribute("aria-label", `Significance: ${text}`);
-  }*/
+  const sampleHTML = `
+    <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
+    <h3>Notes</h3>
+    <ul>
+      <li>Highlights included views of volcanoes from Kenai and a long ferry segment.</li>
+      <li>Planned around music and photo stops for the personal archive.</li>
+    </ul>
+    <p>Here is a <a href="#">reference link</a> for more context.</p>`;
+  
+  // if details looks like HTML, show as HTML; otherwise plain-text
+  const isHtml = /<[a-z][\s\S]*>/i.test(selectedEvent.details);
+  if (isHtml) $("details").innerHTML = selectedEvent.details;
+  else $("details").innerText = selectedEvent.details ?? '';
 }
 
+function openEventForEdit() {
+  sidebar.classList.add('is-edit'); //Show edit mode
+
+  editLabel.value = selectedEvent.label ?? '';
+  editDetails.value = selectedEvent.details ?? '';
+}
