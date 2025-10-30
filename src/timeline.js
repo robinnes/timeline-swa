@@ -297,7 +297,7 @@ async function trySave()
 
 function closeTimeline(tl) {
 
-  trySave();
+  //trySave();
 
   const idx = timelines.indexOf(tl);
   timelines.splice(idx, 1);

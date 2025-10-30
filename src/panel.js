@@ -34,7 +34,8 @@ timelineCancelBtn.addEventListener('click', (e) => {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  if (typeof trySave === 'function') trySave();
+  trySave();
+  updateSaveButton();
 });
 
 editEventLabel.addEventListener('input', (e) => {
@@ -75,7 +76,6 @@ function htmlToPlainText(html) {
   return d.innerText;
 }
 
-// Update the enabled/disabled appearance of the timeline Save button.
 function updateSaveButton() {
   // Save should be disabled when there are no unsaved changes.
   // Enable the Save button when `editingTimeline.dirty === true`.
