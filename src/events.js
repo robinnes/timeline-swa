@@ -1,6 +1,7 @@
 const timelineTX = {
   title:'Move to Texas',
   dateFrom:'2019-07-01', dateTo:'2023-08-15', 
+  details:'Our timeline of events leading up to and following our move from Washington to Texas.',
   events:[
     { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
     { significance:2, label:'Chi & Kim\'s anniversary', date:'2017-06-24' },

@@ -156,8 +156,8 @@ function openTimelineForView() {
 
   // Details
   const isHtml = /<[a-z][\s\S]*>/i.test(selectedTimeline.details);
-  if (isHtml) $("details").innerHTML = selectedTimeline.details;
-  else $("details").innerText = selectedTimeline.details ?? '';
+  if (isHtml) $("timeline-details").innerHTML = selectedTimeline.details;
+  else $("timeline-details").innerText = selectedTimeline.details ?? '';
 
   showPanel('panel-view-timeline');
   if (!sidebar.classList.contains('open')) openPanel();
