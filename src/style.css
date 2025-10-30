@@ -68,10 +68,89 @@ aside.sidebar {
   overflow: hidden; /* container handles scrolling on the details area */
 }
 
-/* Mode visibility: default is view mode. Toggle edit mode by adding the `is-edit` class to the sidebar. */
-.sidebar .mode { display: none; }
-.sidebar:not(.is-edit) .mode--view { display: block; }
-.sidebar.is-edit .mode--edit { display: block; }
+/* --- Panels --- */
+.panel {
+    position: absolute;
+    inset: 44px 0 0; /* Leave space at top for close button */
+    padding: 0 16px; /* Match sidebar padding */
+    color: white;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .panel.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  [hidden] {
+    display: none !important;
+  }
+
+/* Edit button positioned at bottom-right of panels */
+.panel__edit-btn {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  background: var(--accent);
+  color: #0b0d17;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0,0,0,.35);
+}
+.panel__edit-btn:hover {
+  opacity: 0.95;
+}
+.panel__edit-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(106,166,255,0.18);
+}
+
+/* Cancel button (bottom-right) */
+.panel__cancel-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.panel__cancel-btn:hover {
+  background: rgba(255,255,255,0.02);
+  color: var(--accent);
+}
+.panel__cancel-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(106,166,255,0.12);
+}
+
+/* Save button (to the left of cancel) */
+.panel__save-btn {
+  position: absolute;
+  right: 120px; /* sits left of cancel (which is right:16px) */
+  bottom: 16px;
+  background: var(--accent);
+  color: #0b0d17;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0,0,0,.35);
+}
+.panel__save-btn:hover { opacity: 0.95; }
+.panel__save-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(106,166,255,0.18); }
+.panel__save-btn:disabled {
+  opacity: 0.45;
+  cursor: default; /*not-allowed;*/
+  box-shadow: none;
+}
 
 .control-label {
   display: block;

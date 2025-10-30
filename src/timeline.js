@@ -1,6 +1,5 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const sidebar = document.getElementById('sidebar');
 
 const ZOOM_FACTOR = 1.1;
 const PAN_FACTOR = 200;
@@ -40,7 +39,9 @@ const screenElements = [];
 let highlightIdx = -1;  // index in screenElements array of the highlighed element
 let highlightedEvent = null;  // event object if the highlighted element is an event (not a tick)
 let selectedEvent = null;  // event selected (opened in the side panel)
+let selectedTimeline = null;  // timeline selected (opened in the side panel)
 let highlightedTimeline = null;
+let editingTimeline = null;
 
 // Keyboard navigation
 let fixedPanMode = null;  // points to tickSpec to control navigation
@@ -286,8 +287,9 @@ function openTimeline(tl, y) {
 async function trySave()
 {
   try {
-    const text = timelineString(timelines[0]);
+    const text = timelineString(editingTimeline);
     await saveTimeline('timelines', 'timelineRob.json', text);
+    editingTimeline.dirty = false;
   } catch (err) {
     console.error('Save failed:', err.message);
   }
@@ -311,11 +313,7 @@ canvas.addEventListener('click', function (e) {
   
   if (highlightIdx === -1) {
     // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) {
-      //selectedEvent = null;
-      closePanel();
-      //draw(false);
-    }
+    if (sidebar.classList.contains('open')) closePanel();
     return;
   }
 
@@ -332,27 +330,14 @@ if (highlightedEvent.label === 'Move to Texas') openTimeline(timelineTX, elem.ev
 else if (highlightedEvent.label === 'Marriage to Anh') openTimeline(timelineAnh, elem.event.yPos);
 else {
     selectedEvent = highlightedEvent;
-    if (elem.type === 'line') // hack for now...
-      {openEventForEdit();} 
-    else openEvent();
-    
-    if (!sidebar.classList.contains('open')) openPanel();
+    selectedTimeline = selectedEvent.timeline;
+    if (editingTimeline === selectedTimeline) {openEventForEdit();} else openEventForView();
   }
-      /*
-      setSidebarData({
-        label: 'Road Trip: Alaska to Seattle',
-        date: { from: 'July 1, 1995', to: 'August 8, 1995' },
-        significance: 3,
-        detailsHTML: `
-          <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
-          <h3>Notes</h3>
-          <ul>
-            <li>Highlights included views of volcanoes from Kenai and a long ferry segment.</li>
-            <li>Planned around music and photo stops for the personal archive.</li>
-          </ul>
-        `
-      });
-      */
+
+  } else if (elem.type === 'timeline') {
+    selectedTimeline = elem.timeline;
+    if (editingTimeline === selectedTimeline) {openTimelineForEdit();} else openTimelineForView();
+
   } else if (elem.type === 'button') {
     closeTimeline(elem.timeline);
   }

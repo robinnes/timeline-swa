@@ -220,7 +220,8 @@ const timelineAnh = {
 }
 
 const timelineRob = {
-  title:'Life of Rob Innes',
+  title:'Rob Innes',
+  details:'A timeline of significant events in the life of Rob Innes.',
   dateFrom:'1969-08-06', dateTo:'2025-10-14', 
   events:[
     { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
@@ -464,6 +465,7 @@ function initializeTimeline(tl) {
 
   ctx.font = LABEL_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
+  tl.dirty = false;
   
   //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
 
@@ -479,6 +481,7 @@ function timelineString(tl) {
   // reduce back to original form for export
   const txt = {
     title: tl.title,
+    details: tl.details,
     dateFrom: tl.dateFrom,
     dateTo: tl.dateTo,
     events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
