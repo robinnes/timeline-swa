@@ -152,6 +152,46 @@ aside.sidebar {
   box-shadow: none;
 }
 
+/* Tabs at top of edit panels */
+.panel__tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0 8px 0;
+}
+.panel__tabs .tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 6px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.panel__tabs .tab-btn:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.01);
+}
+.panel__tabs .tab-btn.is-active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+.panel__tabs .tab-btn:disabled,
+.panel__tabs .tab-btn.is-disabled {
+  color: var(--muted);
+  cursor: default;
+  background: transparent;
+  pointer-events: none;
+  border-bottom-color: transparent;
+}
+.panel__tabs-sep {
+  height: 1px;
+  background: rgba(255,255,255,0.04);
+  width: calc(100% + 32px); /* extend full panel width including padding */
+  margin: 8px -16px 12px; /* neutralize panel padding */
+}
+
 .control-label {
   display: block;
   margin-bottom: 6px;
@@ -186,6 +226,52 @@ aside.sidebar {
 .sidebar__section + .sidebar__section {
   margin-top: 18px;
   padding-top: 14px;
+}
+
+/* Significance radio group (two rows of three) */
+.significance .significance-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.significance-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.sig-btn {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--fg);
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 76px;
+  height: 32px;
+  justify-content: center;
+}
+.sig-btn input[type="radio"] {
+  display: none;
+}
+.sig-btn span {
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.sig-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
+.sig-btn input[type="radio"]:checked + span,
+.sig-btn.is-active span {
+  color: #0b0d17;
+}
+.sig-btn input[type="radio"]:checked + span {
+  /* indicate selected: invert background and text */
+  background: var(--accent);
+  color: #0b0d17;
 }
 
 /* Make the last section (which contains .details) expand to fill the sidebar */

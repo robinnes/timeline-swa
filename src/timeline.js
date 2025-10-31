@@ -284,17 +284,6 @@ function openTimeline(tl, y) {
   zoomToTimeline(tl);
 }
 
-async function trySave()
-{
-  try {
-    const text = timelineString(editingTimeline);
-    await saveTimeline('timelines', 'timelineRob.json', text);
-    editingTimeline.dirty = false;
-  } catch (err) {
-    console.error('Save failed:', err.message);
-  }
-}
-
 function closeTimeline(tl) {
 
   //trySave();

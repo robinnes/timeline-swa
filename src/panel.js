@@ -9,6 +9,46 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 
+// Tab buttons for switching between edit panels (overkill for 2 tabs...)
+const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
+// Significance radio inputs (event editing)
+const significanceRadios = Array.from(document.querySelectorAll('input[name="event-significance"]'));
+
+function setActiveEditTab(targetPanelId) {
+  for (const btn of tabButtons) {
+    const isTarget = btn.dataset.target === targetPanelId;
+    btn.classList.toggle('is-active', isTarget);
+    btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  }
+  // Update enabled/disabled state for tabs after changing active tab
+  updateTabStates();
+}
+
+// Attach click handlers to tab buttons
+for (const btn of tabButtons) {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = btn.dataset.target;
+    if (!target) return;
+    showPanel(target);
+    setActiveEditTab(target);
+    if (!sidebar.classList.contains('open')) openPanel();
+  });
+}
+
+// Disable or enable tabs based on application state (e.g. selectedEvent)
+function updateTabStates() {
+  if (!tabButtons || !tabButtons.length) return;
+  for (const btn of tabButtons) {
+    // Disable 'Event' tab when there is no selectedEvent
+    if (btn.dataset.target === 'panel-edit-event') {
+      const shouldDisable = !selectedEvent;
+      btn.disabled = shouldDisable;
+      btn.classList.toggle('is-disabled', shouldDisable);
+      btn.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
+    }
+  }
+}
 
 function closePanel() {
   sidebar.classList.remove('open');
@@ -28,14 +68,25 @@ timelineEditBtn.addEventListener('click', (e) => {
 
 timelineCancelBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  //initialLoad();  // need to just reload selectedTimeline
-  openTimelineForView();
+  if (!selectedTimeline.dirty) openTimelineForView();
+  // else, ask whether to discard changes and if so, reload
 });
+
+async function trySaveTimeline()
+{
+  try {
+    const text = timelineString(editingTimeline);
+    await saveTimeline('timelines', 'timelineRob.json', text);
+    editingTimeline.dirty = false;
+    updateSaveButton();
+  } catch (err) {
+    console.error('Save failed:', err.message);
+  }
+}
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  trySave();
-  updateSaveButton();
+  trySaveTimeline();
 });
 
 editEventLabel.addEventListener('input', (e) => {
@@ -141,8 +192,18 @@ function openEventForView() {
 function openEventForEdit() {
   editEventLabel.value = selectedEvent.label ?? '';
   editEventDetails.value = selectedEvent.details ?? '';
-  
+  // set significance radio based on selectedEvent.significance (if present)
+  const sig = selectedEvent.significance ?? null;
+  if (sig != null) {
+    const el = document.querySelector(`input[name="event-significance"][value="${sig}"]`);
+    if (el) el.checked = true;
+  } else {
+    // default to normal point (value 2)
+    const el = document.querySelector('input[name="event-significance"][value="2"]');
+    if (el) el.checked = true;
+  }
   showPanel('panel-edit-event');
+    setActiveEditTab('panel-edit-event');
   if (!sidebar.classList.contains('open')) openPanel();
   editEventLabel.focus();
 }
@@ -170,6 +231,20 @@ function openTimelineForEdit() {
   updateSaveButton?.();
 
   showPanel('panel-edit-timeline');
+    setActiveEditTab('panel-edit-timeline');
   if (!sidebar.classList.contains('open')) openPanel();
   editTimelineTitle.focus();
+}
+
+// Significance change handler: update selectedEvent.significance and mark dirty
+for (const r of significanceRadios) {
+  r.addEventListener('change', (e) => {
+    const v = parseInt(e.target.value, 10);
+    if (!selectedEvent) return;
+    selectedEvent.significance = v;
+    // mark timeline dirty when event changed
+    if (editingTimeline) editingTimeline.dirty = true;
+    updateSaveButton?.();
+    draw();
+  });
 }

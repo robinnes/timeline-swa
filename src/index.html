@@ -24,9 +24,34 @@
 
           <!-- Edit event panel -->
           <div id="panel-edit-event" class="panel hidden inert">
+            <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
+              <button class="tab-btn" data-target="panel-edit-timeline" role="tab" aria-selected="false">Timeline</button>
+              <button class="tab-btn is-active" data-target="panel-edit-event" role="tab" aria-selected="true">Event</button>
+            </div>
+            <div class="panel__tabs-sep" aria-hidden="true"></div>
             <section class="sidebar__section">
               <label for="edit-event-label" class="control-label">Label</label>
               <textarea id="edit-event-label" class="edit-textarea" rows="2"></textarea>
+            </section>
+            <section class="sidebar__section">
+              <div class="significance">
+                <div class="significance-row">
+                  <label class="control-label">Point</label>
+                  <div class="significance-controls">
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>minor</span></label>
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>normal</span></label>
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>major</span></label>
+                  </div>
+                </div>
+                <div class="significance-row">
+                  <label class="control-label">Span</label>
+                  <div class="significance-controls">
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>minor</span></label>
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>normal</span></label>
+                    <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>major</span></label>
+                  </div>
+                </div>
+              </div>
             </section>
             <section class="sidebar__section">
               <label for="edit-event-details" class="control-label">Details</label>
@@ -49,9 +74,14 @@
 
           <!-- Edit timeline panel -->
           <div id="panel-edit-timeline" class="panel hidden inert">
+            <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
+              <button class="tab-btn is-active" data-target="panel-edit-timeline" role="tab" aria-selected="true">Timeline</button>
+              <button class="tab-btn" data-target="panel-edit-event" role="tab" aria-selected="false">Event</button>
+            </div>
+            <div class="panel__tabs-sep" aria-hidden="true"></div>
             <section class="sidebar__section">
-              <label for="edit-timeline-title" class="control-label">Label</label>
-              <textarea id="edit-timeline-title" class="edit-textarea" rows="2"></textarea>
+              <label for="edit-timeline-title" class="control-label">Title</label>
+              <textarea id="edit-timeline-title" class="edit-textarea" rows="1"></textarea>
             </section>
             <section class="sidebar__section">
               <label for="edit-timeline-details" class="control-label">Details</label>
