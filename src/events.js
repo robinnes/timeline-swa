@@ -443,6 +443,8 @@ function parseLabel(label) {
 }
 
 function initializeEvent(e) {
+  const h = 60*60*1000;
+
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label);
   e.labelWidth = parsed.labelWidth;
@@ -450,8 +452,16 @@ function initializeEvent(e) {
   e.parsedWidth = parsed.width;
   e.yOffset = null;
 
+  //sanity checks
+  if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;
+  if (e.fadeLeft > e.fadeRight) e.fadeRight = e.fadeLeft;
+  if (e.fadeLeft > e.dateTo) e.fadeLeft = e.dateTo;
+  if (e.fadeLeft < e.dateFrom) e.fadeLeft = e.dateFrom;
+  if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
+  if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
+
   // When only date supplied, convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-  const d = Date.parse(e.date), h = 60*60*1000;
+  const d = Date.parse(e.date)
   e.tFrom = (e.dateFrom === undefined) ? d + (8 * h) : Date.parse(e.dateFrom) + (12 * h);
   e.tTo = (e.dateTo === undefined) ? d + (16 * h) : Date.parse(e.dateTo) + (12 * h);
   e.fLeft = (e.fadeLeft === undefined) ? ((e.dateFrom === undefined) ? d + (11 * h) : e.tFrom) : Date.parse(e.fadeLeft) + (12 * h);

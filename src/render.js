@@ -385,6 +385,111 @@ function drawTimelineLabel(tl, highlight) {
   ctx.restore();
 }
 
+function drawDateHandles() {
+  const y = editingTimeline.yPos;
+  const color = 'rgba(200,200,200,1)';
+  const lineWidth = 2;
+  const majorHeight = 80;
+  const majorRadius = 14;
+  const minorHeight = 50;
+  const minorRadius = 8;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+
+  if (selectedEvent.significance <= 3) {
+    // singer date handle
+    let x = timeToPx(selectedEvent.dateTime);
+    let left = x - majorRadius
+    let right = x + majorRadius
+    let top = y + majorHeight - majorRadius
+    let bottom = y + majorHeight + majorRadius;
+
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top);
+    ctx.stroke();
+    ctx.beginPath();  // circle at bottom
+    ctx.arc(x, y + majorHeight, majorRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'date', event:selectedEvent});
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+
+  } else {
+    // dateFrom (half-circle on the left)
+    let x = timeToPx(selectedEvent.tFrom);
+    let left = x - majorRadius
+    let right = x;
+    let top = y + majorHeight - majorRadius
+    let bottom = y + majorHeight + majorRadius;
+
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + majorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + majorHeight, majorRadius, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.stroke();
+
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateFrom', event:selectedEvent});
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+
+    // dateTo (half-circle on the right)
+    x = timeToPx(selectedEvent.tTo);
+    left = x;
+    right = x + majorRadius;
+
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + majorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + majorHeight, majorRadius, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.stroke();
+
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateTo', event:selectedEvent});
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+
+    // fadeLeft
+    x = timeToPx(selectedEvent.fLeft);
+    left = x;
+    right = x + minorRadius;
+    top = y + minorHeight - minorRadius
+    bottom = y + minorHeight + minorRadius;
+
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + minorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.stroke();
+
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeLeft', event:selectedEvent});
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+
+    // fadeRight
+    x = timeToPx(selectedEvent.fRight);
+    left = x - minorRadius;
+    right = x;
+
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + minorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.stroke();
+
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', event:selectedEvent});
+    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+  }
+  
+  ctx.restore();
+}
+
 function drawEvents() {
   highlightedEvent = null;
   highlightedTimeline = null;
@@ -406,14 +511,21 @@ function drawEvents() {
 
   for (const tl of timelines) drawTimelineLabel(tl, tl===highlightedTimeline);
 
+  // draw date handles if applicable
+  if (editingTimeline && selectedEvent && document.getElementById('panel-edit-event').classList.contains('is-active'))
+    drawDateHandles();
+
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
   const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), e.yPos)}};
   f(highlightedEvent);
   if (selectedEvent != highlightedEvent) f(selectedEvent);
 
-  // change pointer if mouse is over a button
-  if (highlightIdx === -1) canvas.style.cursor = 'default'
-  else canvas.style.cursor = (screenElements[highlightIdx].type === 'button') ? 'pointer' : 'default';
+  // change pointer is appropriate
+  if (isDragging) canvas.style.cursor = 'ew-resize'
+  else if (highlightIdx === -1) canvas.style.cursor = 'default'
+  else if (screenElements[highlightIdx].type === 'button') canvas.style.cursor = 'pointer'
+  else if (screenElements[highlightIdx].type === 'handle') canvas.style.cursor = 'ew-resize'
+  else canvas.style.cursor = 'default';
 }
 
 function positionLabelsForTL(tl){

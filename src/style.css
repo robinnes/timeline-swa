@@ -217,6 +217,12 @@ aside.sidebar {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
+/* Prevent focus highlighting on read-only inputs */
+.edit-input[readonly]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.04);
+  box-shadow: none;
+}
 .edit-textarea {
   resize: none;
   flex: 1;
@@ -258,7 +264,7 @@ aside.sidebar {
   display: none;
 }
 .sig-btn span {
-  padding: 2px 6px;
+  padding: 0px 6px;
   border-radius: 4px;
 }
 .sig-btn:hover {

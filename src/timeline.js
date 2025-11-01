@@ -27,6 +27,8 @@ let mouseY = 0;
 // Zoom & pan variables
 let isPanning = false;
 let ignoreClick = false;  // ignore click event if panning
+let isDragging = false;
+let draggingAttribute = null;
 
 // Momentum variables
 let lastX = 0;
@@ -136,17 +138,22 @@ window.addEventListener('resize', resize);
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
-
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
   zoomInProgress = null;  // stop any zooming in progress
-
-  //ignoreClick = false;
-  isPanning = true;
-  vOffsetMs = 0;
-  lastX = e.clientX;
-  ignoreClick = false;
+    
+  if (highlightIdx !== -1 && screenElements[highlightIdx].type === 'handle') {
+    // start dragging a handle
+    isDragging = true;
+    draggingAttribute = screenElements[highlightIdx].subType;
+  } else {
+    // start panning
+    isPanning = true;
+    vOffsetMs = 0;
+    lastX = e.clientX;
+    ignoreClick = false;
+  }
 });
 
 canvas.addEventListener('pointermove', (e)=>{
@@ -164,10 +171,22 @@ canvas.addEventListener('pointermove', (e)=>{
     offsetMs -= dx * msPerPx; // drag right -> move timeline left
     lastDragSpeed = dx * msPerPx;
     draw(false);
+
+  } else if (isDragging) {
+    // dragging a handle to change event dateTime
+    const t = pxToTime(e.clientX);
+    const d = new Date(t).toISOString().split('T')[0];
+    selectedEvent[draggingAttribute] = d; // initializeEvent will handle limits
+    initializeEvent(selectedEvent);
+    document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
+    editingTimeline.dirty = true;
+    updateSaveButton();
+    positionLabels();
+    draw();
+
   } else {
     // check if mouse is over any interactive elements
-    let found = -1;
-    
+    let found = -1;  
     for (let i=screenElements.length-1; i>0; i--) {  
       const se = screenElements[i];
       if (mouseX >= se.left && mouseX <= se.right && mouseY >= se.top && mouseY <= se.bottom) {
@@ -181,14 +200,22 @@ canvas.addEventListener('pointermove', (e)=>{
 
 window.addEventListener('pointerup', (e)=>{
   if (e.pointerType !== 'mouse') return;
-  if(!isPanning) return;
 
-  isPanning = false;
-  // Convert last drag frame delta into per-second velocity estimate using last frame dt
-  const now = performance.now();
-  const dt = Math.max(16.7, now - (lastTick || now)) / 1000; // ~1 frame if unknown
-  vOffsetMs = (lastDragSpeed || 0) / dt;
-  lastDragSpeed = 0
+  if (isPanning) {
+    isPanning = false;
+    // Convert last drag frame delta into per-second velocity estimate using last frame dt
+    const now = performance.now();
+    const dt = Math.max(16.7, now - (lastTick || now)) / 1000; // ~1 frame if unknown
+    vOffsetMs = (lastDragSpeed || 0) / dt;
+    lastDragSpeed = 0;
+    return;
+  }
+
+  if (isDragging) {
+    isDragging = false;
+    canvas.style.cursor = 'default'; // as opposed to calling draw()
+    return;
+  }
 });
 
 canvas.addEventListener('wheel', (e)=>{

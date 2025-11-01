@@ -33,6 +33,7 @@ for (const btn of tabButtons) {
     showPanel(target);
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openPanel();
+    draw();
   });
 }
 
@@ -156,6 +157,14 @@ function showPanel(id) {
   }
 }
 
+function formatEventDate(e) {
+  const single = selectedEvent.date?.trim();
+  const from = selectedEvent.dateFrom?.trim();
+  const to = selectedEvent.dateTo?.trim();
+  const showSingle = !!single && !(from || to);
+  return showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
+}
+
 function openEventForView() {
   const $ = (id) => document.getElementById(id);
   //sidebar.classList.remove('is-edit'); // Show view mode
@@ -163,13 +172,8 @@ function openEventForView() {
   // Label
   $("event-label").textContent = selectedEvent.label ?? '';
 
-  // Date (choose single or range)
-  const single = selectedEvent.date?.trim();
-  const from = selectedEvent.dateFrom?.trim();
-  const to = selectedEvent.dateTo?.trim();
-  const showSingle = !!single && !(from || to);
-  const dateDisplay = showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
-  $("event-date").innerHTML = dateDisplay;
+  // Date
+  $("event-date").innerHTML = formatEventDate(selectedEvent);;
 
   const sampleHTML = `
     <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
@@ -192,6 +196,7 @@ function openEventForView() {
 function openEventForEdit() {
   editEventLabel.value = selectedEvent.label ?? '';
   editEventDetails.value = selectedEvent.details ?? '';
+  document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
   // set significance radio based on selectedEvent.significance (if present)
   const sig = selectedEvent.significance ?? null;
   if (sig != null) {
@@ -203,9 +208,10 @@ function openEventForEdit() {
     if (el) el.checked = true;
   }
   showPanel('panel-edit-event');
-    setActiveEditTab('panel-edit-event');
+  setActiveEditTab('panel-edit-event');
   if (!sidebar.classList.contains('open')) openPanel();
   editEventLabel.focus();
+  draw();
 }
 
 function openTimelineForView() {
@@ -231,7 +237,7 @@ function openTimelineForEdit() {
   updateSaveButton?.();
 
   showPanel('panel-edit-timeline');
-    setActiveEditTab('panel-edit-timeline');
+  setActiveEditTab('panel-edit-timeline');
   if (!sidebar.classList.contains('open')) openPanel();
   editTimelineTitle.focus();
 }
