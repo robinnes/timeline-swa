@@ -229,6 +229,39 @@ aside.sidebar {
   min-height: 0;
 }
 
+.color-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.1s ease;
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+}
+
+.color-btn.is-active {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.color-btn[data-color="white"] { background: rgb(255,255,255); }
+.color-btn[data-color="blue"] { background: rgb(0,100,255); }
+.color-btn[data-color="purple"] { background: rgb(100,0,255); }
+.color-btn[data-color="red"] { background: rgb(255,0,100); }
+.color-btn[data-color="orange"] { background: rgb(255,100,100); }
+.color-btn[data-color="yellow"] { background: rgb(255,255,100); }
+.color-btn[data-color="green"] { background: rgb(0,255,100); }
+
 .sidebar__section + .sidebar__section {
   margin-top: 18px;
   padding-top: 14px;
@@ -297,6 +330,7 @@ aside.sidebar {
   gap: 8px;
   white-space: nowrap;
 }
+
 h2.label {
   margin: 8px 0 2px;
   font-size: 18px;
@@ -304,8 +338,7 @@ h2.label {
   letter-spacing: .2px;
   font-weight: 650;
 }
-.sig { margin-top: 10px; }
-.sig .value { font-variant-numeric: tabular-nums; font-weight: 600; }
+
 .details {
   padding: 14px 0;
   flex: 1 1 auto; /* fill remaining vertical space */
@@ -318,6 +351,7 @@ h2.label {
 .details ul { margin: 8px 0 8px 18px; }
 .details a { color: var(--accent); text-decoration: none; }
 .details a:hover { text-decoration: underline; }
+
 .canvas { 
   display: block;
   width: 100vw; 

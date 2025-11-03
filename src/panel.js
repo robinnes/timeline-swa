@@ -9,10 +9,65 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 
-// Tab buttons for switching between edit panels (overkill for 2 tabs...)
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
-// Significance radio inputs (event editing)
-const significanceRadios = Array.from(document.querySelectorAll('input[name="event-significance"]'));
+const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
+const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
+
+
+/* ------------------- Helper functions -------------------- */
+
+function htmlToPlainText(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  return d.innerText;
+}
+
+function formatEventDate(e) {
+  const single = selectedEvent.date?.trim();
+  const from = selectedEvent.dateFrom?.trim();
+  const to = selectedEvent.dateTo?.trim();
+  const showSingle = !!single && !(from || to);
+  return showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
+}
+
+
+/* ------------------- Side panel -------------------- */
+
+function openPanel() {
+  sidebar.classList.add('open');
+  sidebar.setAttribute('aria-hidden', 'false');
+  //stage.classList.add('shrink');
+  sidebar.focus();
+}
+
+function closePanel() {
+  sidebar.classList.remove('open');
+  sidebar.setAttribute('aria-hidden', 'true');
+  //stage.classList.remove('shrink');
+  selectedEvent = null;
+  selectedTimeline = null;
+  draw(false);
+  canvas.focus();
+}
+sidebarClose.addEventListener('click', closePanel);
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') {
+    if (sidebar.classList.contains('open')) closePanel();
+  }
+});
+
+function showPanel(id) {
+  for (const p of panels) {
+    const isActive = p.id === id;
+    p.toggleAttribute('hidden', !isActive);
+    p.toggleAttribute('inert', !isActive);
+    p.classList.toggle('is-active', isActive);
+  }
+}
+
+
+/* ------------------- Timeline/Event tab selector -------------------- */
 
 function setActiveEditTab(targetPanelId) {
   for (const btn of tabButtons) {
@@ -51,16 +106,8 @@ function updateTabStates() {
   }
 }
 
-function closePanel() {
-  sidebar.classList.remove('open');
-  sidebar.setAttribute('aria-hidden', 'true');
-  //stage.classList.remove('shrink');
-  selectedEvent = null;
-  selectedTimeline = null;
-  draw(false);
-  canvas.focus();
-}
-sidebarClose.addEventListener('click', closePanel);
+
+/* ------------------- Edit/save buttons -------------------- */
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -90,6 +137,38 @@ timelineSaveBtn.addEventListener('click', (e) => {
   trySaveTimeline();
 });
 
+function updateSaveButton() {
+  // Save should be disabled when there are no unsaved changes.
+  // Enable the Save button when `editingTimeline.dirty === true`.
+  const shouldDisable = !(editingTimeline && editingTimeline.dirty);
+  timelineSaveBtn.disabled = shouldDisable;
+}
+
+
+/* ------------------- Edit event panel -------------------- */
+
+function openEventForEdit() {
+  editEventLabel.value = selectedEvent.label ?? '';
+  editEventDetails.value = selectedEvent.details ?? '';
+  document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
+  // set significance radio based on selectedEvent.significance (if present)
+  const sig = selectedEvent.significance ?? null;
+  if (sig != null) {
+    const el = document.querySelector(`input[name="event-significance"][value="${sig}"]`);
+    if (el) el.checked = true;
+  } else {
+    // default to normal point (value 2)
+    const el = document.querySelector('input[name="event-significance"][value="2"]');
+    if (el) el.checked = true;
+  }
+  showPanel('panel-edit-event');
+  setActiveEditTab('panel-edit-event');
+  if (!sidebar.classList.contains('open')) openPanel();
+  updateColorButtons();
+  editEventLabel.focus();
+  draw();
+}
+
 editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
   selectedEvent.label = s;
@@ -107,6 +186,21 @@ editEventDetails.addEventListener('input', (e) => {
   updateSaveButton?.();
 });
 
+
+/* ------------------- Edit timeline panel -------------------- */
+
+function openTimelineForEdit() {
+  editingTimeline = selectedTimeline;
+  editTimelineTitle.value = editingTimeline.title ?? '';
+  editTimelineDetails.value = editingTimeline.details ?? '';
+  updateSaveButton?.();
+
+  showPanel('panel-edit-timeline');
+  setActiveEditTab('panel-edit-timeline');
+  if (!sidebar.classList.contains('open')) openPanel();
+  editTimelineTitle.focus();
+}
+
 editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   editingTimeline.title = s;
@@ -122,48 +216,8 @@ editTimelineDetails.addEventListener('input', (e) => {
   updateSaveButton?.();
 });
 
-function htmlToPlainText(html) {
-  const d = document.createElement('div');
-  d.innerHTML = html || '';
-  return d.innerText;
-}
 
-function updateSaveButton() {
-  // Save should be disabled when there are no unsaved changes.
-  // Enable the Save button when `editingTimeline.dirty === true`.
-  const shouldDisable = !(editingTimeline && editingTimeline.dirty);
-  timelineSaveBtn.disabled = shouldDisable;
-}
-
-function openPanel() {
-  sidebar.classList.add('open');
-  sidebar.setAttribute('aria-hidden', 'false');
-  //stage.classList.add('shrink');
-  sidebar.focus();
-}
-
-document.addEventListener('keydown', (ev) => {
-  if (ev.key === 'Escape') {
-    if (sidebar.classList.contains('open')) closePanel();
-  }
-});
-
-function showPanel(id) {
-  for (const p of panels) {
-    const isActive = p.id === id;
-    p.toggleAttribute('hidden', !isActive);
-    p.toggleAttribute('inert', !isActive);
-    p.classList.toggle('is-active', isActive);
-  }
-}
-
-function formatEventDate(e) {
-  const single = selectedEvent.date?.trim();
-  const from = selectedEvent.dateFrom?.trim();
-  const to = selectedEvent.dateTo?.trim();
-  const showSingle = !!single && !(from || to);
-  return showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
-}
+/* ------------------- View panels -------------------- */
 
 function openEventForView() {
   const $ = (id) => document.getElementById(id);
@@ -193,27 +247,6 @@ function openEventForView() {
   if (!sidebar.classList.contains('open')) openPanel();
 }
 
-function openEventForEdit() {
-  editEventLabel.value = selectedEvent.label ?? '';
-  editEventDetails.value = selectedEvent.details ?? '';
-  document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
-  // set significance radio based on selectedEvent.significance (if present)
-  const sig = selectedEvent.significance ?? null;
-  if (sig != null) {
-    const el = document.querySelector(`input[name="event-significance"][value="${sig}"]`);
-    if (el) el.checked = true;
-  } else {
-    // default to normal point (value 2)
-    const el = document.querySelector('input[name="event-significance"][value="2"]');
-    if (el) el.checked = true;
-  }
-  showPanel('panel-edit-event');
-  setActiveEditTab('panel-edit-event');
-  if (!sidebar.classList.contains('open')) openPanel();
-  editEventLabel.focus();
-  draw();
-}
-
 function openTimelineForView() {
   const $ = (id) => document.getElementById(id);
   editingTimeline = null;
@@ -230,20 +263,11 @@ function openTimelineForView() {
   if (!sidebar.classList.contains('open')) openPanel();
 }
 
-function openTimelineForEdit() {
-  editingTimeline = selectedTimeline;
-  editTimelineTitle.value = editingTimeline.title ?? '';
-  editTimelineDetails.value = editingTimeline.details ?? '';
-  updateSaveButton?.();
 
-  showPanel('panel-edit-timeline');
-  setActiveEditTab('panel-edit-timeline');
-  if (!sidebar.classList.contains('open')) openPanel();
-  editTimelineTitle.focus();
-}
+/* ------------------- Significance buttons -------------------- */
 
 // Significance change handler: update selectedEvent.significance and mark dirty
-for (const r of significanceRadios) {
+for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
     const v = parseInt(e.target.value, 10);
     if (!selectedEvent) return;
@@ -251,6 +275,29 @@ for (const r of significanceRadios) {
     // mark timeline dirty when event changed
     if (editingTimeline) editingTimeline.dirty = true;
     updateSaveButton?.();
+    draw();
+  });
+}
+
+
+/* ------------------- Color buttons -------------------- */
+
+function updateColorButtons() {
+  if (!selectedEvent) return;
+  for (const btn of colorButtons) {
+    btn.classList.toggle('is-active', btn.dataset.color === selectedEvent.color);
+  }
+}
+
+// Color button click handler
+for (const btn of colorButtons) {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+    const newColor = btn.dataset.color;
+    selectedEvent.color = newColor;
+    selectedEvent.timeline.dirty = true;
+    updateColorButtons();
     draw();
   });
 }
