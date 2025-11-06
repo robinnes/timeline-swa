@@ -10,6 +10,7 @@ const LABEL_BRIGHTNESS = 0.85;  // default for label text
 const DOT_HOVER_PAD = 6;  // maximum padding around dots for hover detection
 const FADE_HIGHLIGHT_THRESHOLD = 0.4;  // lines where fade is below will not highlight
 const MAX_SIGNIFICANCE = 6;  // largest possible value for event.significance
+const DEFAULT_LINE_COLOR = "blue";
 
 const colorRGB = new Map([
   ["black",  { r:0,   g:0,   b:0   }],
@@ -58,7 +59,8 @@ function zoomSpec(sig){
       Math.max((z.threshold + fadeIn - factor) * (z.maxBright / fadeIn), 0) :
       ((factor < z.threshold - persistence) && z.fadeNear) ? Math.max((factor - z.threshold + persistence + fadeOut) * (z.maxBright / fadeOut), 0) : z.maxBright,
     displayLabel: ((factor - z.threshold + 1) < persistence),
-    fadeNear: z.fadeNear
+    fadeNear: z.fadeNear,
+    style: (z.fadeNear) ? 'line' : 'dot'
   };
 }
 
@@ -179,21 +181,22 @@ function drawEventLine(e, highlight) {
   const top = Math.round(y - height / 2);
   const bottom = Math.round(y + height / 2);
 
-  const c = colorRGB.get(e.color ?? "white");
-  const color = colorTrunc(c);
-  const colorLeft = (e.colorLeft === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorLeft)));
-  const colorRight = (e.colorRight === undefined) ? color : colorTrunc(colorMix(c, colorRGB.get(e.colorRight)));
-
+  const c = e.color ?? "white";
+  const cl = e.colorLeft ?? "black";
+  const cr = e.colorRight ?? "black";
+  const color = colorTrunc(colorRGB.get(c));
+  // if edge color is black, use (middle) color and apply fade effect below
+  const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
+  const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
+  
   ctx.save();
-
-  if (width >= 6 || spec.fadeNear) {
-
-    const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (colorLeft === color);
-    const curveRight = (Math.abs(right - xFadeRight) > 1) && (colorRight === color);
-      
-    if (spec.fadeNear) {
-      const alphaLeft = (colorLeft === color) ? 0 : fade;
-      const alphaRight = (colorRight === color) ? 0 : fade;
+  if (width >= 6 || spec.style === 'line') {
+    const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
+    const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
+     
+    if (spec.style === 'line') {
+      const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
+      const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
       const gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
       const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
 
@@ -231,7 +234,7 @@ function drawEventLine(e, highlight) {
   }
 
   // dot - display dot while the line appears too narrow to smooth transition
-  if ((xFadeRight - xFadeLeft) < height && !spec.fadeNear) {
+  if ((xFadeRight - xFadeLeft) < height && spec.style === 'dot') {
     ctx.fillStyle = `rgba(${color}, ${fade})`;
     ctx.beginPath();
     ctx.arc(x, y, (height/2), 0, Math.PI*2);
@@ -520,12 +523,8 @@ function drawEvents() {
   f(highlightedEvent);
   if (selectedEvent != highlightedEvent) f(selectedEvent);
 
-  // change pointer is appropriate
-  if (isDragging) canvas.style.cursor = 'ew-resize'
-  else if (highlightIdx === -1) canvas.style.cursor = 'default'
-  else if (screenElements[highlightIdx].type === 'button') canvas.style.cursor = 'pointer'
-  else if (screenElements[highlightIdx].type === 'handle') canvas.style.cursor = 'ew-resize'
-  else canvas.style.cursor = 'default';
+  // change pointer
+  setPointerCursor();
 }
 
 function positionLabelsForTL(tl){

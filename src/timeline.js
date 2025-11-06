@@ -29,6 +29,8 @@ let isPanning = false;
 let ignoreClick = false;  // ignore click event if panning
 let isDragging = false;
 let draggingAttribute = null;
+let dragStartValue = null;
+let dragStartDirtyState = null;
 
 // Momentum variables
 let lastX = 0;
@@ -136,6 +138,15 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
+function setPointerCursor() {
+  // change pointer is appropriate
+  if (isDragging) canvas.style.cursor = 'ew-resize'
+  else if (highlightIdx === -1) canvas.style.cursor = 'default'
+  else if (screenElements[highlightIdx].type === 'button') canvas.style.cursor = 'pointer'
+  else if (screenElements[highlightIdx].type === 'handle') canvas.style.cursor = 'ew-resize'
+  else canvas.style.cursor = 'default';
+}
+
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -147,6 +158,8 @@ canvas.addEventListener('pointerdown', (e)=>{
     // start dragging a handle
     isDragging = true;
     draggingAttribute = screenElements[highlightIdx].subType;
+    dragStartValue = selectedEvent[draggingAttribute];
+    dragStartDirtyState = editingTimeline.dirty;
   } else {
     // start panning
     isPanning = true;
@@ -174,11 +187,13 @@ canvas.addEventListener('pointermove', (e)=>{
 
   } else if (isDragging) {
     // dragging a handle to change event dateTime
-    const t = pxToTime(e.clientX);
+    const t = pxToTime(e.clientX) - 12 * 60 * 60 * 1000; // add 12 hours to center on date
     const d = new Date(t).toISOString().split('T')[0];
+    if (draggingAttribute === 'dateFrom' && selectedEvent.fadeLeft === selectedEvent.dateFrom) selectedEvent.fadeLeft = d; // move the 'fade' dates with from/to
+    if (draggingAttribute === 'dateTo' && selectedEvent.fadeRight === selectedEvent.dateTo) selectedEvent.fadeRight = d;
     selectedEvent[draggingAttribute] = d; // initializeEvent will handle limits
     initializeEvent(selectedEvent);
-    document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
+    document.getElementById('event-date-display').value = formatEventDates(selectedEvent);
     editingTimeline.dirty = true;
     updateSaveButton();
     positionLabels();
@@ -213,7 +228,7 @@ window.addEventListener('pointerup', (e)=>{
 
   if (isDragging) {
     isDragging = false;
-    canvas.style.cursor = 'default'; // as opposed to calling draw()
+    setPointerCursor();  // as opposed to calling draw()
     return;
   }
 });

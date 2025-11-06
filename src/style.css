@@ -229,6 +229,49 @@ aside.sidebar {
   min-height: 0;
 }
 
+.color-selectors {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.color-sel-btn {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  color: var(--fg);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.color-sel-btn input[type="radio"] {
+  display: none;
+}
+
+.color-sel-btn span {
+  padding: 0px 12px;
+  border-radius: 4px;
+}
+
+.color-sel-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.color-sel-btn input[type="radio"]:checked + span {
+  background: var(--accent);
+  color: #0b0d17;
+}
+
+.color-sel-btn.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.color-sel-btn.is-disabled:hover {
+  background: rgba(255,255,255,0.02);
+}
+
 .color-controls {
   display: flex;
   gap: 8px;
@@ -261,6 +304,7 @@ aside.sidebar {
 .color-btn[data-color="orange"] { background: rgb(255,100,100); }
 .color-btn[data-color="yellow"] { background: rgb(255,255,100); }
 .color-btn[data-color="green"] { background: rgb(0,255,100); }
+.color-btn[data-color="black"] { background: rgb(0,0,0); }
 
 .sidebar__section + .sidebar__section {
   margin-top: 18px;

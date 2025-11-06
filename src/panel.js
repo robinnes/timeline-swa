@@ -11,6 +11,7 @@ const timelineSaveBtn = document.getElementById('timeline-save');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
+const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 
 
@@ -22,12 +23,19 @@ function htmlToPlainText(html) {
   return d.innerText;
 }
 
-function formatEventDate(e) {
-  const single = selectedEvent.date?.trim();
-  const from = selectedEvent.dateFrom?.trim();
-  const to = selectedEvent.dateTo?.trim();
-  const showSingle = !!single && !(from || to);
-  return showSingle ? single : `${from ?? "?"} — ${to ?? "?"}`;
+function formatTextDate(txtDate) {
+  const d = new Date(txtDate);
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+}
+
+function formatEventDates(e) {
+  const spec = zoomSpec(e.significance);
+
+  if (spec.style === 'dot') return formatTextDate(selectedEvent.date);
+
+  const from = formatTextDate(selectedEvent.dateFrom);
+  const to = formatTextDate(selectedEvent.dateTo);
+  return `${from ?? "?"} - ${to ?? "?"}`;
 }
 
 
@@ -53,7 +61,19 @@ sidebarClose.addEventListener('click', closePanel);
 
 document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape') {
-    if (sidebar.classList.contains('open')) closePanel();
+    if (isDragging) {
+      // cancel pan mode and revert to original value (this code should be in timeline.js...)
+      isDragging = false;
+      selectedEvent[draggingAttribute] = dragStartValue;
+      editingTimeline.dirty = dragStartDirtyState;
+      updateSaveButton();
+      initializeEvent(selectedEvent);
+      document.getElementById('event-date-display').value = formatEventDates(selectedEvent);
+      positionLabels();
+      draw();
+    } else {
+      if (sidebar.classList.contains('open')) closePanel();
+    }
   }
 });
 
@@ -150,7 +170,7 @@ function updateSaveButton() {
 function openEventForEdit() {
   editEventLabel.value = selectedEvent.label ?? '';
   editEventDetails.value = selectedEvent.details ?? '';
-  document.getElementById('event-date-display').value = formatEventDate(selectedEvent);
+  document.getElementById('event-date-display').value = formatEventDates(selectedEvent);
   // set significance radio based on selectedEvent.significance (if present)
   const sig = selectedEvent.significance ?? null;
   if (sig != null) {
@@ -164,6 +184,7 @@ function openEventForEdit() {
   showPanel('panel-edit-event');
   setActiveEditTab('panel-edit-event');
   if (!sidebar.classList.contains('open')) openPanel();
+  updateColorSelectorState();
   updateColorButtons();
   editEventLabel.focus();
   draw();
@@ -227,7 +248,7 @@ function openEventForView() {
   $("event-label").textContent = selectedEvent.label ?? '';
 
   // Date
-  $("event-date").innerHTML = formatEventDate(selectedEvent);;
+  $("event-date").innerHTML = formatEventDates(selectedEvent);;
 
   const sampleHTML = `
     <p>Summer drive from Alaska down the Pacific Northwest with stops along the coast and visits with friends.</p>
@@ -266,27 +287,83 @@ function openTimelineForView() {
 
 /* ------------------- Significance buttons -------------------- */
 
+function updateColorSelectorState() {
+  if (!selectedEvent) return;
+  const isPoint = selectedEvent.significance <= 3;
+  const leftRightSelectors = document.querySelectorAll('input[name="color-target"][value="left"], input[name="color-target"][value="right"]');
+  
+  leftRightSelectors.forEach(radio => {
+    const label = radio.closest('.color-sel-btn');
+    radio.disabled = isPoint;
+    if (label) {
+      label.classList.toggle('is-disabled', isPoint);
+      label.setAttribute('aria-disabled', isPoint);
+    }
+    // If a disabled option is selected, switch to 'main'
+    if (isPoint && radio.checked) {
+      const mainRadio = document.querySelector('input[name="color-target"][value="main"]');
+      if (mainRadio) {
+        mainRadio.checked = true;
+        updateColorButtons();
+      }
+    }
+  });
+}
+
 // Significance change handler: update selectedEvent.significance and mark dirty
 for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
     const v = parseInt(e.target.value, 10);
     if (!selectedEvent) return;
     selectedEvent.significance = v;
+    initializeEvent(selectedEvent);
     // mark timeline dirty when event changed
     if (editingTimeline) editingTimeline.dirty = true;
     updateSaveButton?.();
-    draw();
+    updateColorSelectorState();
+    draw(true);  // may need to reposition labels
   });
 }
 
 
 /* ------------------- Color buttons -------------------- */
 
+function getSelectedColorTarget() {
+  const selected = document.querySelector('input[name="color-target"]:checked');
+  return selected ? selected.value : 'main';
+}
+
 function updateColorButtons() {
   if (!selectedEvent) return;
-  for (const btn of colorButtons) {
-    btn.classList.toggle('is-active', btn.dataset.color === selectedEvent.color);
+  const target = getSelectedColorTarget();
+
+  // hide/show the 'black' swatch for left/right targets
+  const blackBtn = document.querySelector('.color-btn[data-color="black"]');
+  if (blackBtn) {
+    blackBtn.style.display = (target === 'main') ? 'none' : '';
   }
+
+  for (const btn of colorButtons) {
+    let isActive = false;
+    switch (target) {
+      case 'left':
+        isActive = btn.dataset.color === selectedEvent.colorLeft;
+        break;
+      case 'right':
+        isActive = btn.dataset.color === selectedEvent.colorRight;
+        break;
+      default: // 'main'
+        isActive = btn.dataset.color === selectedEvent.color;
+    }
+    btn.classList.toggle('is-active', isActive);
+  }
+}
+
+// Color target radio change handler
+for (const radio of colorTargetRadios) {
+  radio.addEventListener('change', () => {
+    updateColorButtons();
+  });
 }
 
 // Color button click handler
@@ -295,7 +372,19 @@ for (const btn of colorButtons) {
     e.preventDefault();
     if (!selectedEvent) return;
     const newColor = btn.dataset.color;
-    selectedEvent.color = newColor;
+    const target = getSelectedColorTarget();
+    
+    switch (target) {
+      case 'left':
+        selectedEvent.colorLeft = newColor;
+        break;
+      case 'right':
+        selectedEvent.colorRight = newColor;
+        break;
+      default: // 'main'
+        selectedEvent.color = newColor;
+    }
+    
     selectedEvent.timeline.dirty = true;
     updateColorButtons();
     draw();

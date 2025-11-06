@@ -444,7 +444,9 @@ function parseLabel(label) {
 
 function initializeEvent(e) {
   const h = 60*60*1000;
-
+  const spec = zoomSpec(e.significance);
+  const style = spec.style;
+  
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label);
   e.labelWidth = parsed.labelWidth;
@@ -452,21 +454,40 @@ function initializeEvent(e) {
   e.parsedWidth = parsed.width;
   e.yOffset = null;
 
-  //sanity checks
-  if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;
-  if (e.fadeLeft > e.fadeRight) e.fadeRight = e.fadeLeft;
-  if (e.fadeLeft > e.dateTo) e.fadeLeft = e.dateTo;
-  if (e.fadeLeft < e.dateFrom) e.fadeLeft = e.dateFrom;
-  if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
-  if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
+  if (style === 'line') {
+    if (!e.dateFrom) e.dateFrom = e.date;
+    if (!e.dateTo) e.dateTo = e.date;
+    if (!e.fadeLeft) e.fadeLeft = e.dateFrom;
+    if (!e.fadeRight) e.fadeRight = e.dateTo;
+  
+    if (e.color === 'white') e.color = DEFAULT_LINE_COLOR;
 
-  // When only date supplied, convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-  const d = Date.parse(e.date)
-  e.tFrom = (e.dateFrom === undefined) ? d + (8 * h) : Date.parse(e.dateFrom) + (12 * h);
-  e.tTo = (e.dateTo === undefined) ? d + (16 * h) : Date.parse(e.dateTo) + (12 * h);
-  e.fLeft = (e.fadeLeft === undefined) ? ((e.dateFrom === undefined) ? d + (11 * h) : e.tFrom) : Date.parse(e.fadeLeft) + (12 * h);
-  e.fRight = (e.fadeRight === undefined) ? ((e.dateTo === undefined) ? d + (13 * h) : e.tTo) : Date.parse(e.fadeRight) + (12 * h);
-  e.dateTime = (e.date === undefined) ? (e.fRight + e.fLeft) / 2 : d + (12 * h);
+    //sanity checks
+    if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;
+    if (e.fadeLeft > e.fadeRight) e.fadeRight = e.fadeLeft;
+    if (e.fadeLeft > e.dateTo) e.fadeLeft = e.dateTo;
+    if (e.fadeLeft < e.dateFrom) e.fadeLeft = e.dateFrom;
+    if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
+    if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
+
+    e.tFrom = Date.parse(e.dateFrom) + (12 * h);
+    e.tTo = Date.parse(e.dateTo) + (12 * h);
+    e.fLeft = Date.parse(e.fadeLeft) + (12 * h);
+    e.fRight = Date.parse(e.fadeRight) + (12 * h);
+    e.dateTime = (e.fRight + e.fLeft) / 2;
+    
+  } else {
+    if (!e.date) e.date = e.dateFrom; // nothing fance like finding middle of line vars...
+    const d = Date.parse(e.date)  // OK to assume that every dot event has a date
+    e.color = "white";
+    
+    //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
+    e.dateTime = d + (12 * h);
+    e.tFrom = e.dateTime - (4 * h);
+    e.tTo = e.dateTime + (4 * h);
+    e.fLeft = e.tFrom + (3 * h);
+    e.fRight = e.tTo - (3 * h);
+  }
   e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
 };
 
