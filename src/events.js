@@ -495,7 +495,7 @@ function initializeTimeline(tl) {
   timelines.push(tl);  // to do: 
   //const tl = timelines[timelines.length - 1];
 
-  ctx.font = LABEL_FONT;
+  ctx.font = TITLE_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
   tl.dirty = false;
   

@@ -1,5 +1,6 @@
 const MAX_LABEL_WIDTH = 150;
 const LABEL_FONT = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+const TITLE_FONT = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
 const LABEL_LINE_HEIGHT = 18;
 const LABEL_STEM_HEIGHT = 30;
 const EDGE_GAP = 6;
@@ -361,7 +362,7 @@ function drawTimelineLabel(tl, highlight) {
   ctx.fillStyle = grad;
   ctx.fillRect(p.left, p.top, width, height);
 
-  ctx.font = LABEL_FONT;
+  ctx.font = TITLE_FONT;
   ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';

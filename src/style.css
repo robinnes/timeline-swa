@@ -26,24 +26,49 @@ html, body {
   height: 100%;
 }
 
-aside.sidebar {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-  border-right: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  padding: 18px 16px 16px 16px;
-  z-index: 20;
-  border-right: 1px solid rgba(255,255,255,0.08);
-  display: grid;
-  position: fixed;
-  grid-template-rows: auto 1fr;
-  inset: 0 auto 0 0; /* top, right, bottom, left */
-  width: var(--sidebar-w);
-  will-change: transform;
-  transform: translateX(-100%);
-  transition: transform 260ms ease;
-}
-.sidebar.open { transform: translateX(0); }
+  aside.sidebar {
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+    border-right: 1px solid var(--border);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    box-shadow: var(--shadow);
+    padding: 18px 16px 16px 16px;
+    z-index: 20;
+    display: grid;
+    position: fixed;
+    grid-template-rows: auto 1fr;
+    inset: 0 auto 0 0; /* top, right, bottom, left */
+    width: var(--sidebar-w);
+    will-change: transform;
+    transform: translateX(-100%);
+    transition: transform 260ms ease;
+  }
 
+  /* When the sidebar has the 'open' class, slide it into view */
+  .sidebar.open { transform: translateX(0); }
+
+  /* Panel content area */
+  .panel__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px;
+    padding-bottom: 72px; /* Space for buttons */
+  }
+
+  /* Panel footer area for buttons */
+  .panel__footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px; /* Fixed height for button area */
+    /*background: var(--bg);*/
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
 /* Close button in the top-right of the sidebar */
 .sidebar__close {
   position: absolute;
@@ -61,30 +86,47 @@ aside.sidebar {
   color: var(--accent);
   cursor: pointer;
 }
+
 .sidebar__scroll {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* container handles scrolling on the details area */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* --- Panels --- */
+.panels-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 12px; /* Space after the tab separator */
+}
+
+/* Panel base state */
 .panel {
-    position: absolute;
-    inset: 44px 0 0; /* Leave space at top for close button */
-    padding: 0 16px; /* Match sidebar padding */
-    color: white;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    opacity: 0;
-    visibility: hidden;
-  }
-  .panel.is-active {
-    opacity: 1;
-    visibility: visible;
-  }
-  [hidden] {
-    display: none !important;
-  }
+  position: relative;
+  flex: 1;
+  color: white;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+  display: none;
+  min-height: 0;
+}
+
+.panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+[hidden] {
+  display: none !important;
+}
 
 /* Edit button positioned at bottom-right of panels */
 .panel__edit-btn {
@@ -92,6 +134,7 @@ aside.sidebar {
   left: 16px;
   bottom: 16px;
   background: var(--accent);
+    margin-right: 8px;
   color: #0b0d17;
   border: none;
   padding: 8px 12px;
@@ -265,7 +308,7 @@ aside.sidebar {
 
 .color-sel-btn.is-disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: default;  /* not-allowed; */
 }
 
 .color-sel-btn.is-disabled:hover {

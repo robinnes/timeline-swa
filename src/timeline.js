@@ -344,7 +344,7 @@ canvas.addEventListener('click', function (e) {
   
   if (highlightIdx === -1) {
     // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) closePanel();
+    if (sidebar.classList.contains('open')) closeSidebar();
     return;
   }
 
@@ -372,7 +372,7 @@ else {
   } else if (elem.type === 'button') {
     closeTimeline(elem.timeline);
   }
-  
+  //console.log(document.activeElement);
 });
 
 if (!CanvasRenderingContext2D.prototype.roundRect) {
