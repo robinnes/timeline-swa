@@ -1,6 +1,5 @@
 var timelineTX = {
   title:'Move to Texas',
-  dateFrom:'2019-07-01', dateTo:'2023-08-15', 
   details:'Our timeline of events leading up to and following our move from Washington to Texas.',
   events:[
     { significance:4, label:'First Tour of Texas', dateFrom:'2017-06-23', dateTo:'2017-07-01', fadeLeft:'2017-06-24', fadeRight:'2017-06-30', color:'blue' },
@@ -111,7 +110,6 @@ var timelineTX = {
 
 var timelineAnh = {
   title:'Marriage to Anh',
-  dateFrom:'2011-09-20', dateTo:'2013-03-16', 
   events:[
     //{ significance:6, label:'Rob and Anh', dateFrom:'2011-09-20', dateTo:'2025-09-25', fadeLeft:'2017-09-21', fadeRight:'2017-09-22', colorLeft:'green', color:'green', colorRight:'green' },
     { significance:5, label:'Dating', dateFrom:'2011-09-20', dateTo:'2012-10-27', fadeLeft:'2011-09-21', fadeRight:'2012-10-26', color:'green', colorRight:'yellow' },
@@ -223,7 +221,6 @@ var timelineAnh = {
 var timelineRob = {
   title:'Rob Innes',
   details:'A timeline of significant events in the life of Rob Innes.  Local version.',
-  dateFrom:'1969-08-06', dateTo:'2025-10-14', 
   events:[
     { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
     { significance:6, label:'The Boys', dateFrom:'1981-08-06', dateTo:'1987-09-01', fadeLeft:'1982-08-06', fadeRight:'1987-08-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
@@ -245,7 +242,7 @@ var timelineRob = {
     { significance:3, label:'Offered programming job at IPC', date:'1997-07-28' },
     { significance:2, label:'Opened brokerage account', date:'1999-05-28' },
     { significance:3, label:'Bought World of Warcraft', date:'2005-07-26' },
-    { significance:3, label:'Marriage to Anh', date:'2012-12-12' },
+    { significance:3, label:'Marriage to Anh', date:'2012-12-12', details:'timelineAnh.json' },
     { significance:3, label:'Move to Texas', date:'2022-09-30' },
     { significance:3, label:'Retired', date:'2021-12-28' }
   ]
@@ -492,18 +489,27 @@ function initializeEvent(e) {
 };
 
 function initializeTimeline(tl) {
+  var minDate;
+  var maxDate;
   
   ctx.font = TITLE_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
   tl.dirty = false;
   
-  //events.sort((a, b) => a.significance - b.significance);  // attempt get small dots registered for hover first
-
   //tl.events.forEach(initializeEvent);
   for (const event of tl.events) {
     event.timeline = tl;
     initializeEvent(event);
+
+    // establish min/max dates present in the timeline
+    const spec = zoomSpec(event.significance);
+    const dateFrom = (spec.style === 'dot') ? event.date : event.dateFrom;
+    const dateTo = (spec.style === 'dot') ? event.date : event.dateTo;
+    if (!minDate || dateFrom < minDate) minDate = dateFrom;
+    if (!maxDate || dateTo > maxDate) maxDate = dateTo;
   }
+  tl.dateFrom = minDate;
+  tl.dateTo = maxDate;
 }
 
 function timelineString(tl) {

@@ -151,8 +151,11 @@ timelineEditBtn.addEventListener('click', (e) => {
 
 timelineCancelBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  if (!selectedTimeline.dirty) openTimelineForView();
-  // else, ask whether to discard changes and if so, reload
+  if (selectedTimeline.dirty) {
+    reloadTimeline(selectedTimeline).then(() => {
+      openTimelineForView();
+    });
+  } else openTimelineForView(); // cancel without reloading
 });
 
 timelineSaveBtn.addEventListener('click', (e) => {
@@ -250,7 +253,7 @@ function openEventForView() {
 }
 
 function openTimelineForView() {
-  editingTimeline = null;
+  editingTimeline = null; // To Do: move out of this function
   setSidebarTimeline();
 
   showPanel('panel-view-timeline');

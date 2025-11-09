@@ -316,21 +316,24 @@ function zoomToTimeline(tl) {
   zoomInProgress = {origOffset: offsetMs, newOffset:p.offsetMs, origMsPerPx:msPerPx, newMsPerPx:p.msPerPx };
   positionTimelines(true);
 }
-/*
-function openTimeline(tl, y) {
-  if (timelines.indexOf(tl)===-1) {
-    initializeTimeline(tl);
-    tl.yPos = y;
-    tl.ceiling = timelines[0].ceiling;
-  }
-  zoomToTimeline(tl);
-}
-*/
+
 async function loadTimeline(timelineID) {
   const tl = await getTimeline(timelineID);
   timelines.push(tl);
   positionTimelines(false);
   return tl;
+}
+
+async function reloadTimeline(tl) {
+  // reload from storage
+  const idx = timelines.indexOf(tl);
+  const timelineID = tl.timelineID;
+  const yPos = tl.yPos, ceiling = tl.ceiling;
+  timelines[idx] = null;
+  const reloaded = await getTimeline(timelineID);
+  reloaded.yPos = yPos; reloaded.ceiling = ceiling;
+  timelines[idx] = reloaded;
+  draw(true);
 }
 
 function closeTimeline(tl) {
@@ -361,7 +364,8 @@ canvas.addEventListener('click', function (e) {
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-    if (/.\.json/.test(highlightedEvent.details)) followLink({container:"timelines", file:highlightedEvent.details});
+    // for now, open event indicated in details (*.json), but not in editing mode
+    if (/.\.json/.test(highlightedEvent.details) && !(editingTimeline === highlightedEvent.timeline)) followLink({container:"timelines", file:highlightedEvent.details});
     else {
       selectedEvent = highlightedEvent;
       selectedTimeline = selectedEvent.timeline;
@@ -378,9 +382,9 @@ canvas.addEventListener('click', function (e) {
 
 async function followLink(timelineID) {
   // ToDo: check if timeline is already there
+  const yPos = highlightedEvent.timeline.yPos, ceiling = highlightedEvent.timeline.ceiling;
   const tl = await loadTimeline(timelineID);
-  tl.yPos = highlightedEvent.timeline.yPos;
-  tl.ceiling = highlightedEvent.timeline.ceiling;
+  tl.yPos = yPos; tl.ceiling = ceiling;
   zoomToTimeline(tl);
 }
 
