@@ -1,15 +1,4 @@
 
-async function acquireSasToken() {
-  try {
-    const response = await fetch("/api/credentials");
-    const {url, sasKey} = await response.json();
-    return {url, sasKey};
-
-  } catch (err) {
-    throw new Error(`Failed to aquire SAS token: ${err.message}`);
-  }
-}
-
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
   const encodedFile = (file || '')
@@ -21,7 +10,18 @@ function formatURL(file, url, container, sasKey) {
   return `${base}/${container}/${encodedFile}${sas}`;
 }
 
-async function loadTimeline(container, file) {
+async function acquireSasToken() {
+  try {
+    const response = await fetch("/api/credentials");
+    const {url, sasKey} = await response.json();
+    return {url, sasKey};
+
+  } catch (err) {
+    throw new Error(`Failed to aquire SAS token: ${err.message}`);
+  }
+}
+
+async function loadTimelineFromStorage(container, file) {
   try {
     // acquire SAS token
     const {url, sasKey} = await acquireSasToken();
@@ -40,7 +40,7 @@ async function loadTimeline(container, file) {
   }
 }
 
-async function saveTimeline(container, file, text) {
+async function saveTimelineToStorage(container, file, text) {
   try {
     const {url, sasKey} = await acquireSasToken();
     const blobUrl = formatURL(file, url, container, sasKey);
@@ -58,5 +58,25 @@ async function saveTimeline(container, file, text) {
     return true;
   } catch (e) {
     throw new Error(`Failed to save ${file} to storage: ${e.message}`);
+  }
+}
+
+async function getTimeline(timelineID) {
+  const container = timelineID.container
+  const file = timelineID.file;
+  try {
+    // retrieve from storage
+    const tl = await loadTimelineFromStorage(container, file);
+    initializeTimeline(tl);
+    tl.timelineID = timelineID;
+    return tl;
+  } catch (err) {
+    console.log(err.message);
+    const obj = file.split(".")[0];
+    const tl = window[obj];  // look for variable matching the filename (minus ext)
+    console.log('defaulting to local object:', obj);
+    initializeTimeline(tl);
+    tl.timelineID = timelineID;
+    return tl;
   }
 }

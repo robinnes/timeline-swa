@@ -1,4 +1,4 @@
-const timelineTX = {
+var timelineTX = {
   title:'Move to Texas',
   dateFrom:'2019-07-01', dateTo:'2023-08-15', 
   details:'Our timeline of events leading up to and following our move from Washington to Texas.',
@@ -109,7 +109,7 @@ const timelineTX = {
   ]
 }
 
-const timelineAnh = {
+var timelineAnh = {
   title:'Marriage to Anh',
   dateFrom:'2011-09-20', dateTo:'2013-03-16', 
   events:[
@@ -220,9 +220,9 @@ const timelineAnh = {
   ]
 }
 
-const timelineRob = {
+var timelineRob = {
   title:'Rob Innes',
-  details:'A timeline of significant events in the life of Rob Innes.',
+  details:'A timeline of significant events in the life of Rob Innes.  Local version.',
   dateFrom:'1969-08-06', dateTo:'2025-10-14', 
   events:[
     { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
@@ -492,9 +492,7 @@ function initializeEvent(e) {
 };
 
 function initializeTimeline(tl) {
-  timelines.push(tl);  // to do: 
-  //const tl = timelines[timelines.length - 1];
-
+  
   ctx.font = TITLE_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
   tl.dirty = false;

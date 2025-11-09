@@ -316,7 +316,7 @@ function zoomToTimeline(tl) {
   zoomInProgress = {origOffset: offsetMs, newOffset:p.offsetMs, origMsPerPx:msPerPx, newMsPerPx:p.msPerPx };
   positionTimelines(true);
 }
-
+/*
 function openTimeline(tl, y) {
   if (timelines.indexOf(tl)===-1) {
     initializeTimeline(tl);
@@ -325,11 +325,15 @@ function openTimeline(tl, y) {
   }
   zoomToTimeline(tl);
 }
+*/
+async function loadTimeline(timelineID) {
+  const tl = await getTimeline(timelineID);
+  timelines.push(tl);
+  positionTimelines(false);
+  return tl;
+}
 
 function closeTimeline(tl) {
-
-  //trySave();
-
   const idx = timelines.indexOf(tl);
   timelines.splice(idx, 1);
   if (timelines.length > 0) {
@@ -357,14 +361,12 @@ canvas.addEventListener('click', function (e) {
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-if (highlightedEvent.label === 'Move to Texas') openTimeline(timelineTX, elem.event.yPos);
-else if (highlightedEvent.label === 'Marriage to Anh') openTimeline(timelineAnh, elem.event.yPos);
-else {
-    selectedEvent = highlightedEvent;
-    selectedTimeline = selectedEvent.timeline;
-    if (editingTimeline === selectedTimeline) {openEventForEdit();} else openEventForView();
-  }
-
+    if (/.\.json/.test(highlightedEvent.details)) followLink({container:"timelines", file:highlightedEvent.details});
+    else {
+      selectedEvent = highlightedEvent;
+      selectedTimeline = selectedEvent.timeline;
+      if (editingTimeline === selectedTimeline) {openEventForEdit();} else openEventForView();
+    }
   } else if (elem.type === 'timeline') {
     selectedTimeline = elem.timeline;
     if (editingTimeline === selectedTimeline) {openTimelineForEdit();} else openTimelineForView();
@@ -372,8 +374,15 @@ else {
   } else if (elem.type === 'button') {
     closeTimeline(elem.timeline);
   }
-  //console.log(document.activeElement);
 });
+
+async function followLink(timelineID) {
+  // ToDo: check if timeline is already there
+  const tl = await loadTimeline(timelineID);
+  tl.yPos = highlightedEvent.timeline.yPos;
+  tl.ceiling = highlightedEvent.timeline.ceiling;
+  zoomToTimeline(tl);
+}
 
 if (!CanvasRenderingContext2D.prototype.roundRect) {
   // Polyfill roundRect if needed
@@ -425,21 +434,10 @@ function draw(reposition){
 }
 
 async function initialLoad() {
-    try {
-        const tl = await loadTimeline('timelines', 'timelineRob.json');
-        initializeTimeline(tl);
-        positionTimelines(false);
-        //zoomToTimeline(tl);
-        centerOnTimeline(tl); 
-        draw(true);
-    } catch (err) {
-        console.log(err.message, "- Defaulting to local data.");
-        const tl = timelineTX;
-        initializeTimeline(tl);
-        positionTimelines(false);
-        centerOnTimeline(tl); 
-        draw(true);
-    }
+  const timelineID = {container:"timelines", file:"timelineRob.json"};
+  const tl = await loadTimeline(timelineID);
+  centerOnTimeline(tl);
+  draw(true);
 }
 
 // Kick things off
@@ -447,3 +445,4 @@ resize();
 requestAnimationFrame(tick);
 canvas.focus();
 initialLoad();
+

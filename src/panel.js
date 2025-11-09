@@ -164,7 +164,7 @@ async function trySaveTimeline()
 {
   try {
     const text = timelineString(editingTimeline);
-    await saveTimeline('timelines', 'timelineRob.json', text);
+    await saveTimelineToStorage('timelines', 'timelineRob.json', text);
     editingTimeline.dirty = false;
     updateSaveButton();
   } catch (err) {
@@ -247,7 +247,6 @@ function openEventForView() {
   showPanel('panel-view-event');
   setActiveEditTab('event');
   if (!sidebar.classList.contains('open')) openSidebar();
-editEventLabel.focus();
 }
 
 function openTimelineForView() {
