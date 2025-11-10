@@ -9,70 +9,74 @@ const MS_PER_DAY = 86400000; // 1000*60*60*24
 const EPOCH = Date.UTC(2000,0,1);
 const MAX_CLICK_MOVE = 1;  // maximum mouse movement allowed for a mouse click
 
-// --- Helper functions
-const pxToTime = x => EPOCH + offsetMs + (x * msPerPx);
-const timeToPx = t => (t - EPOCH - offsetMs + (1000 * 60 * 60 * 12)) / msPerPx;
-const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
-
-// msPerPx controls zoom. offsetMs shifts timeline relative to EPOCH at x=0
-let msPerPx = MS_PER_DAY * 30  // ~30 days per pixel (years visible at start)
-let offsetMs = (Date.now() - EPOCH) - (window.innerWidth * 0.9) * msPerPx; // center near "now"
+const appState = {
+  msPerPx: MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
+  offsetMs: (Date.now() - EPOCH) - (window.innerWidth * 0.9) * MS_PER_DAY * 30,  // date at left of the window; center near "now",
+  mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
+  highlighted: {
+    idx: -1,  // index in screenElements of currently highlighted item
+    event: null,
+    timeline: null
+  },
+  selected: {
+    event: null,
+    timeline: null
+  },
+  editingTimeline: null,
+  drag: {  // dragging handles to change event dates
+    isDragging: false,
+    attribute: null,
+    start: {date: null, dateFrom: null, dateTo: null, fadeLeft: null, fadeRight: null, dirty: null}
+  },
+  pan: {  // using mouse to pan to the left and right
+    isPanning: false,
+    ignoreClick: false
+  },
+  fixedPanMode: null,  // points to tickSpec to control keyboard navigation
+  momentum: {  // brief moment of continued panning after mouse up to simulate a momentum effect
+    lastX: 0,
+    vOffsetMs: 0,
+    lastDragSpeed: 0,
+    lastTick: performance.now()
+  },
+  zoom: {  // automatic zoom/pan to a location
+    isZooming: false,
+    origOffset: null,
+    origMsPerPx: null,
+    newOffset: null,
+    newMsPerPx: null
+  }
+}
 
 const timelines = [];
+const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
-// Retain mouse positions for non-event handler access
-let mouseX = 0;
-let mouseY = 0;
-
-// Zoom & pan variables
-let isPanning = false;
-let ignoreClick = false;  // ignore click event if panning
-let isDragging = false;
-let draggingAttribute = null;
-let dragStartValue = null;
-let dragStartDirtyState = null;
-
-// Momentum variables
-let lastX = 0;
-let vOffsetMs = 0
-let lastDragSpeed = 0;
-let lastTick = performance.now();
-
-// Elements currently rendered on screen that can be interacted with  
-const screenElements = [];
-let highlightIdx = -1;  // index in screenElements array of the highlighed element
-let highlightedEvent = null;  // event object if the highlighted element is an event (not a tick)
-let selectedEvent = null;  // event selected (opened in the side panel)
-let selectedTimeline = null;  // timeline selected (opened in the side panel)
-let highlightedTimeline = null;
-let editingTimeline = null;
-
-// Keyboard navigation
-let fixedPanMode = null;  // points to tickSpec to control navigation
-let zoomInProgress = null;  // automatic zoom/pan in progress
-
+// --- Helper functions
+const pxToTime = x => EPOCH + appState.offsetMs + (x * appState.msPerPx);
+const timeToPx = t => (t - EPOCH - appState.offsetMs + (1000 * 60 * 60 * 12)) / appState.msPerPx;
+const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
 
 function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
 
-  const dt = (now - lastTick) / 1000;
-  lastTick = now;
+  const dt = (now - appState.momentum.lastTick) / 1000;
+  appState.momentum.lastTick = now;
 
-  if (isPanning || isTouchPanning) { lastDragSpeed = 0; return; }
+  if (appState.pan.isPanning || isTouchPanning) { appState.momentum.lastDragSpeed = 0; return; }
 
-  if (zoomInProgress) {
+  if (appState.zoom.isZooming) {
     zoom(dt); 
     return;
   }
   
   // carry on momentum, if there is velocity
-  if (vOffsetMs === 0) return;
+  if (appState.momentum.vOffsetMs === 0) return;
 
   const drag = Math.exp(-4.0 * dt);  // apply drag
-  vOffsetMs *= drag;
-  offsetMs -= vOffsetMs * dt;
+  appState.momentum.vOffsetMs *= drag;
+  appState.offsetMs -= appState.momentum.vOffsetMs * dt;
 
-  if (Math.abs(vOffsetMs) < (1 * msPerPx)) vOffsetMs = 0;
+  if (Math.abs(appState.momentum.vOffsetMs) < (1 * appState.msPerPx)) appState.momentum.vOffsetMs = 0;
   else draw(false);
 };
 
@@ -81,12 +85,12 @@ function zoom(dt) {
   const ZOOM_FACTOR = 10;
 
   // incrementally move window offset and zoom toward new values
-  const dOffset = zoomInProgress.newOffset - offsetMs;
-  const dMsPerPx = zoomInProgress.newMsPerPx - msPerPx;
+  const dOffset = appState.zoom.newOffset - appState.offsetMs;
+  const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
 
-  offsetMs += dOffset * dt * ZOOM_FACTOR;
-  msPerPx += dMsPerPx * dt * ZOOM_FACTOR;
-  msPerPx = Math.max(msPerPx, MIN_MS_PER_PX);
+  appState.offsetMs += dOffset * dt * ZOOM_FACTOR;
+  appState.msPerPx += dMsPerPx * dt * ZOOM_FACTOR;
+  appState.msPerPx = Math.max(appState.msPerPx, MIN_MS_PER_PX);
 
   // if timelines are repositioned, move those, too
   for (const tl of timelines) {
@@ -99,8 +103,8 @@ function zoom(dt) {
   }
 
   // stop when movement is smaller than a pixel
-  if (Math.abs(dOffset) < msPerPx || msPerPx === MIN_MS_PER_PX) {
-    zoomInProgress = null;
+  if (Math.abs(dOffset) < appState.msPerPx || appState.msPerPx === MIN_MS_PER_PX) {
+    appState.zoom.isZooming = false;
     // reset zoom variables for the timelines
     for (const tl of timelines) {
       if (tl.newYPos) {
@@ -114,13 +118,13 @@ function zoom(dt) {
 
 function mouseZoom(x, factor) {
   const tAtMouse = pxToTime(x);
-  const newMsPerPx = msPerPx * factor;
+  const newMsPerPx = appState.msPerPx * factor;
 
   // clamp zoom between min and max thresholds
-  msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
+  appState.msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
-  offsetMs = tAtMouse - EPOCH - x * msPerPx;
+  appState.offsetMs = tAtMouse - EPOCH - x * appState.msPerPx;
 
   draw(true);
 };
@@ -140,10 +144,11 @@ window.addEventListener('resize', resize);
 
 function setPointerCursor() {
   // change pointer is appropriate
-  if (isDragging) canvas.style.cursor = 'ew-resize'
-  else if (highlightIdx === -1) canvas.style.cursor = 'default'
-  else if (screenElements[highlightIdx].type === 'button') canvas.style.cursor = 'pointer'
-  else if (screenElements[highlightIdx].type === 'handle') canvas.style.cursor = 'ew-resize'
+  const idx = appState.highlighted.idx;
+  if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
+  else if (idx === -1) canvas.style.cursor = 'default'
+  else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
+  else if (screenElements[idx].type === 'handle') canvas.style.cursor = 'ew-resize'
   else canvas.style.cursor = 'default';
 }
 
@@ -152,63 +157,57 @@ canvas.addEventListener('pointerdown', (e)=>{
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
-  zoomInProgress = null;  // stop any zooming in progress
+  appState.zoom.isZooming = false;  // stop any zooming in progress
     
-  if (highlightIdx !== -1 && screenElements[highlightIdx].type === 'handle') {
-    // start dragging a handle
-    isDragging = true;
-    draggingAttribute = screenElements[highlightIdx].subType;
-    dragStartValue = selectedEvent[draggingAttribute];
-    dragStartDirtyState = editingTimeline.dirty;
+  if (appState.highlighted.idx !== -1 && screenElements[appState.highlighted.idx].type === 'handle') {
+      startDragging();
+      return;
+
   } else {
     // start panning
-    isPanning = true;
-    vOffsetMs = 0;
-    lastX = e.clientX;
-    ignoreClick = false;
+    appState.pan.isPanning = true;
+    appState.momentum.vOffsetMs = 0;
+    appState.momentum.lastX = e.clientX;
+    appState.pan.ignoreClick = false;
+    return;
   }
 });
 
 canvas.addEventListener('pointermove', (e)=>{
   if (e.pointerType !== 'mouse') return;
   
-  mouseX = e.clientX; mouseY = e.clientY;
-  if (Math.abs(e.clientX - lastX) >= MAX_CLICK_MOVE) ignoreClick = true;
+  appState.mouseX = e.clientX;
+  appState.mouseY = e.clientY;
+  if (Math.abs(e.clientX - appState.momentum.lastX) >= MAX_CLICK_MOVE) appState.pan.ignoreClick = true;
 
-  if (isPanning) {
-    fixedPanMode = null;
+  if (appState.pan.isPanning) {
+    appState.fixedPanMode = null;
 
     // drag and momentum
-    const dx = e.clientX - lastX;
-    lastX = e.clientX;
-    offsetMs -= dx * msPerPx; // drag right -> move timeline left
-    lastDragSpeed = dx * msPerPx;
+    const dx = e.clientX - appState.momentum.lastX;
+    appState.momentum.lastX = e.clientX;
+    appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
+    appState.momentum.lastDragSpeed = dx * appState.msPerPx;
     draw(false);
+    return;
 
-  } else if (isDragging) {
-    // dragging a handle to change event dateTime
-    const t = pxToTime(e.clientX) - 12 * 60 * 60 * 1000; // add 12 hours to center on date
-    const d = new Date(t).toISOString().split('T')[0];
-    if (draggingAttribute === 'dateFrom' && selectedEvent.fadeLeft === selectedEvent.dateFrom) selectedEvent.fadeLeft = d; // move the 'fade' dates with from/to
-    if (draggingAttribute === 'dateTo' && selectedEvent.fadeRight === selectedEvent.dateTo) selectedEvent.fadeRight = d;
-    selectedEvent[draggingAttribute] = d; // initializeEvent will handle limits
-    initializeEvent(selectedEvent);
-    document.getElementById('event-date-display').value = formatEventDates(selectedEvent);
-    editingTimeline.dirty = true;
-    updateSaveButton();
-    positionLabels();
-    draw();
+  } else if (appState.drag.isDragging) {
+    drag(e);
+    return;
 
   } else {
     // check if mouse is over any interactive elements
     let found = -1;  
     for (let i=screenElements.length-1; i>0; i--) {  
       const se = screenElements[i];
-      if (mouseX >= se.left && mouseX <= se.right && mouseY >= se.top && mouseY <= se.bottom) {
+      if (isMouseOver(se.left, se.right, se.top, se.bottom)) {
         found = i;  break; };
     }
     // if so, draw, which will reset screenElements and highlight the one under mouseX/mouseY
-    if (found !== highlightIdx) draw(false);
+    if (found !== appState.highlighted.idx) {
+      draw(false);
+    }
+    return;
   }
 
 }, { passive:false });
@@ -216,19 +215,18 @@ canvas.addEventListener('pointermove', (e)=>{
 window.addEventListener('pointerup', (e)=>{
   if (e.pointerType !== 'mouse') return;
 
-  if (isPanning) {
-    isPanning = false;
+  if (appState.pan.isPanning) {
+    appState.pan.isPanning = false;
     // Convert last drag frame delta into per-second velocity estimate using last frame dt
     const now = performance.now();
-    const dt = Math.max(16.7, now - (lastTick || now)) / 1000; // ~1 frame if unknown
-    vOffsetMs = (lastDragSpeed || 0) / dt;
-    lastDragSpeed = 0;
+    const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
+    appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+    appState.momentum.lastDragSpeed = 0;
     return;
   }
 
-  if (isDragging) {
-    isDragging = false;
-    setPointerCursor();  // as opposed to calling draw()
+  if (appState.drag.isDragging) {
+    stopDragging(false);
     return;
   }
 });
@@ -236,7 +234,7 @@ window.addEventListener('pointerup', (e)=>{
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
-  zoomInProgress = null;  // stop any zooming in progress
+  appState.zoom.isZooming = false;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
@@ -252,46 +250,46 @@ canvas.addEventListener('dblclick', (e)=>{
 
 canvas.addEventListener('keydown', function (e) {
   
-  zoomInProgress = null; // stop any zooming in progress
+  appState.zoom.isZooming = false; // stop any zooming in progress
   const midX = window.innerWidth / 2;
   const midT = pxToTime(midX);
 
-  if (fixedPanMode)  // navigate by whole units of time (month, year, etc.)
+  if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
   {
     if (e.key === 'ArrowUp') {
-      fixedPanMode = tickSpec.get(fixedPanMode.zoomIn);  // zoom in one level
-      zoomToTick(fixedPanMode.start(midT));
+      appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
+      zoomToTick(appState.fixedPanMode.start(midT));
     }
     else if (e.key === 'ArrowDown') {
-      fixedPanMode = tickSpec.get(fixedPanMode.zoomOut);  // zoom out one level
-      const w = fixedPanMode.step(midT, 1) - fixedPanMode.start(midT);
+      appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomOut);  // zoom out one level
+      const w = appState.fixedPanMode.step(midT, 1) - appState.fixedPanMode.start(midT);
       zoomToTick(midT - w/2, midT + w/2);
     }
     else if (e.key === 'ArrowRight') {
-      zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),1));
+      zoomToTick(appState.fixedPanMode.step(appState.fixedPanMode.start(midT),1));
     }
     else if (e.key === 'ArrowLeft') {
-      zoomToTick(fixedPanMode.step(fixedPanMode.start(midT),-1));
+      zoomToTick(appState.fixedPanMode.step(appState.fixedPanMode.start(midT),-1));
     }
     
   } else {  // zoom/pan by increments
     if (e.key === 'ArrowUp') mouseZoom(midX, Math.pow(ZOOM_FACTOR, -1))
     else if (e.key === 'ArrowDown') mouseZoom(midX, Math.pow(ZOOM_FACTOR, 1))
-    else if (e.key === 'ArrowRight') vOffsetMs -= PAN_FACTOR * msPerPx
-    else if (e.key === 'ArrowLeft') vOffsetMs += PAN_FACTOR * msPerPx;
+    else if (e.key === 'ArrowRight') appState.momentum.vOffsetMs -= PAN_FACTOR * appState.msPerPx
+    else if (e.key === 'ArrowLeft') appState.momentum.vOffsetMs += PAN_FACTOR * appState.msPerPx;
   }
 });
 
 function zoomToTick(t, t2) {
   // determine where to zoom/pan
   const w = window.innerWidth;
-  const tNext = (t2 === undefined) ? fixedPanMode.step(t, 1): t2;
+  const tNext = (t2 === undefined) ? appState.fixedPanMode.step(t, 1): t2;
   const width = tNext - t;
   const newOffsetMs = (t - (width / 10)) - EPOCH;  // just to the left of clicked label
   const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
 
   // set in motion; picked up in tick()
-  zoomInProgress = {origOffset: offsetMs, newOffset:newOffsetMs, origMsPerPx:msPerPx, newMsPerPx:newMsPerPx };
+  appState.zoom = {isZooming:true, origOffset:offsetMs, newOffset:newOffsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:newMsPerPx};
 }
 
 function positionForTimeline(tl)
@@ -307,13 +305,13 @@ function positionForTimeline(tl)
 
 function centerOnTimeline(tl) {
   const p = positionForTimeline(tl);
-  offsetMs = p.offsetMs;
-  msPerPx = p.msPerPx;
+  appState.offsetMs = p.offsetMs;
+  appState.msPerPx = p.msPerPx;
 }
 
 function zoomToTimeline(tl) {
   const p = positionForTimeline(tl);
-  zoomInProgress = {origOffset: offsetMs, newOffset:p.offsetMs, origMsPerPx:msPerPx, newMsPerPx:p.msPerPx };
+  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
   positionTimelines(true);
 }
 
@@ -347,33 +345,35 @@ function closeTimeline(tl) {
 
 canvas.addEventListener('click', function (e) {
   
-  if (ignoreClick) return;
+  if (appState.pan.ignoreClick) return;
   
-  if (highlightIdx === -1) {
+  if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
     if (sidebar.classList.contains('open')) closeSidebar();
     return;
   }
 
-  const elem = screenElements[highlightIdx];
+  const elem = screenElements[appState.highlighted.idx];
   if (elem.type === 'tick') {
     // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
     const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
-    fixedPanMode = tickSpec.get(m);
+    appState.fixedPanMode = tickSpec.get(m);
     zoomToTick(elem.t);
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
     // for now, open event indicated in details (*.json), but not in editing mode
-    if (/.\.json/.test(highlightedEvent.details) && !(editingTimeline === highlightedEvent.timeline)) followLink({container:"timelines", file:highlightedEvent.details});
+    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.editingTimeline === appState.highlighted.event.timeline)) followLink({container:"timelines", file:appState.highlighted.event.details});
     else {
-      selectedEvent = highlightedEvent;
-      selectedTimeline = selectedEvent.timeline;
-      if (editingTimeline === selectedTimeline) {openEventForEdit();} else openEventForView();
+      appState.selected.event = appState.highlighted.event;
+      appState.selected.timeline = appState.selected.event.timeline;
+      if (appState.editingTimeline === appState.selected.timeline) openEventForEdit(appState.selected.event) 
+      else openEventForView(appState.selected.event);
     }
   } else if (elem.type === 'timeline') {
-    selectedTimeline = elem.timeline;
-    if (editingTimeline === selectedTimeline) {openTimelineForEdit();} else openTimelineForView();
+    appState.selected.timeline = elem.timeline;
+    if (appState.editingTimeline === appState.selected.timeline) openTimelineForEdit(appState.editingTimeline)
+    else openTimelineForView(appState.selected.timeline);
 
   } else if (elem.type === 'button') {
     closeTimeline(elem.timeline);
@@ -382,7 +382,7 @@ canvas.addEventListener('click', function (e) {
 
 async function followLink(timelineID) {
   // ToDo: check if timeline is already there
-  const yPos = highlightedEvent.timeline.yPos, ceiling = highlightedEvent.timeline.ceiling;
+  const yPos = appState.highlighted.event.timeline.yPos, ceiling = appState.highlighted.event.timeline.ceiling;
   const tl = await loadTimeline(timelineID);
   tl.yPos = yPos; tl.ceiling = ceiling;
   zoomToTimeline(tl);
@@ -413,7 +413,7 @@ function draw(reposition){
 
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
-  highlightIdx = -1;
+  appState.highlighted.idx = -1;
   drawTicks();
   drawEvents();
 /*
@@ -449,4 +449,3 @@ resize();
 requestAnimationFrame(tick);
 canvas.focus();
 initialLoad();
-

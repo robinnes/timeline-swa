@@ -67,7 +67,7 @@ const tickSpec = new Map([
 ]);
 
 function getTickSpec() {
-  const f = Math.log10(msPerPx);
+  const f = Math.log10(appState.msPerPx);
   if (f >= 10) return tickSpec.get('century')
   else if (f >= 9) return tickSpec.get('decade')
   else if (f >= 8) return tickSpec.get('year')
@@ -84,8 +84,8 @@ function drawTick(text, left, width, fade, t, mode) {
   screenElements.push({left:left, right:right, top:TICK_TOP, bottom:TICK_BOTTOM, type:'tick', t:t, mode:mode });
 
   // check here if mouse is over this tick label; it may have moved under the mouse
-  if (mouseX >= left && mouseX <= right && mouseY >= TICK_TOP && mouseY <= TICK_BOTTOM) {
-    highlightIdx = screenElements.length - 1;
+  if (isMouseOver(left, right, TICK_TOP, TICK_BOTTOM)) {
+    appState.highlighted.idx = screenElements.length - 1;
     highlight = true;
   }
 
@@ -110,7 +110,7 @@ function drawTicks() {
   const spec = getTickSpec();
   const w = window.innerWidth, h = window.innerHeight;
   const t0 = pxToTime(0), t1 = pxToTime(w);
-  const tickWidth = spec.msPerTick / msPerPx;
+  const tickWidth = spec.msPerTick / appState.msPerPx;
   ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';  // need this for measureText
   let t = spec.start(t0);
 

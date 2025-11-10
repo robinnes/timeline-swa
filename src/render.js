@@ -13,6 +13,10 @@ const FADE_HIGHLIGHT_THRESHOLD = 0.4;  // lines where fade is below will not hig
 const MAX_SIGNIFICANCE = 6;  // largest possible value for event.significance
 const DEFAULT_LINE_COLOR = "blue";
 
+function isMouseOver(left, right, top, bottom) {
+  return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
+}
+
 const colorRGB = new Map([
   ["black",  { r:0,   g:0,   b:0   }],
   ["white",  { r:255, g:255, b:255 }],
@@ -51,7 +55,7 @@ function zoomSpec(sig){
     { threshold:11, growth:9, fadeNear:true, maxBright:0.6 }
   ];
 
-  const factor = Math.log10(msPerPx);
+  const factor = Math.log10(appState.msPerPx);
   const z = zoomMaster[sig - 1];
   return {
     factor,
@@ -98,9 +102,9 @@ function registerEvents(tl) {
       screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'line', event:e});
     
       // check for mouseover
-      if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) {
-        highlightIdx = screenElements.length - 1;
-        highlightedEvent = e;
+      if (isMouseOver(left, right, top, bottom)) {
+        appState.highlighted.idx = screenElements.length - 1;
+        appState.highlighted.event = e;
       }
 
       // process the label, if applicable
@@ -110,9 +114,9 @@ function registerEvents(tl) {
         screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:p.type, event:e});
 
         // check for mouseover
-        if (mouseX >= p.left && mouseX <= p.right && mouseY >= p.top && mouseY <= p.bottom) {
-          highlightIdx = screenElements.length - 1;
-          highlightedEvent = e;
+        if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+          appState.highlighted.idx = screenElements.length - 1;
+          appState.highlighted.event = e;
         }
       }
 
@@ -334,14 +338,14 @@ function registerTimelineLabel(tl) {
   
   // register label as a screen element and check mouseover
   screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:'timeline', timeline:tl});
-  if (mouseX >= p.left && mouseX <= p.right && mouseY >= p.top && mouseY <= p.bottom) {
-    highlightIdx = screenElements.length - 1;
-    highlightedTimeline = tl;
+  if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    appState.highlighted.timeline = tl;
   }
   screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', timeline:tl});
-  if (mouseX >= p.btnLeft && mouseX <= p.btnRight && mouseY >= p.btnTop && mouseY <= p.btnBottom) {
-    highlightIdx = screenElements.length - 1;
-    highlightedTimeline = tl;
+  if (isMouseOver(p.btnLeft, p.btnRight, p.btnTop, p.btnBottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    appState.highlighted.timeline = tl;
   }
 }
 
@@ -389,8 +393,8 @@ function drawTimelineLabel(tl, highlight) {
   ctx.restore();
 }
 
-function drawDateHandles() {
-  const y = editingTimeline.yPos;
+function drawDateHandles(event) {
+  const y = appState.editingTimeline.yPos;
   const color = 'rgba(200,200,200,1)';
   const lineWidth = 2;
   const majorHeight = 80;
@@ -402,9 +406,9 @@ function drawDateHandles() {
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
 
-  if (selectedEvent.significance <= 3) {
-    // singer date handle
-    let x = timeToPx(selectedEvent.dateTime);
+  if (event.significance <= 3) {
+    // single date handle
+    let x = timeToPx(event.dateTime);
     let left = x - majorRadius
     let right = x + majorRadius
     let top = y + majorHeight - majorRadius
@@ -418,12 +422,12 @@ function drawDateHandles() {
     ctx.arc(x, y + majorHeight, majorRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'date', event:selectedEvent});
-    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'date', event:event});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
   } else {
     // dateFrom (half-circle on the left)
-    let x = timeToPx(selectedEvent.tFrom);
+    let x = timeToPx(event.tFrom);
     let left = x - majorRadius
     let right = x;
     let top = y + majorHeight - majorRadius
@@ -437,11 +441,11 @@ function drawDateHandles() {
     ctx.arc(x, y + majorHeight, majorRadius, Math.PI * 0.5, Math.PI * 1.5);
     ctx.stroke();
 
-    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateFrom', event:selectedEvent});
-    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateFrom', event:event});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // dateTo (half-circle on the right)
-    x = timeToPx(selectedEvent.tTo);
+    x = timeToPx(event.tTo);
     left = x;
     right = x + majorRadius;
 
@@ -453,11 +457,11 @@ function drawDateHandles() {
     ctx.arc(x, y + majorHeight, majorRadius, Math.PI * 1.5, Math.PI * 0.5);
     ctx.stroke();
 
-    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateTo', event:selectedEvent});
-    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateTo', event:event});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // fadeLeft
-    x = timeToPx(selectedEvent.fLeft);
+    x = timeToPx(event.fLeft);
     left = x;
     right = x + minorRadius;
     top = y + minorHeight - minorRadius
@@ -471,11 +475,11 @@ function drawDateHandles() {
     ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 1.5, Math.PI * 0.5);
     ctx.stroke();
 
-    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeLeft', event:selectedEvent});
-    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeLeft', event:event});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // fadeRight
-    x = timeToPx(selectedEvent.fRight);
+    x = timeToPx(event.fRight);
     left = x - minorRadius;
     right = x;
 
@@ -487,16 +491,16 @@ function drawDateHandles() {
     ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 0.5, Math.PI * 1.5);
     ctx.stroke();
 
-    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', event:selectedEvent});
-    if (mouseX >= left && mouseX <= right && mouseY >= top && mouseY <= bottom) highlightIdx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', event:event});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
   }
   
   ctx.restore();
 }
 
 function drawEvents() {
-  highlightedEvent = null;
-  highlightedTimeline = null;
+  appState.highlighted.event = null;
+  appState.highlighted.timeline = null;
 
   // populate screenElements
   for (const tl of timelines) {
@@ -507,22 +511,22 @@ function drawEvents() {
   // iterate through screenElements (events and their labels)
   screenElements.filter(se => se.type==='line' || se.type==='bubble' || se.type==='label').forEach(se => {
     const e = se.event;
-    const highlight = (e===highlightedEvent || e===selectedEvent);
-    if (se.type === 'line') drawEventLine(e, highlight || e.timeline===highlightedTimeline);
+    const highlight = (e===appState.highlighted.event || e===appState.selected.event);
+    if (se.type === 'line') drawEventLine(e, highlight || e.timeline===appState.highlighted.timeline);
     if (se.type === 'bubble') drawLabelAbove(e, highlight);
     if (se.type === 'label') drawLabelBelow(e, highlight);
   });
 
-  for (const tl of timelines) drawTimelineLabel(tl, tl===highlightedTimeline);
+  for (const tl of timelines) drawTimelineLabel(tl, tl===appState.highlighted.timeline);
 
   // draw date handles if applicable
-  if (editingTimeline && selectedEvent && document.getElementById('panel-edit-event').classList.contains('is-active'))
-    drawDateHandles();
+  if (appState.editingTimeline && appState.selected.event && document.getElementById('panel-edit-event').classList.contains('is-active'))
+    drawDateHandles(appState.selected.event);
 
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
   const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), e.yPos)}};
-  f(highlightedEvent);
-  if (selectedEvent != highlightedEvent) f(selectedEvent);
+  f(appState.highlighted.event);
+  if (appState.selected.event != appState.highlighted.event) f(appState.selected.event);
 
   // change pointer
   setPointerCursor();

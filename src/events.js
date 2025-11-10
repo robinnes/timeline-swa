@@ -213,8 +213,8 @@ var timelineAnh = {
     { significance:2, label:'First anniversary', date:'2013-12-12' },
     { significance:2, label:'Tony\'s 75th birthday', date:'2013-06-02' },
     { significance:4, label:'Honeymoon', dateFrom:'2014-05-02', dateTo:'2014-05-12', fadeLeft:'2014-05-03', fadeRight:'2014-05-11', color:'green' },
-    { significance:3, label:'Arrive in Rome', date:'2014-05-02' },
-    { significance:3, label:'10th Anniversary', date:'2022-12-12' }
+    { significance:3, label:'Arrive in Rome', date:'2014-05-02' }
+    //{ significance:3, label:'10th Anniversary', date:'2022-12-12' }
   ]
 }
 

@@ -52,8 +52,8 @@ canvas.addEventListener('pointermove', (e)=>{
     const dist = distance(p1, p2);
     if (pinchStartDist > 0 && dist > 0) {
       const scale = pinchStartDist / dist; // >1 when pinching out
-      msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, pinchStartMsPerPx * scale));
-      offsetMs = pinchMidT - EPOCH - pinchMidX * msPerPx;
+      appState.msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, pinchStartMsPerPx * scale));
+      appState.offsetMs = pinchMidT - EPOCH - pinchMidX * msPerPx;
       updatePositions();
       draw();
     }
@@ -61,7 +61,7 @@ canvas.addEventListener('pointermove', (e)=>{
     const only = [...active.values()][0];
     const dx = only.x - lastTouchX;
     lastTouchX = only.x;
-    offsetMs -= dx * msPerPx;
+    appState.offsetMs -= dx * msPerPx;
     lastDragSpeed = dx * msPerPx;  // for momentum
     updatePositions();
     draw();

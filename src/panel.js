@@ -41,10 +41,10 @@ function formatTextDate(txtDate) {
 function formatEventDates(e) {
   const spec = zoomSpec(e.significance);
 
-  if (spec.style === 'dot') return formatTextDate(selectedEvent.date);
+  if (spec.style === 'dot') return formatTextDate(e.date);
 
-  const from = formatTextDate(selectedEvent.dateFrom);
-  const to = formatTextDate(selectedEvent.dateTo);
+  const from = formatTextDate(e.dateFrom);
+  const to = formatTextDate(e.dateTo);
   return `${from ?? "?"} - ${to ?? "?"}`;
 }
 
@@ -62,8 +62,8 @@ function closeSidebar() {
   sidebar.classList.remove('open');
   sidebar.setAttribute('aria-hidden', 'true');
   //stage.classList.remove('shrink');
-  selectedEvent = null;
-  selectedTimeline = null;
+  appState.selected.event = null;
+  appState.selected.timeline = null;
   draw(false);
   canvas.focus();
 }
@@ -71,16 +71,8 @@ sidebarClose.addEventListener('click', closeSidebar);
 
 document.addEventListener('keydown', (ev) => {
   if (ev.key === 'Escape') {
-    if (isDragging) {
-      // cancel pan mode and revert to original value (this code should be in timeline.js...)
-      isDragging = false;
-      selectedEvent[draggingAttribute] = dragStartValue;
-      editingTimeline.dirty = dragStartDirtyState;
-      updateSaveButton();
-      initializeEvent(selectedEvent);
-      document.getElementById('event-date-display').value = formatEventDates(selectedEvent);
-      positionLabels();
-      draw();
+    if (appState.drag.isDragging) {
+      stopDragging(true);
     } else {
       if (sidebar.classList.contains('open')) closeSidebar();
     }
@@ -99,8 +91,8 @@ for (const btn of tabButtons) {
     if (!target) return;
     // map logical tab to the appropriate panel depending on whether we're editing a timeline
     let panelId = null;
-    if (target === 'timeline') panelId = (editingTimeline ? 'panel-edit-timeline' : 'panel-view-timeline');
-    else if (target === 'event') panelId = (editingTimeline ? 'panel-edit-event' : 'panel-view-event');
+    if (target === 'timeline') panelId = (appState.editingTimeline ? 'panel-edit-timeline' : 'panel-view-timeline');
+    else if (target === 'event') panelId = (appState.editingTimeline ? 'panel-edit-event' : 'panel-view-event');
     if (panelId) showPanel(panelId);
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openSidebar();
@@ -128,12 +120,12 @@ function setActiveEditTab(targetPanelId) {
 }
 
 function updateTabStates() {
-  // Disable or enable tabs based on application state (e.g. selectedEvent)
+  // Disable or enable tabs based on application state
   if (!tabButtons || !tabButtons.length) return;
   for (const btn of tabButtons) {
-    // Disable 'Event' tab when there is no selectedEvent
+    // Disable 'Event' tab when there is no selected event
     if (btn.dataset.target === 'event') {
-      const shouldDisable = !selectedEvent;
+      const shouldDisable = !appState.selected.event;
       btn.disabled = shouldDisable;
       btn.classList.toggle('is-disabled', shouldDisable);
       btn.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
@@ -146,16 +138,22 @@ function updateTabStates() {
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  openTimelineForEdit();
+  appState.editingTimeline = appState.selected.timeline;
+  openTimelineForEdit(appState.editingTimeline);
 });
 
 timelineCancelBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  if (selectedTimeline.dirty) {
-    reloadTimeline(selectedTimeline).then(() => {
-      openTimelineForView();
+  const tl = appState.selected.timeline;
+  if (tl.dirty) {
+    reloadTimeline(tl).then(() => {
+      appState.editingTimeline = null;
+      openTimelineForView(tl);
     });
-  } else openTimelineForView(); // cancel without reloading
+  } else {
+    appState.editingTimeline = null;
+    openTimelineForView(tl); // cancel without reloading
+  }
 });
 
 timelineSaveBtn.addEventListener('click', (e) => {
@@ -166,9 +164,9 @@ timelineSaveBtn.addEventListener('click', (e) => {
 async function trySaveTimeline()
 {
   try {
-    const text = timelineString(editingTimeline);
+    const text = timelineString(appState.editingTimeline);
     await saveTimelineToStorage('timelines', 'timelineRob.json', text);
-    editingTimeline.dirty = false;
+    appState.editingTimeline.dirty = false;
     updateSaveButton();
   } catch (err) {
     console.error('Save failed:', err.message);
@@ -176,17 +174,16 @@ async function trySaveTimeline()
 }
 
 function updateSaveButton() {
-  // Save should be disabled when there are no unsaved changes.
-  // Enable the Save button when `editingTimeline.dirty === true`.
-  const shouldDisable = !(editingTimeline && editingTimeline.dirty);
+  // Enable the Save button when editingTimeline is dirty
+  const shouldDisable = !(appState.editingTimeline && appState.editingTimeline.dirty);
   timelineSaveBtn.disabled = shouldDisable;
 }
 
 
 /* ------------------- Edit event panel -------------------- */
 
-function openEventForEdit() {
-  setSidebarEvent();
+function openEventForEdit(e) {
+  setSidebarEvent(e);
 
   showPanel('panel-edit-event');
   setActiveEditTab('event');
@@ -197,27 +194,28 @@ function openEventForEdit() {
 
 editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
-  selectedEvent.label = s;
-  editingTimeline.dirty = true;
+  const event = appState.selected.event;
+  event.label = s;
+  appState.editingTimeline.dirty = true;
   updateSaveButton?.();
-  initializeEvent(selectedEvent);  // appearance of bubble label may change
+  initializeEvent(event);  // appearance of bubble label may change
   positionLabels();
   draw();
 });
 
 editEventDetails.addEventListener('input', (e) => {
   const v = e.target.value;
-  selectedEvent.details = v;
-  editingTimeline.dirty = true;
+  const event = appState.selected.event;
+  event.details = v;
+  appState.editingTimeline.dirty = true;
   updateSaveButton?.();
 });
 
 
 /* ------------------- Edit timeline panel -------------------- */
 
-function openTimelineForEdit() {
-  editingTimeline = selectedTimeline;
-  setSidebarTimeline();
+function openTimelineForEdit(tl) {
+  setSidebarTimeline(tl);
 
   showPanel('panel-edit-timeline');
   setActiveEditTab('timeline');
@@ -227,34 +225,33 @@ function openTimelineForEdit() {
 
 editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
-  editingTimeline.title = s;
-  editingTimeline.dirty = true;
+  appState.editingTimeline.title = s;
+  appState.editingTimeline.dirty = true;
   updateSaveButton?.();
   draw();
 });
 
 editTimelineDetails.addEventListener('input', (e) => {
   const v = e.target.value;
-  editingTimeline.details = v;
-  editingTimeline.dirty = true;
+  appState.editingTimeline.details = v;
+  appState.editingTimeline.dirty = true;
   updateSaveButton?.();
 });
 
 
 /* ------------------- View panels -------------------- */
 
-function openEventForView() {
-  setSidebarEvent();
-  setSidebarTimeline();
+function openEventForView(e) {
+  setSidebarEvent(e);
+  setSidebarTimeline(e.timeline);
 
   showPanel('panel-view-event');
   setActiveEditTab('event');
   if (!sidebar.classList.contains('open')) openSidebar();
 }
 
-function openTimelineForView() {
-  editingTimeline = null; // To Do: move out of this function
-  setSidebarTimeline();
+function openTimelineForView(tl) {
+  setSidebarTimeline(tl);
 
   showPanel('panel-view-timeline');
   setActiveEditTab('timeline');
@@ -264,56 +261,57 @@ function openTimelineForView() {
 
 /* ------------------- Populate fields for selection -------------------- */
 
-function setSidebarEvent() {
-  // update sidebar (all panels) to selectedEvent
+function setSidebarEvent(e) {
+  // update sidebar (all panels) to selected event
   const $ = (id) => document.getElementById(id);
   
   // view event panel
-  $("event-label").textContent = selectedEvent.label ?? '';
-  $("event-date").innerHTML = formatEventDates(selectedEvent);;
+  $("event-label").textContent = e.label ?? '';
+  $("event-date").innerHTML = formatEventDates(e);;
   // if details looks like HTML, show as HTML; otherwise plain-text
-  const isHtml = /<[a-z][\s\S]*>/i.test(selectedEvent.details);  // necessary?
-  if (isHtml) $("details").innerHTML = selectedEvent.details;
-  else $("details").innerText = selectedEvent.details ?? ''
+  const isHtml = /<[a-z][\s\S]*>/i.test(e.details);  // necessary?
+  if (isHtml) $("details").innerHTML = e.details;
+  else $("details").innerText = e.details ?? ''
 
   // edit event panel
-  editEventLabel.value = selectedEvent.label ?? '';
-  editEventDetails.value = selectedEvent.details ?? '';
-  $('event-date-display').value = formatEventDates(selectedEvent);
+  editEventLabel.value = e.label ?? '';
+  editEventDetails.value = e.details ?? '';
+  $('event-date-display').value = formatEventDates(e);
 
   updateSignificanceButton();
   updateColorSelectorState();
   updateColorButtons();
 }
 
-function setSidebarTimeline() {
-  // update sidebar (all panels) to selectedTimeline
+function setSidebarTimeline(tl) {
+  // update sidebar (all panels) to timeline
   const $ = (id) => document.getElementById(id);
 
   // view timeline panel
-  $("timeline-title").textContent = selectedTimeline.title ?? '';
-  const isHtml = /<[a-z][\s\S]*>/i.test(selectedTimeline.details);  // necessary?
-  if (isHtml) $("timeline-details").innerHTML = selectedTimeline.details;
-  else $("timeline-details").innerText = selectedTimeline.details ?? '';
+  $("timeline-title").textContent = tl.title ?? '';
+  const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
+  if (isHtml) $("timeline-details").innerHTML = tl.details;
+  else $("timeline-details").innerText = tl.details ?? '';
 
   // edit timeline panel
-  editTimelineTitle.value = selectedTimeline.title ?? '';
-  editTimelineDetails.value = selectedTimeline.details ?? '';
+  editTimelineTitle.value = tl.title ?? '';
+  editTimelineDetails.value = tl.details ?? '';
   updateSaveButton?.();
 }
 
 
 /* ------------------- Significance buttons -------------------- */
 
-// Significance change handler: update selectedEvent.significance and mark dirty
-  for (const r of significanceButtons) {
+// Significance change handler: update selected.event.significance and mark dirty
+for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
     const v = parseInt(e.target.value, 10);
-    if (!selectedEvent) return;
-    selectedEvent.significance = v;
-    initializeEvent(selectedEvent);
+    const event = appState.selected.event;
+    if (!event) return;
+    event.significance = v;
+    initializeEvent(event);
     // mark timeline dirty when event changed
-    if (editingTimeline) editingTimeline.dirty = true;
+    if (appState.editingTimeline) appState.editingTimeline.dirty = true;
     updateSaveButton?.();
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color
@@ -322,8 +320,8 @@ function setSidebarTimeline() {
 }
 
 function updateSignificanceButton() {
-  // set significance radio based on selectedEvent.significance (if present)
-  const sig = selectedEvent.significance ?? null;
+  // set significance radio based on selected.event.significance (if present)
+  const sig = appState.selected.event.significance ?? null;
   if (sig != null) {
     const el = document.querySelector(`input[name="event-significance"][value="${sig}"]`);
     if (el) el.checked = true;
@@ -336,8 +334,9 @@ function updateSignificanceButton() {
 
 function updateColorSelectorState() {
   // color options depend on significance: no left/right for Point events, etc.
-  if (!selectedEvent) return;
-  const isPoint = selectedEvent.significance <= 3;
+  const e = appState.selected.event;
+  if (!e) return;
+  const isPoint = e.significance <= 3;
   const leftRightSelectors = document.querySelectorAll('input[name="color-target"][value="left"], input[name="color-target"][value="right"]');
   
   leftRightSelectors.forEach(radio => {
@@ -369,22 +368,23 @@ for (const radio of colorTargetRadios) {
 for (const btn of colorButtons) {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (!selectedEvent) return;
+    const event = appState.selected.event;
+    if (!event) return;
     const newColor = btn.dataset.color;
     const target = getSelectedColorTarget();
     
     switch (target) {
       case 'left':
-        selectedEvent.colorLeft = newColor;
+        event.colorLeft = newColor;
         break;
       case 'right':
-        selectedEvent.colorRight = newColor;
+        event.colorRight = newColor;
         break;
       default: // 'main'
-        selectedEvent.color = newColor;
+        event.color = newColor;
     }
     
-    selectedEvent.timeline.dirty = true;
+    event.timeline.dirty = true;
     updateColorButtons();
     draw();
   });
@@ -397,7 +397,8 @@ function getSelectedColorTarget() {
 }
 
 function updateColorButtons() {
-  if (!selectedEvent) return;
+  const e = appState.selected.event;
+  if (!e) return;
   const target = getSelectedColorTarget();
 
   // hide/show the 'black' swatch for left/right targets
@@ -410,13 +411,13 @@ function updateColorButtons() {
     let isActive = false;
     switch (target) {
       case 'left':
-        isActive = btn.dataset.color === selectedEvent.colorLeft;
+        isActive = btn.dataset.color === e.colorLeft;
         break;
       case 'right':
-        isActive = btn.dataset.color === selectedEvent.colorRight;
+        isActive = btn.dataset.color === e.colorRight;
         break;
       default: // 'main'
-        isActive = btn.dataset.color === selectedEvent.color;
+        isActive = btn.dataset.color === e.color;
     }
     btn.classList.toggle('is-active', isActive);
   }
