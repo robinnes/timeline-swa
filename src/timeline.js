@@ -289,7 +289,7 @@ function zoomToTick(t, t2) {
   const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
 
   // set in motion; picked up in tick()
-  appState.zoom = {isZooming:true, origOffset:offsetMs, newOffset:newOffsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:newMsPerPx};
+  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:newOffsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:newMsPerPx};
 }
 
 function positionForTimeline(tl)
