@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="app">
-  <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details" tabindex="-1">
+      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details" tabindex="-1">
         <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
           <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
@@ -83,35 +83,35 @@
 
             <!-- View timeline panel -->
             <div id="panel-view-timeline" class="panel hidden inert">
-                <div class="panel__content">
-              <section class="sidebar__section">
-                <h2 class="label" id="timeline-title"></h2>
-              </section>
-              <section class="sidebar__section">
-                <div class="details" id="timeline-details"></div>
-              </section>
-                </div>
-                <div class="panel__footer">
-                  <button id="timeline-edit" class="panel__edit-btn" aria-label="Edit timeline">Edit</button>
-                </div>
+              <div class="panel__content">
+                <section class="sidebar__section">
+                  <h2 class="label" id="timeline-title"></h2>
+                </section>
+                <section class="sidebar__section">
+                  <div class="details" id="timeline-details"></div>
+                </section>
+              </div>
+              <div class="panel__footer">
+                <button id="timeline-edit" class="panel__edit-btn" aria-label="Edit timeline">Edit</button>
+              </div>
             </div>
 
             <!-- Edit timeline panel -->
             <div id="panel-edit-timeline" class="panel hidden inert">
-                <div class="panel__content">
-              <section class="sidebar__section">
-                <label for="edit-timeline-title" class="control-label">Title</label>
-                <textarea id="edit-timeline-title" class="edit-textarea" rows="1"></textarea>
-              </section>
-              <section class="sidebar__section">
-                <label for="edit-timeline-details" class="control-label">Details</label>
-                <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>
-              </section>
-                </div>
-                <div class="panel__footer">
-                  <button id="timeline-save" class="panel__save-btn" aria-label="Save changes" disabled>Save changes</button>
-                  <button id="timeline-cancel" class="panel__cancel-btn" aria-label="Cancel editing timeline">Cancel</button>
-                </div>
+              <div class="panel__content">
+                <section class="sidebar__section">
+                  <label for="edit-timeline-title" class="control-label">Title</label>
+                  <textarea id="edit-timeline-title" class="edit-textarea" rows="1"></textarea>
+                </section>
+                <section class="sidebar__section">
+                  <label for="edit-timeline-details" class="control-label">Details</label>
+                  <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>
+                </section>
+              </div>
+              <div class="panel__footer">
+                <button id="timeline-save" class="panel__save-btn" aria-label="Save changes" disabled>Save changes</button>
+                <button id="timeline-cancel" class="panel__cancel-btn" aria-label="Cancel editing timeline">Cancel</button>
+              </div>
             </div>
           </div>
 

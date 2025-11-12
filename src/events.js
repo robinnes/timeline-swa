@@ -1,3 +1,33 @@
+var timelineRob = {
+  title:'Rob Innes',
+  details:'A timeline of significant events in the life of Rob Innes.  Local version.',
+  events:[
+    { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
+    { significance:6, label:'The Boys', dateFrom:'1981-08-06', dateTo:'1987-09-01', fadeLeft:'1982-08-06', fadeRight:'1987-08-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
+    { significance:6, label:'Rock \'n\' Roll', dateFrom:'1987-09-01', dateTo:'1997-01-01', fadeLeft:'1988-11-01', fadeRight:'1996-08-31', colorLeft:'green', color:'yellow', colorRight:'orange' },
+    { significance:6, label:'Career as a Programmer', dateFrom:'1997-01-01', dateTo:'2006-06-30', fadeLeft:'1997-07-28', fadeRight:'2005-06-01', colorLeft:'yellow', color:'orange', colorRight:'red' },
+    { significance:6, label:'World of Warcraft', dateFrom:'2006-06-30', dateTo:'2012-10-27', fadeLeft:'2007-04-15', fadeRight:'2011-09-20', colorLeft:'orange', color:'red', colorRight:'purple' },
+    { significance:6, label:'Married Life', dateFrom:'2012-10-27', dateTo:'2025-10-14', fadeLeft:'2012-12-12', colorLeft:'red', color:'purple' },
+    { significance:3, label:'Born in Seward, AK', date:'1969-08-06' },
+    { significance:3, label:'Dad died', date:'1980-05-27' },
+    { significance:3, label:'Met Dean Carignan', date:'1980-07-23' },
+    { significance:2, label:'Mom married Bo Bennett', date:'1983-04-04' },
+    { significance:3, label:'Graduate high school', date:'1987-05-21' },
+    { significance:3, label:'First concert', date:'1988-01-30' },
+    { significance:2, label:'Took Lisa to Butthole Surfers concert', date:'1988-10-28' },
+    { significance:2, label:'First Lollapalooza', date:'1991-08-28' },
+    { significance:3, label:'First journal entry', date:'1992-12-02' },
+    { significance:2, label:'Bought first PC', date:'1995-02-28' },
+    { significance:2, label:'First day at IPC', date:'1997-04-21' },
+    { significance:3, label:'Offered programming job at IPC', date:'1997-07-28' },
+    { significance:2, label:'Opened brokerage account', date:'1999-05-28' },
+    { significance:3, label:'Bought World of Warcraft', date:'2005-07-26' },
+    { significance:3, label:'Marriage to Anh', date:'2012-12-12', details:'timelineAnh.json' },
+    { significance:3, label:'Move to Texas', date:'2022-09-30', details:'timelineTX.json' },
+    { significance:3, label:'Retired', date:'2021-12-28' }
+  ]
+}
+
 var timelineTX = {
   title:'Move to Texas',
   details:'Our timeline of events leading up to and following our move from Washington to Texas.',
@@ -45,7 +75,7 @@ var timelineTX = {
     { significance:4, label:'Quick trip to San Antonio', dateFrom:'2021-11-14', dateTo:'2021-11-16', fadeLeft:'2021-11-15', fadeRight:'2021-11-15', color:'yellow' },
     { significance:2, label:'Design Center appointment', date:'2021-11-15' },
     { significance:1, label:'Officially resigned from work', date:'2021-12-17' },
-    { significance:2, label:'Last day at work', date:'2021-12-28' },
+    { significance:2, label:'Rob retires: last day at work', date:'2021-12-28', details:'timelineRob.json' },
     { significance:1, label:'Began selling furniture on Offer Up and Craigslist', date:'2022-01-19' },
     { significance:1, label:'Kenny Ripstra called - we have a start date', date:'2022-02-24' },
     { significance:2, label:'Scott Felder\'s start date', date:'2022-03-09' },
@@ -217,37 +247,6 @@ var timelineAnh = {
     //{ significance:3, label:'10th Anniversary', date:'2022-12-12' }
   ]
 }
-
-var timelineRob = {
-  title:'Rob Innes',
-  details:'A timeline of significant events in the life of Rob Innes.  Local version.',
-  events:[
-    { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
-    { significance:6, label:'The Boys', dateFrom:'1981-08-06', dateTo:'1987-09-01', fadeLeft:'1982-08-06', fadeRight:'1987-08-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
-    { significance:6, label:'Rock \'n\' Roll', dateFrom:'1987-09-01', dateTo:'1997-01-01', fadeLeft:'1988-11-01', fadeRight:'1996-08-31', colorLeft:'green', color:'yellow', colorRight:'orange' },
-    { significance:6, label:'Career as a Programmer', dateFrom:'1997-01-01', dateTo:'2006-06-30', fadeLeft:'1997-07-28', fadeRight:'2005-06-01', colorLeft:'yellow', color:'orange', colorRight:'red' },
-    { significance:6, label:'World of Warcraft', dateFrom:'2006-06-30', dateTo:'2012-10-27', fadeLeft:'2007-04-15', fadeRight:'2011-09-20', colorLeft:'orange', color:'red', colorRight:'purple' },
-    { significance:6, label:'Married Life', dateFrom:'2012-10-27', dateTo:'2025-10-14', fadeLeft:'2012-12-12', colorLeft:'red', color:'purple' },
-    { significance:3, label:'Born in Seward, AK', date:'1969-08-06' },
-    { significance:3, label:'Dad died', date:'1980-05-27' },
-    { significance:3, label:'Met Dean Carignan', date:'1980-07-23' },
-    { significance:2, label:'Mom married Bo Bennett', date:'1983-04-04' },
-    { significance:3, label:'Graduate high school', date:'1987-05-21' },
-    { significance:3, label:'First concert', date:'1988-01-30' },
-    { significance:2, label:'Took Lisa to Butthole Surfers concert', date:'1988-10-28' },
-    { significance:2, label:'First Lollapalooza', date:'1991-08-28' },
-    { significance:3, label:'First journal entry', date:'1992-12-02' },
-    { significance:2, label:'Bought first PC', date:'1995-02-28' },
-    { significance:2, label:'First day at IPC', date:'1997-04-21' },
-    { significance:3, label:'Offered programming job at IPC', date:'1997-07-28' },
-    { significance:2, label:'Opened brokerage account', date:'1999-05-28' },
-    { significance:3, label:'Bought World of Warcraft', date:'2005-07-26' },
-    { significance:3, label:'Marriage to Anh', date:'2012-12-12', details:'timelineAnh.json' },
-    { significance:3, label:'Move to Texas', date:'2022-09-30' },
-    { significance:3, label:'Retired', date:'2021-12-28' }
-  ]
-}
-
 
 const eventsIS = [
   { significance:6, label:'Pre-State: Zionist Movement & British Mandate', dateFrom:'1897-08-29', dateTo:'1948-05-14', fadeLeft:'1920-01-15', fadeRight:'1948-05-14', color:'blue' },

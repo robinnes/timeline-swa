@@ -280,6 +280,46 @@ canvas.addEventListener('keydown', function (e) {
   }
 });
 
+canvas.addEventListener('click', function (e) {
+  
+  if (appState.pan.ignoreClick) return;
+  
+  if (appState.highlighted.idx === -1) {
+    // clicked in open space; if side panel is open then close it
+    if (sidebar.classList.contains('open')) closeSidebar();
+    return;
+  }
+
+  const elem = screenElements[appState.highlighted.idx];
+  if (elem.type === 'tick') {
+    // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
+    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
+    appState.fixedPanMode = tickSpec.get(m);
+    zoomToTick(elem.t);
+
+    // if clicked on the highlighted bubble/line/label then open it in the side panel
+  } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
+    // for now, open event indicated in details (*.json), but not in editing mode
+    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.editingTimeline === appState.highlighted.event.timeline)) {
+      followLink({container:"timelines", file:appState.highlighted.event.details});
+    }
+    else {
+      appState.selected.event = appState.highlighted.event;
+      appState.selected.timeline = appState.selected.event.timeline;
+      if (appState.editingTimeline === appState.selected.timeline) openEventForEdit(appState.selected.event) 
+      else openEventForView(appState.selected.event);
+    }
+  } else if (elem.type === 'timeline') {
+    appState.selected.timeline = elem.timeline;
+    if (appState.editingTimeline === appState.selected.timeline) openTimelineForEdit(appState.editingTimeline)
+    else openTimelineForView(appState.selected.timeline);
+
+  } else if (elem.type === 'button') {
+    if (elem.subType === 'close-timeline') closeTimeline(elem.timeline)
+    else if (elem.subType === 'add-event') addNewEvent();
+  }
+});
+
 function zoomToTick(t, t2) {
   // determine where to zoom/pan
   const w = window.innerWidth;
@@ -315,10 +355,10 @@ function zoomToTimeline(tl) {
   positionTimelines(true);
 }
 
-async function loadTimeline(timelineID) {
+async function loadTimeline(timelineID, idx=0) {
+  // load timelineID into timelines array
   const tl = await getTimeline(timelineID);
-  timelines.push(tl);
-  positionTimelines(false);
+  timelines.splice(idx, 0, tl);
   return tl;
 }
 
@@ -338,54 +378,29 @@ function closeTimeline(tl) {
   const idx = timelines.indexOf(tl);
   timelines.splice(idx, 1);
   if (timelines.length > 0) {
-    const tl = timelines[timelines.length-1];
+    const tl = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
     zoomToTimeline(tl);
   }
 }
 
-canvas.addEventListener('click', function (e) {
-  
-  if (appState.pan.ignoreClick) return;
-  
-  if (appState.highlighted.idx === -1) {
-    // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) closeSidebar();
-    return;
-  }
-
-  const elem = screenElements[appState.highlighted.idx];
-  if (elem.type === 'tick') {
-    // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
-    appState.fixedPanMode = tickSpec.get(m);
-    zoomToTick(elem.t);
-
-    // if clicked on the highlighted bubble/line/label then open it in the side panel
-  } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-    // for now, open event indicated in details (*.json), but not in editing mode
-    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.editingTimeline === appState.highlighted.event.timeline)) followLink({container:"timelines", file:appState.highlighted.event.details});
-    else {
-      appState.selected.event = appState.highlighted.event;
-      appState.selected.timeline = appState.selected.event.timeline;
-      if (appState.editingTimeline === appState.selected.timeline) openEventForEdit(appState.selected.event) 
-      else openEventForView(appState.selected.event);
-    }
-  } else if (elem.type === 'timeline') {
-    appState.selected.timeline = elem.timeline;
-    if (appState.editingTimeline === appState.selected.timeline) openTimelineForEdit(appState.editingTimeline)
-    else openTimelineForView(appState.selected.timeline);
-
-  } else if (elem.type === 'button') {
-    closeTimeline(elem.timeline);
-  }
-});
-
 async function followLink(timelineID) {
-  // ToDo: check if timeline is already there
-  const yPos = appState.highlighted.event.timeline.yPos, ceiling = appState.highlighted.event.timeline.ceiling;
-  const tl = await loadTimeline(timelineID);
-  tl.yPos = yPos; tl.ceiling = ceiling;
-  zoomToTimeline(tl);
+  // check if timeline is already there
+  const existingTL = timelines.find(t =>
+    JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
+
+  if (existingTL) {
+    zoomToTimeline(existingTL);
+  } else {
+    // load and zoom to timelineID; begin positioned at clicked timeline
+    const tl = appState.highlighted.event.timeline;
+    const idx = timelines.indexOf(tl);
+    const yPos = tl.yPos
+    const ceiling = tl.ceiling;
+    const newTL = await loadTimeline(timelineID, idx+1); // insert it above the clicked one
+    newTL.yPos = yPos;
+    newTL.ceiling = ceiling;
+    zoomToTimeline(newTL);
+  }
 }
 
 if (!CanvasRenderingContext2D.prototype.roundRect) {
@@ -406,6 +421,18 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     this.closePath();
     return this;
   };
+}
+
+function addNewEvent() {
+  // Todo: set significance according to zoom level
+  const t = pxToTime(window.innerWidth / 2);
+  const d = new Date(t).toISOString().split('T')[0];
+  var event = {significance:2, label:'New event', date:d, timeline:appState.editingTimeline};
+  initializeEvent(event);
+  appState.selected.event = event;
+  appState.editingTimeline.events.push(event);
+  draw(true);
+  openEventForEdit(event);
 }
 
 function draw(reposition){
@@ -438,8 +465,9 @@ function draw(reposition){
 }
 
 async function initialLoad() {
-  const timelineID = {container:"timelines", file:"timelineRob.json"};
+  const timelineID = {container:"timelines", file:"timelineTX.json"};
   const tl = await loadTimeline(timelineID);
+  positionTimelines(false);
   centerOnTimeline(tl);
   draw(true);
 }

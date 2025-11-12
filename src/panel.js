@@ -34,8 +34,8 @@ function htmlToPlainText(html) {
 })();
 
 function formatTextDate(txtDate) {
-  const d = new Date(txtDate);
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  const d = new Date(txtDate); // adjusts for TZ, so must also be undone with timeZone:"UTC"
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
 }
 
 function formatEventDates(e) {
@@ -100,6 +100,10 @@ for (const btn of tabButtons) {
   });
 }
 
+function isPanelOpen(id) {
+  return document.getElementById(id).classList.contains('is-active');
+}
+
 function showPanel(id) {
   for (const p of panels) {
     const isActive = p.id === id;
@@ -140,6 +144,7 @@ timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
   appState.editingTimeline = appState.selected.timeline;
   openTimelineForEdit(appState.editingTimeline);
+  draw();
 });
 
 timelineCancelBtn.addEventListener('click', (e) => {
@@ -149,10 +154,12 @@ timelineCancelBtn.addEventListener('click', (e) => {
     reloadTimeline(tl).then(() => {
       appState.editingTimeline = null;
       openTimelineForView(tl);
+      draw();
     });
   } else {
     appState.editingTimeline = null;
     openTimelineForView(tl); // cancel without reloading
+    draw();
   }
 });
 

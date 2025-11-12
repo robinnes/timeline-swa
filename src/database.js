@@ -71,10 +71,10 @@ async function getTimeline(timelineID) {
     tl.timelineID = timelineID;
     return tl;
   } catch (err) {
-    console.log(err.message);
+    //console.log(err.message);
     const obj = file.split(".")[0];
     const tl = window[obj];  // look for variable matching the filename (minus ext)
-    console.log('defaulting to local object:', obj);
+    //console.log('defaulting to local object:', obj);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
     return tl;

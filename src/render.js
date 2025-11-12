@@ -1,6 +1,6 @@
 const MAX_LABEL_WIDTH = 150;
 const LABEL_FONT = '12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
-const TITLE_FONT = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
+const TITLE_FONT = '600 14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
 const LABEL_LINE_HEIGHT = 18;
 const LABEL_STEM_HEIGHT = 30;
 const EDGE_GAP = 6;
@@ -259,16 +259,14 @@ function drawLabelHover(e, x, y) {
 }
 
 function drawLabelBubble(e, left, width, top, height, highlight) {
-
-  ctx.save();
-
   // label box
+  ctx.save();
   ctx.fillStyle = 'rgb(40,40,40)';
   ctx.strokeStyle = 'rgba(255,255,255,0.18)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(left, top, width, height, 8);
-  if (highlight) ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
+  if (highlight) { ctx.shadowColor = HIGHLIGHT_SHADOW; ctx.shadowBlur = HIGHLIGHT_GLOW; }
   ctx.fill();
   ctx.stroke();
 
@@ -279,7 +277,6 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   ctx.textBaseline = 'top';
   for (let i=0; i<e.parsedLabel.length; i++) 
     ctx.fillText(e.parsedLabel[i], left + EDGE_GAP, top + EDGE_GAP + (LABEL_LINE_HEIGHT * i));
-  
   ctx.restore();
 }
 
@@ -342,7 +339,7 @@ function registerTimelineLabel(tl) {
     appState.highlighted.idx = screenElements.length - 1;
     appState.highlighted.timeline = tl;
   }
-  screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', timeline:tl});
+  screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', subType:'close-timeline', timeline:tl});
   if (isMouseOver(p.btnLeft, p.btnRight, p.btnTop, p.btnBottom)) {
     appState.highlighted.idx = screenElements.length - 1;
     appState.highlighted.timeline = tl;
@@ -498,6 +495,45 @@ function drawDateHandles(event) {
   ctx.restore();
 }
 
+function drawAddEventButton() {
+  ctx.save();
+  ctx.font = TITLE_FONT;
+  const btnText = "Add event";
+  const textWidth = ctx.measureText(btnText).width;
+  const distance = 50;
+  const width = 120;
+  const height = 30;
+  const left = (window.innerWidth / 2) - (width / 2);
+  const right = (window.innerWidth / 2) + (width / 2)
+  const top = appState.editingTimeline.yPos + distance;
+  const bottom = top + height;
+  let highlight = false;
+
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'button', subType:'add-event'});
+  if (isMouseOver(left, right, top, bottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    highlight = true;
+  }
+
+  // label box
+  ctx.fillStyle = 'rgb(106,166,255)';
+  ctx.lineWidth = 0;
+  ctx.beginPath();
+  ctx.roundRect(left, top, width, height, 6);
+  if (highlight) { ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW; }
+  ctx.fill();
+  ctx.stroke();
+
+  // label text
+  ctx.fillStyle = 'rgb(15, 18, 32)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(btnText, (left + (width - textWidth) / 2), top + 8);
+  ctx.restore();
+
+
+}
+
 function drawEvents() {
   appState.highlighted.event = null;
   appState.highlighted.timeline = null;
@@ -519,9 +555,13 @@ function drawEvents() {
 
   for (const tl of timelines) drawTimelineLabel(tl, tl===appState.highlighted.timeline);
 
-  // draw date handles if applicable
-  if (appState.editingTimeline && appState.selected.event && document.getElementById('panel-edit-event').classList.contains('is-active'))
+  // draw date handles if editing timeline and currently editing an event
+  if (appState.editingTimeline && appState.selected.event && isPanelOpen('panel-edit-event'))
     drawDateHandles(appState.selected.event);
+
+  // draw 'Add event' button if editing timeline and not currently editing an event
+  if (appState.editingTimeline && (!isPanelOpen('panel-edit-event') || !appState.selected.event))
+    drawAddEventButton();
 
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
   const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, timeToPx(e.dateTime), e.yPos)}};
