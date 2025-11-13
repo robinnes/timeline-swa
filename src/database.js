@@ -64,11 +64,15 @@ async function saveTimelineToStorage(container, file, text) {
 async function getTimeline(timelineID) {
   const container = timelineID.container
   const file = timelineID.file;
+  appState.waiting = true;
+  setPointerCursor();
   try {
     // retrieve from storage
     const tl = await loadTimelineFromStorage(container, file);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
+    appState.waiting = false;
+    setPointerCursor();
     return tl;
   } catch (err) {
     //console.log(err.message);
@@ -77,6 +81,24 @@ async function getTimeline(timelineID) {
     //console.log('defaulting to local object:', obj);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
+    appState.waiting = false;
+    setPointerCursor();
     return tl;
   }
+}
+
+async function saveTimeline()
+{
+  appState.waiting = true;
+  setPointerCursor();
+  try {
+    const text = timelineString(appState.editingTimeline);
+    const {container, file} = appState.editingTimeline.timelineID;
+    await saveTimelineToStorage(container, file, text);
+    appState.editingTimeline.dirty = false;
+  } catch (err) {
+    console.error('Save failed:', err.message);
+  }
+  appState.waiting = false;
+  setPointerCursor();
 }

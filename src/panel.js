@@ -94,7 +94,7 @@ for (const btn of tabButtons) {
     let panelId = null;
     if (target === 'timeline') panelId = (appState.editingTimeline ? 'panel-edit-timeline' : 'panel-view-timeline');
     else if (target === 'event') panelId = (appState.editingTimeline ? 'panel-edit-event' : 'panel-view-event');
-    if (panelId) showPanel(panelId);
+    if (panelId) showPanel(panelId);    
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openSidebar();
     draw();
@@ -166,20 +166,9 @@ timelineCancelBtn.addEventListener('click', (e) => {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  trySaveTimeline();
+  saveTimeline();
+  updateSaveButton();
 });
-
-async function trySaveTimeline()
-{
-  try {
-    const text = timelineString(appState.editingTimeline);
-    await saveTimelineToStorage('timelines', 'timelineRob.json', text);
-    appState.editingTimeline.dirty = false;
-    updateSaveButton();
-  } catch (err) {
-    console.error('Save failed:', err.message);
-  }
-}
 
 function updateSaveButton() {
   // Enable the Save button when editingTimeline is dirty
@@ -193,6 +182,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
   const idx = events.indexOf(appState.selected.event);
   events.splice(idx, 1);
   appState.selected.event = null;
+  appState.editingTimeline.dirty = true;
   draw(true);
   openTimelineForEdit(appState.editingTimeline);
 });
@@ -237,6 +227,7 @@ function openTimelineForEdit(tl) {
 
   showPanel('panel-edit-timeline');
   setActiveEditTab('timeline');
+  updateSaveButton();
   if (!sidebar.classList.contains('open')) openSidebar();
   editTimelineTitle.focus();
 }

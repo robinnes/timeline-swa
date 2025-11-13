@@ -23,6 +23,7 @@ const appState = {
     timeline: null
   },
   editingTimeline: null,
+  waiting: true,
   drag: {  // dragging handles to change event dates
     isDragging: false,
     attribute: null,
@@ -145,6 +146,8 @@ window.addEventListener('resize', resize);
 function setPointerCursor() {
   // change pointer is appropriate
   const idx = appState.highlighted.idx;
+  
+document.body.style.cursor = (appState.waiting) ? 'wait' : 'default';
   if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
   else if (idx === -1) canvas.style.cursor = 'default'
   else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
@@ -376,10 +379,11 @@ async function reloadTimeline(tl) {
 
 function closeTimeline(tl) {
   const idx = timelines.indexOf(tl);
+  if (tl === appState.editingTimeline) appState.editingTimeline = null;
   timelines.splice(idx, 1);
   if (timelines.length > 0) {
-    const tl = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
-    zoomToTimeline(tl);
+    const tlBelow = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
+    zoomToTimeline(tlBelow);
   }
 }
 
@@ -431,6 +435,8 @@ function addNewEvent() {
   initializeEvent(event);
   appState.selected.event = event;
   appState.editingTimeline.events.push(event);
+  appState.editingTimeline.dirty = true;
+  updateSaveButton();
   draw(true);
   openEventForEdit(event);
 }
