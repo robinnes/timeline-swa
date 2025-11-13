@@ -23,7 +23,6 @@ const appState = {
     timeline: null
   },
   editingTimeline: null,
-  waiting: true,
   drag: {  // dragging handles to change event dates
     isDragging: false,
     attribute: null,
@@ -146,8 +145,6 @@ window.addEventListener('resize', resize);
 function setPointerCursor() {
   // change pointer is appropriate
   const idx = appState.highlighted.idx;
-  
-document.body.style.cursor = (appState.waiting) ? 'wait' : 'default';
   if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
   else if (idx === -1) canvas.style.cursor = 'default'
   else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
@@ -237,7 +234,8 @@ window.addEventListener('pointerup', (e)=>{
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
-  appState.zoom.isZooming = false;  // stop any zooming in progress
+  appState.fixedPanMode = null;
+  //appState.zoom.isZooming = false;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);

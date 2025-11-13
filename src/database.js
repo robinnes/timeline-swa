@@ -1,3 +1,20 @@
+/******************* Utility functions *******************/
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function showGlobalBusyCursor() {
+  const style = document.createElement('style');
+  style.id = 'global-busy-cursor';
+  style.textContent = `* { cursor: wait !important; }`;
+  document.head.appendChild(style);
+}
+
+function hideGlobalBusyCursor() {
+  const style = document.getElementById('global-busy-cursor');
+  if (style) style.remove();
+}
 
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
@@ -9,6 +26,8 @@ function formatURL(file, url, container, sasKey) {
   
   return `${base}/${container}/${encodedFile}${sas}`;
 }
+
+/******************* Blob storage functions *******************/
 
 async function acquireSasToken() {
   try {
@@ -64,41 +83,38 @@ async function saveTimelineToStorage(container, file, text) {
 async function getTimeline(timelineID) {
   const container = timelineID.container
   const file = timelineID.file;
-  appState.waiting = true;
-  setPointerCursor();
+  showGlobalBusyCursor();
   try {
     // retrieve from storage
     const tl = await loadTimelineFromStorage(container, file);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
-    appState.waiting = false;
-    setPointerCursor();
+    hideGlobalBusyCursor();
     return tl;
   } catch (err) {
     //console.log(err.message);
     const obj = file.split(".")[0];
     const tl = window[obj];  // look for variable matching the filename (minus ext)
-    //console.log('defaulting to local object:', obj);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
-    appState.waiting = false;
-    setPointerCursor();
+    await sleep(1200);  // simulate database access
+    hideGlobalBusyCursor();
     return tl;
   }
 }
 
 async function saveTimeline()
 {
-  appState.waiting = true;
-  setPointerCursor();
+  showGlobalBusyCursor();
   try {
     const text = timelineString(appState.editingTimeline);
     const {container, file} = appState.editingTimeline.timelineID;
     await saveTimelineToStorage(container, file, text);
     appState.editingTimeline.dirty = false;
   } catch (err) {
+    //await sleep(1200);  // simulate database access
     console.error('Save failed:', err.message);
   }
-  appState.waiting = false;
-  setPointerCursor();
+  hideGlobalBusyCursor();
 }
+

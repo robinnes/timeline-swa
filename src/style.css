@@ -9,7 +9,9 @@
   --w: 340px;              /* panel width */
   --sidebar-w: min(360px, 92vw);
 }
+
 * { box-sizing: border-box; }
+
 html, body {
   height: 100%;
   margin: 0;
