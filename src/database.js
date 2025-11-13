@@ -103,14 +103,14 @@ async function getTimeline(timelineID) {
   }
 }
 
-async function saveTimeline()
+async function saveTimeline(tl)
 {
   showGlobalBusyCursor();
   try {
-    const text = timelineString(appState.editingTimeline);
-    const {container, file} = appState.editingTimeline.timelineID;
+    const text = timelineString(tl);
+    const {container, file} = tl.timelineID;
     await saveTimelineToStorage(container, file, text);
-    appState.editingTimeline.dirty = false;
+    tl.dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
     console.error('Save failed:', err.message);

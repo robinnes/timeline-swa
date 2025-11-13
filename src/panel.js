@@ -166,8 +166,9 @@ timelineCancelBtn.addEventListener('click', (e) => {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  saveTimeline();
-  updateSaveButton();
+  saveTimeline(appState.editingTimeline).then(() => {
+    updateSaveButton();
+  });
 });
 
 function updateSaveButton() {
