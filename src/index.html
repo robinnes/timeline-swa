@@ -19,66 +19,73 @@
           <div class="panels-container">
             <!-- View event panel -->
             <div id="panel-view-event" class="panel is-active">
-              <section class="sidebar__section">
-                <div class="date" id="event-date"></div>
-                <h2 class="label" id="event-label"></h2>
-              </section>
-              <section class="sidebar__section">
-                <div class="details" id="details"></div>
-              </section>
+              <div class="panel__content">
+                <section class="sidebar__section">
+                  <div class="date" id="event-date"></div>
+                  <h2 class="label" id="event-label"></h2>
+                </section>
+                <section class="sidebar__section">
+                  <div class="details" id="details"></div>
+                </section>
+              </div>
             </div>
 
             <!-- Edit event panel -->
             <div id="panel-edit-event" class="panel hidden inert">
-              <section class="sidebar__section">
-                <label for="edit-event-label" class="control-label">Label</label>
-                <textarea id="edit-event-label" class="edit-textarea" rows="2"></textarea>
-              </section>
-              <section class="sidebar__section">
-                <label for="event-date-display" class="control-label">Date</label>
-                <input id="event-date-display" class="edit-input" type="text" readonly>
-              </section>
-              <section class="sidebar__section">
-                <div class="significance">
-                  <div class="significance-row">
-                    <label class="control-label">Point</label>
-                    <div class="significance-controls">
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>minor</span></label>
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>normal</span></label>
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>major</span></label>
+              <div class="panel__content">
+                <section class="sidebar__section">
+                  <label for="edit-event-label" class="control-label">Label</label>
+                  <textarea id="edit-event-label" class="edit-textarea" rows="2"></textarea>
+                </section>
+                <section class="sidebar__section">
+                  <label for="event-date-display" class="control-label">Date</label>
+                  <input id="event-date-display" class="edit-input" type="text" readonly>
+                </section>
+                <section class="sidebar__section">
+                  <div class="significance">
+                    <div class="significance-row">
+                      <label class="control-label">Point</label>
+                      <div class="significance-controls">
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>minor</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>normal</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>major</span></label>
+                      </div>
+                    </div>
+                    <div class="significance-row">
+                      <label class="control-label">Span</label>
+                      <div class="significance-controls">
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>minor</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>normal</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>major</span></label>
+                      </div>
                     </div>
                   </div>
-                  <div class="significance-row">
-                    <label class="control-label">Span</label>
-                    <div class="significance-controls">
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>minor</span></label>
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>normal</span></label>
-                      <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>major</span></label>
-                    </div>
+                </section>
+                <section class="sidebar__section">
+                  <div class="color-selectors">
+                    <label class="color-sel-btn"><input type="radio" name="color-target" value="left"><span>Left</span></label>
+                    <label class="color-sel-btn"><input type="radio" name="color-target" value="main" checked><span>Color</span></label>
+                    <label class="color-sel-btn"><input type="radio" name="color-target" value="right"><span>Right</span></label>
                   </div>
-                </div>
-              </section>
-              <section class="sidebar__section">
-                <div class="color-selectors">
-                  <label class="color-sel-btn"><input type="radio" name="color-target" value="left"><span>Left</span></label>
-                  <label class="color-sel-btn"><input type="radio" name="color-target" value="main" checked><span>Color</span></label>
-                  <label class="color-sel-btn"><input type="radio" name="color-target" value="right"><span>Right</span></label>
-                </div>
-                <div class="color-controls">
-                  <button class="color-btn" data-color="white" aria-label="Select white color"></button>
-                  <button class="color-btn" data-color="blue" aria-label="Select blue color"></button>
-                  <button class="color-btn" data-color="purple" aria-label="Select purple color"></button>
-                  <button class="color-btn" data-color="red" aria-label="Select red color"></button>
-                  <button class="color-btn" data-color="orange" aria-label="Select orange color"></button>
-                  <button class="color-btn" data-color="yellow" aria-label="Select yellow color"></button>
-                  <button class="color-btn" data-color="green" aria-label="Select green color"></button>
-                  <button class="color-btn" data-color="black" aria-label="Select black color"></button>
-                </div>
-              </section>
-              <section class="sidebar__section">
-                <label for="edit-event-details" class="control-label">Details</label>
-                <textarea id="edit-event-details" class="edit-textarea" rows="8"></textarea>
-              </section>
+                  <div class="color-controls">
+                    <button class="color-btn" data-color="white" aria-label="Select white color"></button>
+                    <button class="color-btn" data-color="blue" aria-label="Select blue color"></button>
+                    <button class="color-btn" data-color="purple" aria-label="Select purple color"></button>
+                    <button class="color-btn" data-color="red" aria-label="Select red color"></button>
+                    <button class="color-btn" data-color="orange" aria-label="Select orange color"></button>
+                    <button class="color-btn" data-color="yellow" aria-label="Select yellow color"></button>
+                    <button class="color-btn" data-color="green" aria-label="Select green color"></button>
+                    <button class="color-btn" data-color="black" aria-label="Select black color"></button>
+                  </div>
+                </section>
+                <section class="sidebar__section">
+                  <label for="edit-event-details" class="control-label">Details</label>
+                  <textarea id="edit-event-details" class="edit-textarea" rows="8"></textarea>
+                </section>
+              </div>
+              <div class="panel__footer">
+                <button id="event-delete" class="panel__delete-event-btn" aria-label="Delete event">Delete event</button>
+              </div>
             </div>
 
             <!-- View timeline panel -->

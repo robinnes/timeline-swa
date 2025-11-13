@@ -8,6 +8,7 @@ const editTimelineDetails = document.getElementById('edit-timeline-details');
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
+const eventDeleteBtn = document.getElementById('event-delete');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
@@ -138,7 +139,7 @@ function updateTabStates() {
 }
 
 
-/* ------------------- Edit/save buttons -------------------- */
+/* ------------------- Edit/save/delete buttons -------------------- */
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -185,6 +186,16 @@ function updateSaveButton() {
   const shouldDisable = !(appState.editingTimeline && appState.editingTimeline.dirty);
   timelineSaveBtn.disabled = shouldDisable;
 }
+
+eventDeleteBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  const events = appState.editingTimeline.events;
+  const idx = events.indexOf(appState.selected.event);
+  events.splice(idx, 1);
+  appState.selected.event = null;
+  draw(true);
+  openTimelineForEdit(appState.editingTimeline);
+});
 
 
 /* ------------------- Edit event panel -------------------- */
