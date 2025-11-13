@@ -336,6 +336,9 @@ function zoomToTick(t, t2) {
 function positionForTimeline(tl)
 {
   // return offsetMs and msPerPx to fit timeline tl
+  if (!tl.dateFrom || !tl.dateTo)
+    return {offsetMs:appState.offsetMs, msPerPx:appState.msPerPx};
+
   const w = window.innerWidth;
   const tFrom = Date.parse(tl.dateFrom);
   const tTo = Date.parse(tl.dateTo);

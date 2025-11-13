@@ -5,7 +5,7 @@ var timelineRob = {
     { significance:6, label:'Childhood', dateFrom:'1969-08-06', dateTo:'1981-08-06', fadeRight:'1980-07-23', color:'blue', colorRight:'green' },
     { significance:6, label:'The Boys', dateFrom:'1981-08-06', dateTo:'1987-09-01', fadeLeft:'1982-08-06', fadeRight:'1987-08-01', colorLeft:'blue', color:'green', colorRight:'yellow' },
     { significance:6, label:'Rock \'n\' Roll', dateFrom:'1987-09-01', dateTo:'1997-01-01', fadeLeft:'1988-11-01', fadeRight:'1996-08-31', colorLeft:'green', color:'yellow', colorRight:'orange' },
-    { significance:6, label:'Career as a Programmer', dateFrom:'1997-01-01', dateTo:'2006-06-30', fadeLeft:'1997-07-28', fadeRight:'2005-06-01', colorLeft:'yellow', color:'orange', colorRight:'red' },
+    { significance:6, label:'Career as a Programmer', dateFrom:'1997-01-01', dateTo:'2006-06-30', fadeLeft:'1997-07-28', fadeRight:'2005-06-01', colorLeft:'yellow', color:'orange', colorRight:'red', details:'career.json' },
     { significance:6, label:'World of Warcraft', dateFrom:'2006-06-30', dateTo:'2012-10-27', fadeLeft:'2007-04-15', fadeRight:'2011-09-20', colorLeft:'orange', color:'red', colorRight:'purple' },
     { significance:6, label:'Married Life', dateFrom:'2012-10-27', dateTo:'2025-10-14', fadeLeft:'2012-12-12', colorLeft:'red', color:'purple' },
     { significance:3, label:'Born in Seward, AK', date:'1969-08-06' },
@@ -395,6 +395,13 @@ const eventsMOM = [
   { significance:3, label:'First grandchild (Brooke)', date:'2004-07-15' },
   { significance:3, label:'Lisa\'s wedding', date:'2002-08-03' }
 ];
+
+var career = {
+  title:'Career in I.T.',
+  details:'',
+  events:[]
+}
+
 
 
 function parseLabel(label) {
