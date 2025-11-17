@@ -1,5 +1,8 @@
+import * as Util from './util.js';
+import {appState, draw} from './canvas.js';
+
 const active = new Map(); // pointerId -> {x,y}
-let isTouchPanning = false;
+export let isTouchPanning = false;
 let lastTouchX = 0;
 
 // Pinch state
@@ -32,11 +35,11 @@ canvas.addEventListener('pointerdown', (e)=>{
     isTouchPanning = false;
 
     pinchStartDist = distance(p1, p2);
-    pinchStartMsPerPx = msPerPx;
+    pinchStartMsPerPx = appState.msPerPx;
 
     const mid = midpoint(p1, p2);
     pinchMidX = mid.x;
-    pinchMidT = pxToTime(pinchMidX);
+    pinchMidT = Util.pxToTime(pinchMidX);
   }
 }, { passive:true });
 
@@ -53,17 +56,17 @@ canvas.addEventListener('pointermove', (e)=>{
     if (pinchStartDist > 0 && dist > 0) {
       const scale = pinchStartDist / dist; // >1 when pinching out
       appState.msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, pinchStartMsPerPx * scale));
-      appState.offsetMs = pinchMidT - EPOCH - pinchMidX * msPerPx;
-      updatePositions();
+      appState.offsetMs = pinchMidT - EPOCH - pinchMidX * appState.msPerPx;
+      //updatePositions();  // not sure what this was
       draw();
     }
   } else if (isTouchPanning && active.size === 1) {
     const only = [...active.values()][0];
     const dx = only.x - lastTouchX;
     lastTouchX = only.x;
-    appState.offsetMs -= dx * msPerPx;
-    lastDragSpeed = dx * msPerPx;  // for momentum
-    updatePositions();
+    appState.offsetMs -= dx * appState.msPerPx;
+    appState.momentum.lastDragSpeed = dx * appState.msPerPx;  // for momentum
+    //updatePositions();
     draw();
   }
 }, { passive:false });
@@ -79,9 +82,9 @@ function endPointer(e){
     isTouchPanning = false;
     // Convert last drag frame delta into per-second velocity estimate using last frame dt
     const now = performance.now();
-    const dt = Math.max(16.7, now - (lastTick || now)) / 1000; // ~1 frame if unknown
-    vOffsetMs = (lastDragSpeed || 0) / dt;
-    lastDragSpeed = 0
+    const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
+    appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+    appState.momentum.lastDragSpeed = 0
   } else if (active.size === 1) {
     const only = [...active.values()][0];
     isTouchPanning = true;

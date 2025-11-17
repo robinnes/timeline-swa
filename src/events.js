@@ -1,3 +1,7 @@
+import * as Util from './util.js';
+import {TIME, DRAW} from './constants.js';
+import {zoomSpec} from './render.js';
+
 var timelineRob = {
   title:'Rob Innes',
   details:'A timeline of significant events in the life of Rob Innes.  Local version.',
@@ -396,17 +400,10 @@ const eventsMOM = [
   { significance:3, label:'Lisa\'s wedding', date:'2002-08-03' }
 ];
 
-var career = {
-  title:'Career in I.T.',
-  details:'',
-  events:[]
-}
-
-
-
 function parseLabel(label) {
   // attempt to minimize label width by splitting longer values up
-  ctx.font = LABEL_FONT;
+  const ctx = canvas.getContext('2d');
+  ctx.font = DRAW.LABEL_FONT;
   const labelWidth = ctx.measureText(label).width;
   const words = label.split(" "); // what about hyphens?
   let line = "", labels = [], maxWidth = 0;
@@ -415,7 +412,7 @@ function parseLabel(label) {
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + " ";
     const testWidth = ctx.measureText(testLine).width;
-    if (testWidth > MAX_LABEL_WIDTH && n > 0) {
+    if (testWidth > DRAW.MAX_LABEL_WIDTH && n > 0) {
       line = line.trimEnd();
       if (ctx.measureText(line).width > maxWidth) maxWidth = ctx.measureText(line).width;
       labels.push(line);
@@ -432,7 +429,7 @@ function parseLabel(label) {
   if (labels.length === 2) {
     const words = labels[0].split(" ");
     let try0 = labels[0], try1 = labels[1];
-    for (w = words.length-1; w > 0; w--) {
+    for (let w = words.length-1; w > 0; w--) {
       const word = words[w];
       try0 = try0.slice(0, (word.length+1) * -1);
       try1 = word + " " + try1;
@@ -445,7 +442,7 @@ function parseLabel(label) {
   return {labels, width:maxWidth, labelWidth};
 }
 
-function initializeEvent(e) {
+export function initializeEvent(e) {
   const h = 60*60*1000;
   const spec = zoomSpec(e.significance);
   const style = spec.style;
@@ -463,7 +460,7 @@ function initializeEvent(e) {
     if (!e.fadeLeft) e.fadeLeft = e.dateFrom;
     if (!e.fadeRight) e.fadeRight = e.dateTo;
   
-    if (e.color === 'white') e.color = DEFAULT_LINE_COLOR;
+    if (e.color === 'white') e.color = DRAW.DEFAULT_LINE_COLOR;
 
     //sanity checks
     if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;
@@ -491,14 +488,15 @@ function initializeEvent(e) {
     e.fLeft = e.tFrom + (3 * h);
     e.fRight = e.tTo - (3 * h);
   }
-  e.x = timeToPx(e.dateTime);  // used only to position labels in relation to each other
+  e.x = Util.timeToPx(e.dateTime);  // used only to position labels in relation to each other
 };
 
-function initializeTimeline(tl) {
+export function initializeTimeline(tl) {
   var minDate;
   var maxDate;
+  const ctx = canvas.getContext('2d');
   
-  ctx.font = TITLE_FONT;
+  ctx.font = TIME.TITLE_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
   tl.dirty = false;
   
@@ -518,7 +516,7 @@ function initializeTimeline(tl) {
   tl.dateTo = maxDate;
 }
 
-function timelineString(tl) {
+export function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
   const txt = {

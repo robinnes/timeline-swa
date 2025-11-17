@@ -1,3 +1,5 @@
+import {initializeTimeline, timelineString} from './events.js';
+
 /******************* Utility functions *******************/
 
 function sleep(ms) {
@@ -80,30 +82,32 @@ async function saveTimelineToStorage(container, file, text) {
   }
 }
 
-async function getTimeline(timelineID) {
+export async function getTimeline(timelineID) {
   const container = timelineID.container
   const file = timelineID.file;
   showGlobalBusyCursor();
   try {
-    // retrieve from storage
+    // retrieve from Azure blob storage
     const tl = await loadTimelineFromStorage(container, file);
     initializeTimeline(tl);
     tl.timelineID = timelineID;
     hideGlobalBusyCursor();
     return tl;
   } catch (err) {
-    //console.log(err.message);
-    const obj = file.split(".")[0];
-    const tl = window[obj];  // look for variable matching the filename (minus ext)
+    // look for the timeline locally
+    //const obj = file.split(".")[0];
+    //const tl = window[obj];  // look for variable matching the filename (minus ext)
+    const response = await fetch(`data/${file}`);  // only works when a local server is running
+    const tl = await response.json();
     initializeTimeline(tl);
     tl.timelineID = timelineID;
-    await sleep(1200);  // simulate database access
+    await sleep(1000);  // simulate database access
     hideGlobalBusyCursor();
     return tl;
   }
 }
 
-async function saveTimeline(tl)
+export async function saveTimeline(tl)
 {
   showGlobalBusyCursor();
   try {

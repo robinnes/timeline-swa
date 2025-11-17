@@ -1,8 +1,14 @@
+import * as Util from './util.js';
+import {TIME, DRAW} from './constants.js';
+import {appState, ctx, screenElements} from './canvas.js';
+import {isMouseOver} from './render.js';
+
 const PUSHING_THRESHOLD = 150; // px distance from corner label to start "pushing"
 const MAX_TICK_LABEL_BRIGHT = 0.85; // max brightness for tick labels
 const TICK_TOP = 6;
 const TICK_LABEL_HEIGHT = 18;
 const TICK_BOTTOM = TICK_TOP + TICK_LABEL_HEIGHT;
+const PADDING = 20;
 
 // Helper functions
 function timeZoneNow(){
@@ -44,11 +50,11 @@ function startOfMonth(t){ const d = new Date(t); d.setUTCDate(1); d.setUTCHours(
 function addMonths(t, n){ const d = new Date(t); d.setUTCMonth(d.getUTCMonth()+n); return d.getTime(); }
 function nextMonth(t){ const d = new Date(startOfMonth(t)); d.setUTCMonth(d.getUTCMonth()+1); return d.getTime(); }
 
-function startOfWeek(t){ const d = new Date(t - new Date(t).getDay() * MS_PER_DAY); return d.getTime(); }
-function addWeeks(t, n){ return t + n * MS_PER_DAY * 7; }
+function startOfWeek(t){ const d = new Date(t - new Date(t).getDay() * TIME.MS_PER_DAY); return d.getTime(); }
+function addWeeks(t, n){ return t + n * TIME.MS_PER_DAY * 7; }
 
 function startOfDay(t){ const d = new Date(t); d.setUTCHours(0,0,0,0); return d.getTime(); }
-function addDays(t, n){ return t + n * MS_PER_DAY; }
+function addDays(t, n){ return t + n * TIME.MS_PER_DAY; }
 
 function formatYear(t){ return new Date(t).getUTCFullYear().toString(); }
 function formatMonthYear(t){ return new Date(t).toLocaleString(undefined,{month:'short', year:'numeric', timeZone:'UTC'}); }
@@ -56,7 +62,7 @@ function formatMonth(t){ return new Date(t).toLocaleString(undefined,{month:'sho
 function formatDayMonth(t){ return new Date(t).toLocaleString(undefined,{month:'short', day:'numeric', timeZone:'UTC'}); }
 function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric', timeZone:'UTC'}); }
 
-const tickSpec = new Map([
+export const tickSpec = new Map([
   ['day',     { mode:'day', zoomOut:'week', zoomIn:'day', start:startOfDay, step:addDays, label:formatDay, majorLabel:formatMonth, majorEvery:30, msPerTick:86400000, minWidth:18 }],
   ['week',    { mode:'week', zoomOut:'month', zoomIn:'week', start:startOfWeek, step:addWeeks, label:formatDay, majorLabel:formatMonth, majorEvery:7, msPerTick:86400000*7, minWidth:18 }],
   ['month',   { mode:'month', zoomOut:'year', zoomIn:'week', start:startOfMonth, step:addMonths, label:formatMonth, majorLabel:formatYear, majorEvery:12, msPerTick:86400000*30, minWidth:30 }],
@@ -91,12 +97,12 @@ function drawTick(text, left, width, fade, t, mode) {
 
   ctx.save();
   if (highlight) {
-    ctx.shadowColor = HIGHLIGHT_SHADOW;  ctx.shadowBlur = HIGHLIGHT_GLOW;
+    ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW;
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.roundRect(left - EDGE_GAP, TICK_TOP - EDGE_GAP, width + EDGE_GAP*2, TICK_LABEL_HEIGHT + EDGE_GAP, 8);
+    ctx.roundRect(left - DRAW.EDGE_GAP, TICK_TOP - DRAW.EDGE_GAP, width + DRAW.EDGE_GAP*2, TICK_LABEL_HEIGHT + DRAW.EDGE_GAP, 8);
     ctx.fill();
-    fade = LABEL_BRIGHTNESS; // label text always bright when highlighted
+    fade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
   }
   ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
   ctx.fillStyle = `rgba(255, 255, 255, ${fade})`;
@@ -106,16 +112,16 @@ function drawTick(text, left, width, fade, t, mode) {
   ctx.restore();
 }
 
-function drawTicks() {
+export function drawTicks() {
   const spec = getTickSpec();
   const w = window.innerWidth, h = window.innerHeight;
-  const t0 = pxToTime(0), t1 = pxToTime(w);
+  const t0 = Util.pxToTime(0), t1 = Util.pxToTime(w);
   const tickWidth = spec.msPerTick / appState.msPerPx;
   ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';  // need this for measureText
   let t = spec.start(t0);
 
   // Corner label (display year or month+year in top-left if necessary)
-  let cornerLabelX = EDGE_GAP;
+  let cornerLabelX = DRAW.EDGE_GAP;
   let cornerLabelWidth = 0; 
   let pushing = false;
   let pushingT = 0;
@@ -128,7 +134,7 @@ function drawTicks() {
     
     // Determine whether a major tick is close to the corner label
     const firstMajorTick = spec.mode==='day' ? nextMonth(t0) : nextYear(t0);
-    const firstMajorX = timeToPx(firstMajorTick);
+    const firstMajorX = Util.timeToPx(firstMajorTick);
 
     if (firstMajorX < PUSHING_THRESHOLD) { 
       cornerLabelX -= (PUSHING_THRESHOLD - firstMajorX); // push left if major tick is close
@@ -136,7 +142,7 @@ function drawTicks() {
       pushingT = firstMajorTick;
       pushingLabel = spec.mode==='day' ? formatMonthYear(pushingT) : formatYear(pushingT);
       pushingWidth = ctx.measureText(pushingLabel).width; 
-      pushingX = Math.max(firstMajorX, EDGE_GAP + (pushingWidth / 2));
+      pushingX = Math.max(firstMajorX, DRAW.EDGE_GAP + (pushingWidth / 2));
     }
     cornerLabelWidth = ctx.measureText(cornerLabelText).width;
     const cornerLabelT = spec.mode==='day' ? startOfMonth(t) : startOfYear(t);
@@ -146,7 +152,7 @@ function drawTicks() {
   }
 
   // Current date/time blue line
-  const nowX = timeToPx(timeZoneNow());
+  const nowX = Util.timeToPx(timeZoneNow());
   if (nowX >= 0 && nowX <= w) {
     ctx.save();
     ctx.strokeStyle = 'rgba(0, 123, 255, 0.7)';
@@ -161,9 +167,9 @@ function drawTicks() {
   // Tick lines and labels across the top
   ctx.lineWidth = 1;
   for (let i=0; i<10000; i++){
-    if (t > t1 + 2 * MS_PER_DAY) break;
+    if (t > t1 + 2 * TIME.MS_PER_DAY) break;
 
-    const x = Math.round(timeToPx(t)) + 0.5; // crisp lines
+    const x = Math.round(Util.timeToPx(t)) + 0.5; // crisp lines
     
     // major = whether this is a "major" tick (1st of month, Jan 1, decade start, etc)
     const major = (function(){

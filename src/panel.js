@@ -1,3 +1,9 @@
+import {appState, draw, reloadTimeline} from './canvas.js';
+import {zoomSpec, positionLabels} from './render.js';
+import {initializeEvent} from './events.js';
+import {stopDragging} from './dragging.js';
+import {saveTimeline} from './database.js';
+
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
 const panels = Array.from(document.querySelectorAll('.panel'));
@@ -24,7 +30,8 @@ function htmlToPlainText(html) {
   return d.innerText;
 }
 
-// Initialize tab state to reflect the currently visible panel
+/*
+// Initialize tab state to reflect the currently visible panel (disabled - do I need it?)
 (() => {
   updateTabStates();
   const activePanel = document.querySelector('.panel.is-active');
@@ -33,13 +40,14 @@ function htmlToPlainText(html) {
     else setActiveEditTab('event');
   }
 })();
+*/
 
 function formatTextDate(txtDate) {
   const d = new Date(txtDate); // adjusts for TZ, so must also be undone with timeZone:"UTC"
   return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
 }
 
-function formatEventDates(e) {
+export function formatEventDates(e) {
   const spec = zoomSpec(e.significance);
 
   if (spec.style === 'dot') return formatTextDate(e.date);
@@ -59,7 +67,7 @@ function openSidebar() {
   sidebar.focus();
 }
 
-function closeSidebar() {
+export function closeSidebar() {
   sidebar.classList.remove('open');
   sidebar.setAttribute('aria-hidden', 'true');
   //stage.classList.remove('shrink');
@@ -101,7 +109,7 @@ for (const btn of tabButtons) {
   });
 }
 
-function isPanelOpen(id) {
+export function isPanelOpen(id) {
   return document.getElementById(id).classList.contains('is-active');
 }
 
@@ -154,7 +162,8 @@ timelineCancelBtn.addEventListener('click', (e) => {
   if (tl.dirty) {
     reloadTimeline(tl).then(() => {
       appState.editingTimeline = null;
-      openTimelineForView(tl);
+      setSidebarTimeline(appState.selected.timeline);
+      openTimelineForView(appState.selected.timeline);
       draw();
     });
   } else {
@@ -171,7 +180,7 @@ timelineSaveBtn.addEventListener('click', (e) => {
   });
 });
 
-function updateSaveButton() {
+export function updateSaveButton() {
   // Enable the Save button when editingTimeline is dirty
   const shouldDisable = !(appState.editingTimeline && appState.editingTimeline.dirty);
   timelineSaveBtn.disabled = shouldDisable;
@@ -191,7 +200,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
 
 /* ------------------- Edit event panel -------------------- */
 
-function openEventForEdit(e) {
+export function openEventForEdit(e) {
   setSidebarEvent(e);
 
   showPanel('panel-edit-event');
@@ -223,7 +232,7 @@ editEventDetails.addEventListener('input', (e) => {
 
 /* ------------------- Edit timeline panel -------------------- */
 
-function openTimelineForEdit(tl) {
+export function openTimelineForEdit(tl) {
   setSidebarTimeline(tl);
 
   showPanel('panel-edit-timeline');
@@ -251,7 +260,7 @@ editTimelineDetails.addEventListener('input', (e) => {
 
 /* ------------------- View panels -------------------- */
 
-function openEventForView(e) {
+export function openEventForView(e) {
   setSidebarEvent(e);
   setSidebarTimeline(e.timeline);
 
@@ -260,7 +269,7 @@ function openEventForView(e) {
   if (!sidebar.classList.contains('open')) openSidebar();
 }
 
-function openTimelineForView(tl) {
+export function openTimelineForView(tl) {
   setSidebarTimeline(tl);
 
   showPanel('panel-view-timeline');

@@ -1,17 +1,19 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+import * as Util from './util.js';
+import {TIME} from './constants.js';
+import {drawTicks, tickSpec} from './ticks.js';
+import {positionTimelines, positionLabels, drawEvents, isMouseOver} from './render.js';
+import {getTimeline} from './database.js';
+import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
+import {initializeEvent} from './events.js';
+import {startDragging, stopDragging, drag} from './dragging.js';
+import {isTouchPanning} from './mobile.js';
 
-const ZOOM_FACTOR = 1.1;
-const PAN_FACTOR = 200;
-const MIN_MS_PER_PX = 1000 * 60 * 5;        // 5 minutes per pixel (very zoomed in)
-const MAX_MS_PER_PX = 1000 * 60 * 60 * 24 * 365 * 5; // ~5 years per pixel
-const MS_PER_DAY = 86400000; // 1000*60*60*24
-const EPOCH = Date.UTC(2000,0,1);
-const MAX_CLICK_MOVE = 1;  // maximum mouse movement allowed for a mouse click
+export const canvas = document.getElementById('canvas');
+export const ctx = canvas.getContext('2d');
 
-const appState = {
-  msPerPx: MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
-  offsetMs: (Date.now() - EPOCH) - (window.innerWidth * 0.9) * MS_PER_DAY * 30,  // date at left of the window; center near "now",
+export const appState = {
+  msPerPx: TIME.MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
+  offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 30,  // date at left of the window; center near "now",
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
@@ -48,15 +50,10 @@ const appState = {
   }
 }
 
-const timelines = [];
-const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
+export const timelines = [];
+export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
-// --- Helper functions
-const pxToTime = x => EPOCH + appState.offsetMs + (x * appState.msPerPx);
-const timeToPx = t => (t - EPOCH - appState.offsetMs + (1000 * 60 * 60 * 12)) / appState.msPerPx;
-const pxPerDay = x => (1 / (msPerPx / MS_PER_DAY));
-
-function tick(now) {
+export function tick(now) {
   requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
 
   const dt = (now - appState.momentum.lastTick) / 1000;
@@ -117,19 +114,19 @@ function zoom(dt) {
 }
 
 function mouseZoom(x, factor) {
-  const tAtMouse = pxToTime(x);
+  const tAtMouse = Util.pxToTime(x);
   const newMsPerPx = appState.msPerPx * factor;
 
   // clamp zoom between min and max thresholds
-  appState.msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, newMsPerPx));
+  appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
-  appState.offsetMs = tAtMouse - EPOCH - x * appState.msPerPx;
+  appState.offsetMs = tAtMouse - TIME.EPOCH - x * appState.msPerPx;
 
   draw(true);
 };
 
-function resize(){
+export function resize(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
   const w = Math.floor(window.innerWidth);
   const h = Math.floor(window.innerHeight);
@@ -142,7 +139,7 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
-function setPointerCursor() {
+export function setPointerCursor() {
   // change pointer is appropriate
   const idx = appState.highlighted.idx;
   if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
@@ -178,7 +175,7 @@ canvas.addEventListener('pointermove', (e)=>{
   
   appState.mouseX = e.clientX;
   appState.mouseY = e.clientY;
-  if (Math.abs(e.clientX - appState.momentum.lastX) >= MAX_CLICK_MOVE) appState.pan.ignoreClick = true;
+  if (Math.abs(e.clientX - appState.momentum.lastX) >= TIME.MAX_CLICK_MOVE) appState.pan.ignoreClick = true;
 
   if (appState.pan.isPanning) {
     appState.fixedPanMode = null;
@@ -237,23 +234,15 @@ canvas.addEventListener('wheel', (e)=>{
   appState.fixedPanMode = null;
   //appState.zoom.isZooming = false;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
-  const factor = Math.pow(ZOOM_FACTOR, direction);
+  const factor = Math.pow(TIME.ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
 }, { passive:false });
-
-/*
-canvas.addEventListener('dblclick', (e)=>{
-  const x = e.clientX;
-  const factor =  Math.pow(ZOOM_FACTOR, -1);
-  zoom(x, factor)
-});
-*/
 
 canvas.addEventListener('keydown', function (e) {
   
   appState.zoom.isZooming = false; // stop any zooming in progress
   const midX = window.innerWidth / 2;
-  const midT = pxToTime(midX);
+  const midT = Util.pxToTime(midX);
 
   if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
   {
@@ -274,10 +263,10 @@ canvas.addEventListener('keydown', function (e) {
     }
     
   } else {  // zoom/pan by increments
-    if (e.key === 'ArrowUp') mouseZoom(midX, Math.pow(ZOOM_FACTOR, -1))
-    else if (e.key === 'ArrowDown') mouseZoom(midX, Math.pow(ZOOM_FACTOR, 1))
-    else if (e.key === 'ArrowRight') appState.momentum.vOffsetMs -= PAN_FACTOR * appState.msPerPx
-    else if (e.key === 'ArrowLeft') appState.momentum.vOffsetMs += PAN_FACTOR * appState.msPerPx;
+    if (e.key === 'ArrowUp') mouseZoom(midX, Math.pow(TIME.ZOOM_FACTOR, -1))
+    else if (e.key === 'ArrowDown') mouseZoom(midX, Math.pow(TIME.ZOOM_FACTOR, 1))
+    else if (e.key === 'ArrowRight') appState.momentum.vOffsetMs -= TIME.PAN_FACTOR * appState.msPerPx
+    else if (e.key === 'ArrowLeft') appState.momentum.vOffsetMs += TIME.PAN_FACTOR * appState.msPerPx;
   }
 });
 
@@ -326,7 +315,7 @@ function zoomToTick(t, t2) {
   const w = window.innerWidth;
   const tNext = (t2 === undefined) ? appState.fixedPanMode.step(t, 1): t2;
   const width = tNext - t;
-  const newOffsetMs = (t - (width / 10)) - EPOCH;  // just to the left of clicked label
+  const newOffsetMs = (t - (width / 10)) - TIME.EPOCH;  // just to the left of clicked label
   const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
 
   // set in motion; picked up in tick()
@@ -344,7 +333,7 @@ function positionForTimeline(tl)
   const tTo = Date.parse(tl.dateTo);
   const width = tTo - tFrom;
 
-  return {offsetMs:(tFrom - (width / 10)) - EPOCH, msPerPx:width / (w / 1.2)};
+  return {offsetMs:(tFrom - (width / 10)) - TIME.EPOCH, msPerPx:width / (w / 1.2)};
 }
 
 function centerOnTimeline(tl) {
@@ -366,7 +355,7 @@ async function loadTimeline(timelineID, idx=0) {
   return tl;
 }
 
-async function reloadTimeline(tl) {
+export async function reloadTimeline(tl) {
   // reload from storage
   const idx = timelines.indexOf(tl);
   const timelineID = tl.timelineID;
@@ -375,6 +364,7 @@ async function reloadTimeline(tl) {
   const reloaded = await getTimeline(timelineID);
   reloaded.yPos = yPos; reloaded.ceiling = ceiling;
   timelines[idx] = reloaded;
+  if (appState.selected.timeline === tl) appState.selected.timeline = reloaded;
   draw(true);
 }
 
@@ -430,7 +420,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 function addNewEvent() {
   // Todo: set significance according to zoom level
-  const t = pxToTime(window.innerWidth / 2);
+  const t = Util.pxToTime(window.innerWidth / 2);
   const d = new Date(t).toISOString().split('T')[0];
   var event = {significance:2, label:'New event', date:d, timeline:appState.editingTimeline};
   initializeEvent(event);
@@ -442,7 +432,7 @@ function addNewEvent() {
   openEventForEdit(event);
 }
 
-function draw(reposition){
+export function draw(reposition){
   if (reposition) positionLabels();
 
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
@@ -450,37 +440,12 @@ function draw(reposition){
   appState.highlighted.idx = -1;
   drawTicks();
   drawEvents();
-/*
-  const factor = Math.log10(msPerPx);
-  const spec = getTickSpec();
-  ctx.font = LABEL_FONT;
-  ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  if (highlightedEvent) {
-    const t = highlightedEvent.label;
-    ctx.fillText(t, window.innerWidth - 30, window.innerHeight - 95);
-  }
-
-  ctx.fillText("mode:", window.innerWidth - 111, window.innerHeight - 75);
-  ctx.fillText(spec.mode, window.innerWidth - 30, window.innerHeight - 75);
-  ctx.fillText(`fade(${sig}):`, window.innerWidth - 111, window.innerHeight - 55);
-  ctx.fillText(Math.round((spec.fade)*1000)/1000, window.innerWidth - 30, window.innerHeight - 55);
-  ctx.fillText(`size(${sig}):`, window.innerWidth - 111, window.innerHeight - 35);
-  ctx.fillText(Math.round((spec.size)*1000)/1000, window.innerWidth - 30, window.innerHeight - 35);
-*/
 }
 
-async function initialLoad() {
-  const timelineID = {container:"timelines", file:"timelineRob.json"};
+export async function initialLoad() {
+  const timelineID = {container:"timelines", file:"career.json"};
   const tl = await loadTimeline(timelineID);
   positionTimelines(false);
   centerOnTimeline(tl);
   draw(true);
 }
-
-// Kick things off
-resize();
-requestAnimationFrame(tick);
-canvas.focus();
-initialLoad();
