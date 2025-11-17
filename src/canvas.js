@@ -439,8 +439,11 @@ export function draw(reposition){
   drawEvents();
 }
 
-export async function initialLoad(timelineID) {
-  const tl = await loadTimeline(timelineID);
+export async function initialLoad(defaultTL) {
+  // open timeline indicated param "tl" or default established in main()
+  const params = new URLSearchParams(window.location.search);
+  const file = (params.get("tl") || defaultTL) + ".json";
+  const tl = await loadTimeline({container:"timelines", file:file});
   positionTimelines(false);
   centerOnTimeline(tl);
   draw(true);
