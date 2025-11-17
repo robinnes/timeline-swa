@@ -1,14 +1,8 @@
 import * as Util from './util.js';
-import {TIME, DRAW} from './constants.js';
+import {TIME, DRAW, TICK} from './constants.js';
 import {appState, ctx, screenElements} from './canvas.js';
 import {isMouseOver} from './render.js';
 
-const PUSHING_THRESHOLD = 150; // px distance from corner label to start "pushing"
-const MAX_TICK_LABEL_BRIGHT = 0.85; // max brightness for tick labels
-const TICK_TOP = 6;
-const TICK_LABEL_HEIGHT = 18;
-const TICK_BOTTOM = TICK_TOP + TICK_LABEL_HEIGHT;
-const PADDING = 20;
 
 // Helper functions
 function timeZoneNow(){
@@ -83,14 +77,15 @@ function getTickSpec() {
 
 function drawTick(text, left, width, fade, t, mode) {
   const right = left + width;
+  const bottom = TICK.TICK_TOP + TICK.TICK_LABEL_HEIGHT;
   let highlight = false;
 
   // register the tick label for mouse hit detection
   // t,mode direct the click to zoom/pan to 'mode' (year/month/etc.) at location t
-  screenElements.push({left:left, right:right, top:TICK_TOP, bottom:TICK_BOTTOM, type:'tick', t:t, mode:mode });
+  screenElements.push({left:left, right:right, top:TICK.TICK_TOP, bottom:bottom, type:'tick', t:t, mode:mode });
 
   // check here if mouse is over this tick label; it may have moved under the mouse
-  if (isMouseOver(left, right, TICK_TOP, TICK_BOTTOM)) {
+  if (isMouseOver(left, right, TICK.TICK_TOP, bottom)) {
     appState.highlighted.idx = screenElements.length - 1;
     highlight = true;
   }
@@ -100,7 +95,7 @@ function drawTick(text, left, width, fade, t, mode) {
     ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW;
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.roundRect(left - DRAW.EDGE_GAP, TICK_TOP - DRAW.EDGE_GAP, width + DRAW.EDGE_GAP*2, TICK_LABEL_HEIGHT + DRAW.EDGE_GAP, 8);
+    ctx.roundRect(left - DRAW.EDGE_GAP, TICK.TICK_TOP - DRAW.EDGE_GAP, width + DRAW.EDGE_GAP*2, TICK.TICK_LABEL_HEIGHT + DRAW.EDGE_GAP, 8);
     ctx.fill();
     fade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
   }
@@ -108,7 +103,7 @@ function drawTick(text, left, width, fade, t, mode) {
   ctx.fillStyle = `rgba(255, 255, 255, ${fade})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(text, left, TICK_TOP);
+  ctx.fillText(text, left, TICK.TICK_TOP);
   ctx.restore();
 }
 
@@ -136,8 +131,8 @@ export function drawTicks() {
     const firstMajorTick = spec.mode==='day' ? nextMonth(t0) : nextYear(t0);
     const firstMajorX = Util.timeToPx(firstMajorTick);
 
-    if (firstMajorX < PUSHING_THRESHOLD) { 
-      cornerLabelX -= (PUSHING_THRESHOLD - firstMajorX); // push left if major tick is close
+    if (firstMajorX < TICK.PUSHING_THRESHOLD) { 
+      cornerLabelX -= (TICK.PUSHING_THRESHOLD - firstMajorX); // push left if major tick is close
       pushing = true;
       pushingT = firstMajorTick;
       pushingLabel = spec.mode==='day' ? formatMonthYear(pushingT) : formatYear(pushingT);
@@ -148,7 +143,7 @@ export function drawTicks() {
     const cornerLabelT = spec.mode==='day' ? startOfMonth(t) : startOfYear(t);
     const cornerLabelMode = spec.mode==='day' ? 'month' : 'year';
     // Draw corner label
-    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, MAX_TICK_LABEL_BRIGHT, cornerLabelT, cornerLabelMode);
+    drawTick(cornerLabelText, cornerLabelX, cornerLabelWidth, TICK.MAX_TICK_LABEL_BRIGHT, cornerLabelT, cornerLabelMode);
   }
 
   // Current date/time blue line
@@ -200,12 +195,12 @@ export function drawTicks() {
       
       if (cornerLabelWidth > 0) {
         // fade out labels that overlap the corner label
-        if (left < cornerLabelX + cornerLabelWidth + PADDING)
-          fadeFactor = Math.min(fadeFactor, Math.max(0, ((left - (cornerLabelX + cornerLabelWidth)) / PADDING)));
+        if (left < cornerLabelX + cornerLabelWidth + TICK.PADDING)
+          fadeFactor = Math.min(fadeFactor, Math.max(0, ((left - (cornerLabelX + cornerLabelWidth)) / TICK.PADDING)));
 
         // fade out labels that overlap the "pushing" tick
-        if (!(t===pushingT) && (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth / 2) < PADDING))
-          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / PADDING));
+        if (!(t===pushingT) && (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth / 2) < TICK.PADDING))
+          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / TICK.PADDING));
       }
       // draw the label
       if (fadeFactor > 0) drawTick(label, left, labelWidth, fadeFactor, t, tag);

@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
-import {initializeEvent} from './events.js';
+import {initializeEvent} from './timeline.js';
 import {formatEventDates, updateSaveButton} from './panel.js';
 import {positionLabels} from './render.js';
 

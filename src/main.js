@@ -4,4 +4,4 @@ import {canvas, resize, tick, initialLoad} from './canvas.js';
 resize();
 requestAnimationFrame(tick);
 canvas.focus();
-initialLoad();
+initialLoad({container:"timelines", file:"robandanh.json"});

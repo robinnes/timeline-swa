@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {DRAW} from './constants.js';
+import {DRAW, TICK} from './constants.js';
 import {appState, timelines, screenElements, setPointerCursor, ctx} from './canvas.js';
 import {isPanelOpen} from './panel.js';
 
@@ -626,7 +626,8 @@ export function positionLabels() {
 export function positionTimelines(zoom) {
   const wh = window.innerHeight;
   const c = timelines.length;
-  const h = (c===1) ? wh/2 : ((wh-TICK_BOTTOM)/(c+1)) + ((wh-TICK_BOTTOM)/((c+1)*c*2));
+  const height = wh - TICK.TICK_TOP - TICK.TICK_LABEL_HEIGHT;
+  const h = (c===1) ? wh/2 : ((height)/(c+1)) + ((height)/((c+1)*c*2));
   let p = h;
 
   // iterate through timelines in reverse

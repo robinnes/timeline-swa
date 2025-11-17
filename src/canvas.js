@@ -4,7 +4,7 @@ import {drawTicks, tickSpec} from './ticks.js';
 import {positionTimelines, positionLabels, drawEvents, isMouseOver} from './render.js';
 import {getTimeline} from './database.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
-import {initializeEvent} from './events.js';
+import {initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 
@@ -78,29 +78,26 @@ export function tick(now) {
 };
 
 function zoom(dt) {
-  // move pan and zoom towards target
-  const ZOOM_FACTOR = 10;
-
   // incrementally move window offset and zoom toward new values
   const dOffset = appState.zoom.newOffset - appState.offsetMs;
   const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
 
-  appState.offsetMs += dOffset * dt * ZOOM_FACTOR;
-  appState.msPerPx += dMsPerPx * dt * ZOOM_FACTOR;
-  appState.msPerPx = Math.max(appState.msPerPx, MIN_MS_PER_PX);
+  appState.offsetMs += dOffset * dt * TIME.ZOOM_SPEED;
+  appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
+  appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
   // if timelines are repositioned, move those, too
   for (const tl of timelines) {
     if (tl.newYPos) {
       const dCeiling = tl.newCeiling - tl.ceiling;
       const dYPos = tl.newYPos - tl.yPos;
-      tl.ceiling += dCeiling * dt * ZOOM_FACTOR;
-      tl.yPos += dYPos * dt * ZOOM_FACTOR;
+      tl.ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
+      tl.yPos += dYPos * dt * TIME.ZOOM_SPEED;
     }
   }
 
   // stop when movement is smaller than a pixel
-  if (Math.abs(dOffset) < appState.msPerPx || appState.msPerPx === MIN_MS_PER_PX) {
+  if (Math.abs(dOffset) < appState.msPerPx || appState.msPerPx === TIME.MIN_MS_PER_PX) {
     appState.zoom.isZooming = false;
     // reset zoom variables for the timelines
     for (const tl of timelines) {
@@ -442,8 +439,7 @@ export function draw(reposition){
   drawEvents();
 }
 
-export async function initialLoad() {
-  const timelineID = {container:"timelines", file:"career.json"};
+export async function initialLoad(timelineID) {
   const tl = await loadTimeline(timelineID);
   positionTimelines(false);
   centerOnTimeline(tl);

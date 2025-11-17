@@ -1,6 +1,6 @@
 import {appState, draw, reloadTimeline} from './canvas.js';
 import {zoomSpec, positionLabels} from './render.js';
-import {initializeEvent} from './events.js';
+import {initializeEvent} from './timeline.js';
 import {stopDragging} from './dragging.js';
 import {saveTimeline} from './database.js';
 
