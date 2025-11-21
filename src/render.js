@@ -33,16 +33,16 @@ function colorMix(rgb1, rgb2) {
 
 export function zoomSpec(sig){
   const sizeAdj = 3;
-  const persistence = 1;
+  const persistence = 1.3;
   const fadeIn = 0.4;
   const fadeOut = 2;
   const zoomMaster = [
-    { threshold:7, growth:1.5, fadeNear:false, maxBright:1 },
+    { threshold:6.5, growth:1.5, fadeNear:false, maxBright:1 },
     { threshold:8, growth:1.5, fadeNear:false, maxBright:1 },
-    { threshold:9, growth:1.5, fadeNear:false, maxBright:1 },
+    { threshold:9.5, growth:1.5, fadeNear:false, maxBright:1 },
     { threshold:7, growth:7, fadeNear:true, maxBright:0.6 },
     { threshold:8.5, growth:9, fadeNear:true, maxBright:0.6 },
-    { threshold:11, growth:9, fadeNear:true, maxBright:0.6 }
+    { threshold:10, growth:11, fadeNear:true, maxBright:0.6 }
   ];
 
   const factor = Math.log10(appState.msPerPx);

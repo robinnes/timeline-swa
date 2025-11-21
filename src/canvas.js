@@ -295,6 +295,7 @@ canvas.addEventListener('click', function (e) {
       appState.selected.timeline = appState.selected.event.timeline;
       if (appState.editingTimeline === appState.selected.timeline) openEventForEdit(appState.selected.event) 
       else openEventForView(appState.selected.event);
+      draw(false);
     }
   } else if (elem.type === 'timeline') {
     appState.selected.timeline = elem.timeline;
@@ -437,6 +438,7 @@ export function draw(reposition){
   appState.highlighted.idx = -1;
   drawTicks();
   drawEvents();
+  //Util.debugVars();
 }
 
 export async function initialLoad(defaultTL) {

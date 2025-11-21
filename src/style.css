@@ -28,6 +28,99 @@ html, body {
   height: 100%;
 }
 
+/*************************** Floating App Menu (Top Right) ***************************/
+
+/* Wrapper is fixed in upper-right corner, over the canvas */
+.app-menu.app-menu--floating {
+  position: fixed;
+  top: 2px; /* 10px */
+  right: 10px; /* 10px */
+  z-index: 50; /* above canvas, below dialogs */
+  font-size: 13px; /* 13px */
+}
+
+/* Ellipsis button */
+.app-menu__button {
+  background: rgba(10, 13, 26, 0.85);
+  color: var(--fg);
+  border: 0px solid rgba(255,255,255,0.10); /* 1px */
+  border-radius: 6px; /* 999px */
+  padding: 4px 4px; /* 4px 10px */
+  font-size: 18px;          /* 22px nice size for ⋯ */
+  line-height: 0.8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /*box-shadow: 0 4px 12px rgba(0,0,0,.4);*/
+}
+
+.app-menu__button:hover {
+  background: rgba(18, 22, 42, 0.95);
+  border-color: rgba(255,255,255,0.18);
+}
+/*
+.app-menu__button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(106,166,255,0.4);
+}
+*/
+/* Dropdown: hidden by default */
+.app-menu__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0px; /* 6px */
+  min-width: 210px;
+  padding: 6px 0;
+  border-radius: 10px;
+  background: rgba(12, 15, 30, 0.98);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 12px 30px rgba(0,0,0,.6);
+  backdrop-filter: blur(14px);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+
+  z-index: 60;
+}
+
+/* Show dropdown when parent has .is-open */
+.app-menu.is-open .app-menu__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Menu items */
+.app-menu__item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  text-align: left;
+  padding: 7px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.app-menu__item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--accent);
+}
+
+.app-menu__item:focus {
+  outline: none;
+  background: rgba(255,255,255,0.06);
+}
+
+.app-menu__separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgba(255,255,255,0.08);
+}
 
 /*************************** Sidebar ***************************/
 aside.sidebar {
@@ -35,7 +128,7 @@ aside.sidebar {
   border-right: 1px solid var(--border);
   border-right: 1px solid rgba(255,255,255,0.08);
   box-shadow: var(--shadow);
-  padding: 18px 16px 16px 16px;
+  padding: 8px 16px 16px 16px; /* 18px 16px 16px 16px */
   z-index: 20;
   display: grid;
   position: fixed;
@@ -53,7 +146,7 @@ aside.sidebar {
 /* Close button in the top-right of the sidebar */
 .sidebar__close {
   position: absolute;
-  top: 10px;
+  top: 8px; /* 10px */
   right: 10px;
   background: transparent;
   border: none;
@@ -76,13 +169,36 @@ aside.sidebar {
   overflow-x: hidden;
 }
 
+/*************************** Sidebar header + app menu ***************************/
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 4px 2px; /* 4px 0 8px 0 */
+  margin-bottom: 4px;
+}
+
+.sidebar__header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar__app-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
 /*************************** Tabs at top of edit panels ***************************/
 .panel__tabs {
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 12px 0 8px 0;
+  padding: 8px 0 8px 0; /* was 12px on top */
 }
 .panel__tabs .tab-btn {
   background: transparent;
@@ -366,7 +482,7 @@ h2.label {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px; /* 8px */
 }
 .significance-controls {
   display: flex;
@@ -377,21 +493,21 @@ h2.label {
   display: inline-flex;
   align-items: center;
   background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.04);
-  padding: 6px 8px;
+   border: 1px solid rgba(255,255,255,0.04);
+  /* padding: 6px 8px; */
   border-radius: 6px;
   color: var(--fg);
   font-weight: 600;
   cursor: pointer;
-  min-width: 76px;
-  height: 32px;
+  /* min-width: 76px; */
+  /* height: 32px; */
   justify-content: center;
 }
 .sig-btn input[type="radio"] {
   display: none;
 }
 .sig-btn span {
-  padding: 0px 6px;
+  padding: 0px 12px;  /* 6px */
   border-radius: 4px;
 }
 .sig-btn:hover {
@@ -419,6 +535,7 @@ h2.label {
   display: inline-flex;
   align-items: center;
   background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
   border-radius: 6px;
   color: var(--fg);
   font-weight: 600;

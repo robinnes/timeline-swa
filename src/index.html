@@ -7,10 +7,24 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <!-- App menu button (upper-right corner) -->
+    <div class="app-menu app-menu--floating" aria-label="Application menu">
+      <button class="app-menu__button" id="app-menu-button" ...>⋯</button>
+      <div class="app-menu__dropdown" id="app-menu-dropdown" role="menu" aria-hidden="true">
+        <button class="app-menu__item" role="menuitem" data-action="new-timeline">New timeline…</button>
+        <button class="app-menu__item" role="menuitem" data-action="open-timeline">Open timeline…</button>
+        <div class="app-menu__separator"></div>
+        <button class="app-menu__item" role="menuitem" data-action="save-timeline">Save</button>
+        <button class="app-menu__item" role="menuitem" data-action="save-as-timeline">Save as…</button>
+        <div class="app-menu__separator"></div>
+        <button class="app-menu__item" role="menuitem" data-action="export-image">Export image…</button>
+      </div>
+    </div>
     <div class="app">
       <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details" tabindex="-1">
         <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
+          <!-- Tabs now sit below the header -->
           <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
             <button class="tab-btn is-active" data-target="timeline" role="tab" aria-selected="true">Timeline</button>
             <button class="tab-btn" data-target="event" role="tab" aria-selected="false">Event</button>
@@ -29,7 +43,6 @@
                 </section>
               </div>
             </div>
-
             <!-- Edit event panel -->
             <div id="panel-edit-event" class="panel hidden inert">
               <div class="panel__content">
@@ -46,17 +59,17 @@
                     <div class="significance-row">
                       <label class="control-label">Point</label>
                       <div class="significance-controls">
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>minor</span></label>
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>normal</span></label>
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>major</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>Minor</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>Normal</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>Major</span></label>
                       </div>
                     </div>
                     <div class="significance-row">
                       <label class="control-label">Span</label>
                       <div class="significance-controls">
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>minor</span></label>
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>normal</span></label>
-                        <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>major</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>Minor</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>Normal</span></label>
+                        <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>Major</span></label>
                       </div>
                     </div>
                   </div>
