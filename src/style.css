@@ -451,6 +451,28 @@ h2.label {
   min-height: 0;
 }
 
+/* single-row text input */
+.edit-text {
+  font: inherit;
+  color: var(--fg-light);
+  background: var(--bg-soft);
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  width: 100%;
+  display: block;
+
+  /* Look consistent with your existing .edit-textarea */
+  box-sizing: border-box;
+
+  /* Remove input outline highlighting (optional) */
+  outline: none;
+}
+
+.edit-text:focus {
+  border-color: var(--accent);
+}
+
 .date {  /* date display */
   font-size: 14px;
   letter-spacing: .3px;

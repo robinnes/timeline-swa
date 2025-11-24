@@ -9,6 +9,18 @@ export const timeToPx = t => (t - TIME.EPOCH - appState.offsetMs + (1000 * 60 * 
 
 export const pxPerDay = x => (1 / (msPerPx / TIME.MS_PER_DAY));
 
+export function showGlobalBusyCursor() {
+  const style = document.createElement('style');
+  style.id = 'global-busy-cursor';
+  style.textContent = `* { cursor: wait !important; }`;
+  document.head.appendChild(style);
+}
+
+export function hideGlobalBusyCursor() {
+  const style = document.getElementById('global-busy-cursor');
+  if (style) style.remove();
+}
+
 
 // **********************************************************************************************************************
 

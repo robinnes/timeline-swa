@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Interactive Zoomable Timeline</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="modal.css">
   </head>
   <body>
     <!-- App menu button (upper-right corner) -->
@@ -14,10 +15,7 @@
         <button class="app-menu__item" role="menuitem" data-action="new-timeline">New timeline…</button>
         <button class="app-menu__item" role="menuitem" data-action="open-timeline">Open timeline…</button>
         <div class="app-menu__separator"></div>
-        <button class="app-menu__item" role="menuitem" data-action="save-timeline">Save</button>
-        <button class="app-menu__item" role="menuitem" data-action="save-as-timeline">Save as…</button>
-        <div class="app-menu__separator"></div>
-        <button class="app-menu__item" role="menuitem" data-action="export-image">Export image…</button>
+        <button class="app-menu__item" role="menuitem" data-action="account">Account…</button>
       </div>
     </div>
     <div class="app">
@@ -121,7 +119,7 @@
               <div class="panel__content">
                 <section class="sidebar__section">
                   <label for="edit-timeline-title" class="control-label">Title</label>
-                  <textarea id="edit-timeline-title" class="edit-textarea" rows="1"></textarea>
+                  <input type="text" id="edit-timeline-title" class="edit-text" />
                 </section>
                 <section class="sidebar__section">
                   <label for="edit-timeline-details" class="control-label">Details</label>
@@ -140,6 +138,43 @@
       <main class="main">
         <canvas id="canvas" tabindex="0"></canvas>
       </main>
+    </div>
+    <!-- New Timeline Modal -->
+    <div
+      id="new-timeline-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new-timeline-modal-title"
+      hidden
+    >
+    <div class="modal__backdrop" data-modal-close="new-timeline-modal"></div>
+
+      <div class="modal__dialog" role="document">
+        <header class="modal__header">
+          <h2 id="new-timeline-modal-title" class="modal__title">New timeline</h2>
+        </header>
+
+        <div class="modal__body">
+          <label for="new-timeline-title-input" class="control-label">Title</label>
+          <input type="text" id="new-timeline-title-input" class="edit-text" />
+        </div>
+
+        <footer class="modal__footer">
+          <button
+            type="button"
+            class="modal__btn modal__btn--secondary"
+            data-modal-action="cancel"
+            data-modal-target="new-timeline-modal"
+          >Cancel</button>
+          <button
+            type="button"
+            class="modal__btn modal__btn--primary"
+            data-modal-action="create"
+            data-modal-target="new-timeline-modal"
+          >Create</button>
+        </footer>
+      </div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>

@@ -1,0 +1,107 @@
+:root {
+  /* reuse your existing custom properties from style.css */
+  /* (no need to repeat if they’re already defined) */
+}
+
+/* Full-screen modal container */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* above app menu (50/60) and sidebar (20) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Darkened background overlay */
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+/* Centered dialog panel */
+.modal__dialog {
+  position: relative;
+  min-width: min(420px, 90vw);
+  max-width: 480px;
+  background: var(--bg-soft);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header/title */
+.modal__header {
+  margin-bottom: 8px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+/* Body */
+.modal__body {
+  margin-top: 4px;
+}
+
+/* Reuse edit-textarea, just tweak spacing inside modal */
+.modal__textarea {
+  margin-top: 4px;
+}
+
+/* Footer */
+.modal__footer {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Buttons */
+.modal__btn {
+  font: inherit;
+  padding: 8px 12px; /* 8px 14px */
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.modal__btn--secondary {
+  background: transparent;
+  color: var(--fg);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.modal__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--accent);
+}
+
+.modal__btn--primary {
+  background: var(--accent);
+  color: #0b0d17;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.modal__btn--primary:hover {
+  opacity: 0.96;
+}
+
+/* When a modal is open, disable interaction with the rest of the UI */
+body.modal-open {
+  overflow: hidden; /* prevent scrolling */
+}
+
+body.modal-open .canvas,
+body.modal-open .sidebar,
+body.modal-open .app-menu {
+  pointer-events: none;
+}

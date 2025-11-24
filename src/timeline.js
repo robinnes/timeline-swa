@@ -1,6 +1,8 @@
 import * as Util from './util.js';
 import {TIME, DRAW} from './constants.js';
-import {zoomSpec} from './render.js';
+import {appState, timelines, draw, zoomToTimeline} from './canvas.js';
+import {zoomSpec, positionTimelines} from './render.js';
+import {getTimeline, saveTimelineToStorage} from './database.js';
 
 function parseLabel(label) {
   // attempt to minimize label width by splitting longer values up
@@ -42,6 +44,21 @@ function parseLabel(label) {
   }
 
   return {labels, width:maxWidth, labelWidth};
+}
+
+function timelineString(tl) {
+  // Additional properties have been added to the original timeline object;
+  // reduce back to original form for export
+  const txt = {
+    title: tl.title,
+    details: tl.details,
+    dateFrom: tl.dateFrom,
+    dateTo: tl.dateTo,
+    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
+                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details
+    }))
+  };
+  return JSON.stringify(txt, null, 2);
 }
 
 export function initializeEvent(e) {
@@ -93,13 +110,17 @@ export function initializeEvent(e) {
   e.x = Util.timeToPx(e.dateTime);  // used only to position labels in relation to each other
 };
 
-export function initializeTimeline(tl) {
-  var minDate;
-  var maxDate;
+export function initializeTitle(tl) {
   const ctx = canvas.getContext('2d');
-  
   ctx.font = TIME.TITLE_FONT;
   tl.labelWidth = ctx.measureText(tl.title).width;
+}
+
+function initializeTimeline(tl) {
+  var minDate;
+  var maxDate;
+
+  initializeTitle(tl);
   tl.dirty = false;
   
   //tl.events.forEach(initializeEvent);
@@ -118,17 +139,68 @@ export function initializeTimeline(tl) {
   tl.dateTo = maxDate;
 }
 
-export function timelineString(tl) {
-  // Additional properties have been added to the original timeline object;
-  // reduce back to original form for export
-  const txt = {
-    title: tl.title,
-    details: tl.details,
-    dateFrom: tl.dateFrom,
-    dateTo: tl.dateTo,
-    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
-                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details
-    }))
+export async function loadTimeline(timelineID, idx=0) {
+  // load timelineID into timelines array
+  const tl = await getTimeline(timelineID);
+  initializeTimeline(tl);
+  timelines.splice(idx, 0, tl);
+  return tl;
+}
+
+export async function reloadTimeline(tl) {
+  // reload from storage
+  const idx = timelines.indexOf(tl);
+  const timelineID = tl.timelineID;
+  const yPos = tl.yPos, ceiling = tl.ceiling;
+  timelines[idx] = null;
+  const reloaded = await getTimeline(timelineID);
+  initializeTimeline(reloaded);
+  reloaded.yPos = yPos; reloaded.ceiling = ceiling;
+  timelines[idx] = reloaded;
+  if (appState.selected.timeline === tl) appState.selected.timeline = reloaded;
+}
+
+export function addNewTimeline(title) {
+  // append new timeline to the array
+  
+  const newTL = {
+    title:title, 
+    details:null, 
+    events:[],
+    labelWidth:null,
+    dirty:true
   };
-  return JSON.stringify(txt, null, 2);
+
+  initializeTitle(newTL);
+  timelines.push(newTL);
+  appState.editingTimeline = newTL;
+  positionTimelines(false);
+  draw(true);
+}
+
+export async function saveTimeline(tl)
+{
+  Util.showGlobalBusyCursor();
+  try {
+    const text = timelineString(tl);
+    const {container, file} = tl.timelineID;
+    await saveTimelineToStorage(container, file, text);
+    tl.dirty = false;
+  } catch (err) {
+    //await sleep(1200);  // simulate database access
+    console.error('Save failed:', err.message);
+  }
+  Util.hideGlobalBusyCursor();
+}
+
+export function closeTimeline(tl) {
+  const idx = timelines.indexOf(tl);
+  if (tl === appState.editingTimeline) appState.editingTimeline = null;
+  timelines.splice(idx, 1);
+  if (timelines.length === 0)
+    draw(false) 
+  else {
+    const tlBelow = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
+    zoomToTimeline(tlBelow);
+  }
 }

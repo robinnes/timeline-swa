@@ -1,8 +1,7 @@
-import {appState, draw, reloadTimeline} from './canvas.js';
+import {appState, draw} from './canvas.js';
 import {zoomSpec, positionLabels} from './render.js';
-import {initializeEvent} from './timeline.js';
+import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {stopDragging} from './dragging.js';
-import {saveTimeline} from './database.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -159,12 +158,15 @@ timelineEditBtn.addEventListener('click', (e) => {
 timelineCancelBtn.addEventListener('click', (e) => {
   e.preventDefault();
   const tl = appState.selected.timeline;
-  if (tl.dirty) {
+  if (tl.timelineID === undefined) {
+    closeTimeline(tl);
+    closeSidebar();
+  } else if (tl.dirty) {
     reloadTimeline(tl).then(() => {
       appState.editingTimeline = null;
       setSidebarTimeline(appState.selected.timeline);
       openTimelineForView(appState.selected.timeline);
-      draw();
+      draw(true);
     });
   } else {
     appState.editingTimeline = null;
@@ -246,6 +248,7 @@ editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   appState.editingTimeline.title = s;
   appState.editingTimeline.dirty = true;
+  initializeTitle(appState.editingTimeline);  // update titleWidth for drawing
   updateSaveButton?.();
   draw();
 });

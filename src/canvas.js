@@ -2,9 +2,8 @@ import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionTimelines, positionLabels, drawEvents, isMouseOver} from './render.js';
-import {getTimeline} from './database.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
-import {initializeEvent} from './timeline.js';
+import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 
@@ -340,40 +339,10 @@ function centerOnTimeline(tl) {
   appState.msPerPx = p.msPerPx;
 }
 
-function zoomToTimeline(tl) {
+export function zoomToTimeline(tl) {
   const p = positionForTimeline(tl);
   appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
   positionTimelines(true);
-}
-
-async function loadTimeline(timelineID, idx=0) {
-  // load timelineID into timelines array
-  const tl = await getTimeline(timelineID);
-  timelines.splice(idx, 0, tl);
-  return tl;
-}
-
-export async function reloadTimeline(tl) {
-  // reload from storage
-  const idx = timelines.indexOf(tl);
-  const timelineID = tl.timelineID;
-  const yPos = tl.yPos, ceiling = tl.ceiling;
-  timelines[idx] = null;
-  const reloaded = await getTimeline(timelineID);
-  reloaded.yPos = yPos; reloaded.ceiling = ceiling;
-  timelines[idx] = reloaded;
-  if (appState.selected.timeline === tl) appState.selected.timeline = reloaded;
-  draw(true);
-}
-
-function closeTimeline(tl) {
-  const idx = timelines.indexOf(tl);
-  if (tl === appState.editingTimeline) appState.editingTimeline = null;
-  timelines.splice(idx, 1);
-  if (timelines.length > 0) {
-    const tlBelow = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
-    zoomToTimeline(tlBelow);
-  }
 }
 
 async function followLink(timelineID) {
