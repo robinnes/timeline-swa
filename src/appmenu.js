@@ -1,9 +1,11 @@
 import {addNewTimeline} from './timeline.js';
+import { listTimelinesInContainer } from './database.js';  // until the database browse code is built-out
 
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
 const appMenuDropdown = document.getElementById('app-menu-dropdown');
 const newTimelineItem = document.querySelector('.app-menu__item[data-action="new-timeline"]');
+const openTimelineItem = document.querySelector('.app-menu__item[data-action="open-timeline"]');
 const modal = document.getElementById('new-timeline-modal');
 const titleInput = document.getElementById('new-timeline-title-input');
 
@@ -45,6 +47,13 @@ if (newTimelineItem && modal) {
   });
 }
 
+if (openTimelineItem && modal) {
+  openTimelineItem.addEventListener('click', () => {
+    refreshTimelineList();
+  });
+}
+
+
 // Close on backdrop or Cancel
 modal.addEventListener('click', (e) => {
   const target = e.target;
@@ -67,3 +76,15 @@ modal.addEventListener('click', (e) => {
     if (el) closeModal(el);
   }
 });
+
+/******************************* Open timeline *******************************/
+
+async function refreshTimelineList() {
+  try {
+    const blobs = await listTimelinesInContainer('timelines');
+    console.log('Timelines:', blobs);
+    // TODO: populate your "Open timeline…" modal or menu from blobs[]
+  } catch (err) {
+    console.error(err);
+  }
+}

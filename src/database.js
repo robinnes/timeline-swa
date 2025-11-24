@@ -6,7 +6,6 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
   const encodedFile = (file || '')
@@ -94,3 +93,50 @@ export async function getTimeline(timelineID) {
   }
 }
 
+export async function listTimelinesInContainer(container) {
+  try {
+    const { url, sasKey } = await acquireSasToken();
+
+    // Get base container URL with SAS
+    const containerUrl = formatURL('', url, container, sasKey);
+    const listUrl = containerUrl.includes('?')
+      ? `${containerUrl}&restype=container&comp=list`
+      : `${containerUrl}?restype=container&comp=list`;
+
+    const resp = await fetch(listUrl);
+    if (!resp.ok) {
+      throw new Error(`Failed to list blobs: ${resp.status} ${resp.statusText}`);
+    }
+
+    const xmlText = await resp.text();
+
+    // Parse XML response
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'application/xml');
+
+    const blobNodes = Array.from(doc.getElementsByTagName('Blob'));
+
+    const blobs = blobNodes.map((blobNode) => {
+      const name = blobNode.getElementsByTagName('Name')[0]?.textContent || '';
+
+      const props = blobNode.getElementsByTagName('Properties')[0];
+      const lastModified = props?.getElementsByTagName('Last-Modified')[0]?.textContent || null;
+      const etag = props?.getElementsByTagName('Etag')[0]?.textContent || null;
+      const contentLength = props?.getElementsByTagName('Content-Length')[0]?.textContent || null;
+      const contentType = props?.getElementsByTagName('Content-Type')[0]?.textContent || null;
+
+      return {
+        name,
+        url: formatURL(name, url, container, sasKey),
+        lastModified,
+        etag,
+        contentLength: contentLength ? Number(contentLength) : null,
+        contentType
+      };
+    });
+
+    return blobs;
+  } catch (e) {
+    throw new Error(`Failed to list blobs in container '${container}': ${e.message}`);
+  }
+}
