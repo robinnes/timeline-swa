@@ -105,3 +105,99 @@ body.modal-open .sidebar,
 body.modal-open .app-menu {
   pointer-events: none;
 }
+
+
+/* Wider dialog variant for list-style modals */
+.modal__dialog--wide {
+  min-width: min(640px, 95vw);
+  max-width: 720px;
+}
+
+/* Scrollable table container */
+.open-dialog__table-container {
+  margin-top: 8px;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Table */
+.open-dialog__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.open-dialog__th,
+.open-dialog__table td {
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.open-dialog__th {
+  position: sticky;
+  top: 0;
+  background: rgba(5, 8, 20, 0.98);
+  z-index: 1;
+  font-weight: 600;
+}
+
+/* Sortable headers */
+.open-dialog__th--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.open-dialog__th--sorted-asc::after,
+.open-dialog__th--sorted-desc::after {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.open-dialog__th--sorted-asc::after {
+  content: "▲";
+}
+
+.open-dialog__th--sorted-desc::after {
+  content: "▼";
+}
+
+/* Rows */
+.open-dialog__table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.open-dialog__row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.open-dialog__row.is-selected {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Empty-state row */
+.open-dialog__row--empty td {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Future enhancement: filename row for Save mode (hidden by default) */
+.open-dialog__filename-row {
+  display: none;
+  margin-top: 12px;
+  gap: 8px;
+  align-items: center;
+}
+
+.open-dialog__filename-input {
+  flex: 1;
+}
+
+/* When you later add a "save" mode, toggle this class to show filename input */
+.modal__dialog--save-mode .open-dialog__filename-row {
+  display: flex;
+}
