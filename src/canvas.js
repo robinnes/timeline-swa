@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {TIME} from './constants.js';
+import {TIME, CONTAINER} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionTimelines, positionLabels, drawEvents, isMouseOver} from './render.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
@@ -287,7 +287,7 @@ canvas.addEventListener('click', function (e) {
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
     // for now, open event indicated in details (*.json), but not in editing mode
     if (/.\.json/.test(appState.highlighted.event.details) && !(appState.editingTimeline === appState.highlighted.event.timeline)) {
-      followLink({container:"timelines", file:appState.highlighted.event.details});
+      followLink({container:CONTAINER, file:appState.highlighted.event.details});
     }
     else {
       appState.selected.event = appState.highlighted.event;
@@ -414,7 +414,7 @@ export async function initialLoad(defaultTL) {
   // open timeline indicated param "tl" or default established in main()
   const params = new URLSearchParams(window.location.search);
   const file = (params.get("tl") || defaultTL) + ".json";
-  const tl = await loadTimeline({container:"timelines", file:file});
+  const tl = await loadTimeline({container:CONTAINER, file:file});
   positionTimelines(false);
   centerOnTimeline(tl);
   draw(true);

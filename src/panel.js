@@ -2,6 +2,7 @@ import {appState, draw} from './canvas.js';
 import {zoomSpec, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {stopDragging} from './dragging.js';
+import {openSaveAsTimelineDialog} from './appmenu.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -177,9 +178,15 @@ timelineCancelBtn.addEventListener('click', (e) => {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  saveTimeline(appState.editingTimeline).then(() => {
-    updateSaveButton();
-  });
+  const tl = appState.editingTimeline;
+  if (tl.timelineID === undefined) {
+    // new timeline... open dialog
+    openSaveAsTimelineDialog('');
+  } else {
+    saveTimeline(appState.editingTimeline).then(() => {
+      updateSaveButton();
+    });
+  }
 });
 
 export function updateSaveButton() {

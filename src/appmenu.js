@@ -1,7 +1,9 @@
-import {addNewTimeline, loadTimeline, reloadTimeline} from './timeline.js';
-import { listTimelinesInContainer } from './database.js';
-import {timelines, zoomToTimeline} from './canvas.js';
+import {CONTAINER} from './constants.js';
+import {addNewTimeline, loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
+import {listTimelinesInContainer} from './database.js';
+import {appState, timelines, zoomToTimeline} from './canvas.js';
 import {positionTimelines} from './render.js';
+import {updateSaveButton} from './panel.js';
 
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
@@ -15,10 +17,19 @@ const titleInput = document.getElementById('new-timeline-title-input');
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
 const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
+const openTimelineModalTitle = document.getElementById('open-timeline-modal-title');
+const openTimelineDialog = openTimelineModal
+  ? openTimelineModal.querySelector('.modal__dialog')
+  : null;
+const openTimelineFilenameInput = document.getElementById('open-timeline-filename-input');
+
+const OPEN_DIALOG_MODE_OPEN = 'open';
+const OPEN_DIALOG_MODE_SAVE_AS = 'save-as';
 
 let openDialogBlobs = [];
 let openDialogSelectedName = null;
 let openDialogSort = { key: 'name', direction: 'asc' };
+let openDialogMode = OPEN_DIALOG_MODE_OPEN;
 
 
 /******************************* appMenu (elipsis) button *******************************/
@@ -58,6 +69,51 @@ function closeModal(el) {
   document.body.classList.remove('modal-open');
 }
 
+/******************************* Open / Save-as dialog config *******************************/
+
+function configureOpenTimelineDialogForOpen() {
+  openDialogMode = OPEN_DIALOG_MODE_OPEN;
+
+  if (openTimelineDialog) {
+    openTimelineDialog.classList.remove('modal__dialog--save-mode');
+  }
+
+  if (openTimelineModalTitle) {
+    openTimelineModalTitle.textContent = 'Open timeline';
+  }
+
+  if (openTimelineOpenBtn) {
+    openTimelineOpenBtn.textContent = 'Open';
+    openTimelineOpenBtn.disabled = !openDialogSelectedName;
+  }
+
+  if (openTimelineFilenameInput) {
+    openTimelineFilenameInput.value = '';
+  }
+}
+
+function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
+  openDialogMode = OPEN_DIALOG_MODE_SAVE_AS;
+
+  if (openTimelineDialog) {
+    openTimelineDialog.classList.add('modal__dialog--save-mode');
+  }
+
+  if (openTimelineModalTitle) {
+    openTimelineModalTitle.textContent = 'Save timeline as…';
+  }
+
+  if (openTimelineOpenBtn) {
+    openTimelineOpenBtn.textContent = 'Save';
+    // Enabled when there is some filename text
+    openTimelineOpenBtn.disabled = !defaultFilename;
+  }
+
+  if (openTimelineFilenameInput) {
+    openTimelineFilenameInput.value = defaultFilename;
+    openTimelineFilenameInput.focus();
+  }
+}
 
 /******************************* New timeline *******************************/
 
@@ -196,7 +252,7 @@ async function refreshTimelineList() {
       openTimelineOpenBtn.disabled = true;
     }
 
-    const blobs = await listTimelinesInContainer('timelines');
+    const blobs = await listTimelinesInContainer(CONTAINER);
 
     openDialogBlobs = blobs || [];
     renderOpenTimelineTable();
@@ -209,34 +265,67 @@ async function refreshTimelineList() {
   }
 }
 
-async function handleOpenTimelineConfirm() {
-  if (!openDialogSelectedName) return;
-  const timelineID = {container:"timelines", file:openDialogSelectedName};
-
-  // check if timeline is already there
-  const existingTL = timelines.find(t =>
-    JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
-
-  if (existingTL) {
-    // reload timeline that's already displayed
-    await reloadTimeline(existingTL);
-    positionTimelines(true);
-    zoomToTimeline(existingTL);
-  } else {
-    // load and zoom to timelineID
-    const tl = await loadTimeline(timelineID, timelines.length); // insert it above the clicked one
-    positionTimelines(false);
-    zoomToTimeline(tl);
-  }
-
-  closeModal(openTimelineModal);
+if (openTimelineFilenameInput && openTimelineOpenBtn) {
+  openTimelineFilenameInput.addEventListener('input', () => {
+    if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
+      const hasText = openTimelineFilenameInput.value.trim().length > 0;
+      openTimelineOpenBtn.disabled = !hasText;
+    }
+  });
 }
 
+async function handleOpenTimelineConfirm() {
+  if (openDialogMode === OPEN_DIALOG_MODE_OPEN) {
+    if (!openDialogSelectedName) return;
+    const timelineID = {container: CONTAINER, file: openDialogSelectedName};
+
+    // check if timeline is already there
+    const existingTL = timelines.find(t =>
+      JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
+
+    if (existingTL) {
+      // reload timeline that's already displayed
+      await reloadTimeline(existingTL);
+      positionTimelines(true);
+      zoomToTimeline(existingTL);
+    } else {
+      // load and zoom to timelineID
+      const tl = await loadTimeline(timelineID, timelines.length); // insert it above the clicked one
+      positionTimelines(false);
+      zoomToTimeline(tl);
+    }
+
+    closeModal(openTimelineModal);
+  } else if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
+    if (!openTimelineFilenameInput) return;
+
+    let filename = openTimelineFilenameInput.value.trim();
+    if (!filename) {
+      // No name → do nothing (or you could show a validation message)
+      return;
+    }
+
+    // Ensure .json extension
+    if (!filename.toLowerCase().endsWith('.json')) {
+      filename = `${filename}.json`;
+    }
+
+    const blobName = filename;
+    const timelineID = { container: CONTAINER, file: blobName };
+    appState.editingTimeline.timelineID = timelineID;
+    saveTimeline(appState.editingTimeline).then(() => {
+      updateSaveButton();
+    });
+
+    closeModal(openTimelineModal);
+  }
+}
 
 /******************************* Open timeline *******************************/
 
 if (openTimelineItem && openTimelineModal) {
   openTimelineItem.addEventListener('click', () => {
+    configureOpenTimelineDialogForOpen();
     openModal(openTimelineModal);
     refreshTimelineList();
   });
@@ -284,6 +373,17 @@ if (openTimelineModal) {
     });
 }
 
+/******************************* Public API *******************************/
+
+/**
+ * Open the Open/Save dialog in "Save as" mode.
+ * @param {string} [defaultFilename] Optional default file name (without or with .json).
+ */
+export function openSaveAsTimelineDialog(defaultFilename = '') {
+  configureOpenTimelineDialogForSaveAs(defaultFilename);
+  openModal(openTimelineModal);
+  refreshTimelineList();
+}
 
 /******************************* temp *******************************/
 

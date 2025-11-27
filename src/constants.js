@@ -32,3 +32,5 @@ export const TICK = {
   TICK_LABEL_HEIGHT: 18,
   PADDING: 20
 };
+
+export const CONTAINER = 'database';
