@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="app">
-      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details" tabindex="-1">
+      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details">  <!-- tabindex="-1" -->
         <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
           <!-- Tabs now sit below the header -->
@@ -94,11 +94,10 @@
                   <textarea id="edit-event-details" class="edit-textarea" rows="8"></textarea>
                 </section>
               </div>
-              <div class="panel__footer">
+              <div class="panel__footer panel__footer--left">
                 <button id="event-delete" class="panel__delete-event-btn" aria-label="Delete event">Delete event</button>
               </div>
             </div>
-
             <!-- View timeline panel -->
             <div id="panel-view-timeline" class="panel hidden inert">
               <div class="panel__content">
@@ -109,11 +108,10 @@
                   <div class="details" id="timeline-details"></div>
                 </section>
               </div>
-              <div class="panel__footer">
+              <div class="panel__footer panel__footer--left">
                 <button id="timeline-edit" class="panel__edit-btn" aria-label="Edit timeline">Edit</button>
               </div>
             </div>
-
             <!-- Edit timeline panel -->
             <div id="panel-edit-timeline" class="panel hidden inert">
               <div class="panel__content">
@@ -132,7 +130,6 @@
               </div>
             </div>
           </div>
-
         </div>
       </aside>
       <main class="main">

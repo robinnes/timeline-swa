@@ -15,6 +15,9 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const eventDeleteBtn = document.getElementById('event-delete');
+const eventEditBtn = document.getElementById('event-edit');
+const eventSaveBtn = document.getElementById('event-save');
+const eventCancelBtn = document.getElementById('event-cancel');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
@@ -205,6 +208,14 @@ eventDeleteBtn.addEventListener('click', (e) => {
   draw(true);
   openTimelineForEdit(appState.editingTimeline);
 });
+
+if (eventEditBtn) {
+  eventEditBtn.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    if (!appState.selected.event) return;
+    openEventForEdit(appState.selected.event);
+  });
+}
 
 
 /* ------------------- Edit event panel -------------------- */
