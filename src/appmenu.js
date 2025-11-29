@@ -38,6 +38,7 @@ appMenuButton.addEventListener('click', () => {
   const isOpen = appMenu.classList.toggle('is-open');
   appMenuButton.setAttribute('aria-expanded', String(isOpen));
   appMenuDropdown.setAttribute('aria-hidden', String(!isOpen));
+  if (!isOpen) {canvas.focus();}
 });
 
 document.addEventListener('click', (e) => {
@@ -45,6 +46,7 @@ document.addEventListener('click', (e) => {
     appMenu.classList.remove('is-open');
     appMenuButton.setAttribute('aria-expanded', 'false');
     appMenuDropdown.setAttribute('aria-hidden', 'true');
+    canvas.focus();
   }
 });
 
@@ -67,6 +69,7 @@ function closeModal(el) {
   if (!el) return;
   el.setAttribute('hidden', '');
   document.body.classList.remove('modal-open');
+  canvas.focus();
 }
 
 /******************************* Open / Save-as dialog config *******************************/

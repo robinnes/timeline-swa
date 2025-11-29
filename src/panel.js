@@ -103,8 +103,8 @@ for (const btn of tabButtons) {
     if (!target) return;
     // map logical tab to the appropriate panel depending on whether we're editing a timeline
     let panelId = null;
-    if (target === 'timeline') panelId = (appState.editingTimeline ? 'panel-edit-timeline' : 'panel-view-timeline');
-    else if (target === 'event') panelId = (appState.editingTimeline ? 'panel-edit-event' : 'panel-view-event');
+    if (target === 'timeline') panelId = ((appState.selected.timeline.mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
+    else if (target === 'event') panelId = ((appState.selected.timeline.mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
     if (panelId) showPanel(panelId);    
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openSidebar();
@@ -154,8 +154,8 @@ function updateTabStates() {
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  appState.editingTimeline = appState.selected.timeline;
-  openTimelineForEdit(appState.editingTimeline);
+  appState.selected.timeline.mode = 'edit';
+  openTimelineForEdit(appState.selected.timeline);
   draw();
 });
 
@@ -167,13 +167,13 @@ timelineCancelBtn.addEventListener('click', (e) => {
     closeSidebar();
   } else if (tl.dirty) {
     reloadTimeline(tl).then(() => {
-      appState.editingTimeline = null;
+      tl.mode = 'view';
       setSidebarTimeline(appState.selected.timeline);
       openTimelineForView(appState.selected.timeline);
       draw(true);
     });
   } else {
-    appState.editingTimeline = null;
+    tl.mode = 'view';
     openTimelineForView(tl); // cancel without reloading
     draw();
   }
@@ -181,32 +181,34 @@ timelineCancelBtn.addEventListener('click', (e) => {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  const tl = appState.editingTimeline;
+  const tl = appState.selected.timeline;
   if (tl.timelineID === undefined) {
     // new timeline... open dialog
     openSaveAsTimelineDialog('');
   } else {
-    saveTimeline(appState.editingTimeline).then(() => {
+    saveTimeline(tl).then(() => {
       updateSaveButton();
     });
   }
 });
 
 export function updateSaveButton() {
-  // Enable the Save button when editingTimeline is dirty
-  const shouldDisable = !(appState.editingTimeline && appState.editingTimeline.dirty);
+  // Enable the Save button when selected timeline is dirty
+  if (!appState.selected.timeline) return;
+  const shouldDisable = (appState.selected.timeline.mode === 'view' || !appState.selected.timeline.dirty);
   timelineSaveBtn.disabled = shouldDisable;
 }
 
 eventDeleteBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  const events = appState.editingTimeline.events;
+  const tl = appState.selected.timeline;
+  const events = tl.events;
   const idx = events.indexOf(appState.selected.event);
   events.splice(idx, 1);
   appState.selected.event = null;
-  appState.editingTimeline.dirty = true;
+  tl.dirty = true;
   draw(true);
-  openTimelineForEdit(appState.editingTimeline);
+  openTimelineForEdit(tl);
 });
 
 if (eventEditBtn) {
@@ -234,7 +236,7 @@ editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
   const event = appState.selected.event;
   event.label = s;
-  appState.editingTimeline.dirty = true;
+  appState.selected.timeline.dirty = true;
   updateSaveButton?.();
   initializeEvent(event);  // appearance of bubble label may change
   positionLabels();
@@ -245,7 +247,7 @@ editEventDetails.addEventListener('input', (e) => {
   const v = e.target.value;
   const event = appState.selected.event;
   event.details = v;
-  appState.editingTimeline.dirty = true;
+  appState.selected.timeline.dirty = true;
   updateSaveButton?.();
 });
 
@@ -264,17 +266,19 @@ export function openTimelineForEdit(tl) {
 
 editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
-  appState.editingTimeline.title = s;
-  appState.editingTimeline.dirty = true;
-  initializeTitle(appState.editingTimeline);  // update titleWidth for drawing
+  const tl = appState.selected.timeline;
+  tl.title = s;
+  tl.dirty = true;
+  initializeTitle(tl);  // update titleWidth for drawing
   updateSaveButton?.();
   draw();
 });
 
 editTimelineDetails.addEventListener('input', (e) => {
   const v = e.target.value;
-  appState.editingTimeline.details = v;
-  appState.editingTimeline.dirty = true;
+  const tl = appState.selected.timeline;
+  tl.details = v;
+  tl.dirty = true;
   updateSaveButton?.();
 });
 
@@ -347,11 +351,12 @@ for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
     const v = parseInt(e.target.value, 10);
     const event = appState.selected.event;
+    const tl = appState.selected.timeline;
     if (!event) return;
     event.significance = v;
     initializeEvent(event);
     // mark timeline dirty when event changed
-    if (appState.editingTimeline) appState.editingTimeline.dirty = true;
+    if (tl.mode === 'edit') tl.dirty = true;
     updateSaveButton?.();
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color

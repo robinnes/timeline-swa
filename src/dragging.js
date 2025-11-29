@@ -16,7 +16,7 @@ export function startDragging() {
       dateTo: e.dateTo,
       fadeLeft: e.fadeLeft,
       fadeRight: e.fadeRight,
-      dirty: appState.editingTimeline.dirty
+      dirty: appState.selected.timeline.dirty
     }
   };
 };
@@ -35,7 +35,7 @@ export function stopDragging(revert = false) {
     e.dateTo = d.start.dateTo;
     e.fadeLeft = d.start.fadeLeft;
     e.fadeRight = d.start.fadeRight;
-    appState.editingTimeline.dirty = d.dirty;
+    appState.selected.timeline.dirty = d.dirty;
     updateSaveButton();
     initializeEvent(e);
     document.getElementById('event-date-display').value = formatEventDates(e);
@@ -56,7 +56,7 @@ export function drag(e) {
   se[attr] = d; // initializeEvent will handle limits
   initializeEvent(se);
   document.getElementById('event-date-display').value = formatEventDates(se);
-  appState.editingTimeline.dirty = true;
+  appState.selected.timeline.dirty = true;
   updateSaveButton();
   positionLabels();
   draw();

@@ -23,7 +23,7 @@ export const appState = {
     event: null,
     timeline: null
   },
-  editingTimeline: null,
+  //editingTimeline: null,
   drag: {  // dragging handles to change event dates
     isDragging: false,
     attribute: null,
@@ -235,7 +235,7 @@ canvas.addEventListener('wheel', (e)=>{
 }, { passive:false });
 
 canvas.addEventListener('keydown', function (e) {
-  
+
   appState.zoom.isZooming = false; // stop any zooming in progress
   const midX = window.innerWidth / 2;
   const midT = Util.pxToTime(midX);
@@ -286,24 +286,24 @@ canvas.addEventListener('click', function (e) {
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
     // for now, open event indicated in details (*.json), but not in editing mode
-    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.editingTimeline === appState.highlighted.event.timeline)) {
+    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.highlighted.event.timeline.mode === "edit")) {
       followLink({container:CONTAINER, file:appState.highlighted.event.details});
     }
     else {
       appState.selected.event = appState.highlighted.event;
       appState.selected.timeline = appState.selected.event.timeline;
-      if (appState.editingTimeline === appState.selected.timeline) openEventForEdit(appState.selected.event) 
+      if (appState.selected.timeline.mode === "edit") openEventForEdit(appState.selected.event) 
       else openEventForView(appState.selected.event);
       draw(false);
     }
   } else if (elem.type === 'timeline') {
     appState.selected.timeline = elem.timeline;
-    if (appState.editingTimeline === appState.selected.timeline) openTimelineForEdit(appState.editingTimeline)
+    if (appState.selected.timeline.mode === "edit") openTimelineForEdit(appState.selected.timeline)
     else openTimelineForView(appState.selected.timeline);
 
   } else if (elem.type === 'button') {
     if (elem.subType === 'close-timeline') closeTimeline(elem.timeline)
-    else if (elem.subType === 'add-event') addNewEvent();
+    else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
   }
 });
 
@@ -385,15 +385,23 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   };
 }
 
-function addNewEvent() {
+function addNewEvent(tl) {
   // Todo: set significance according to zoom level
   const t = Util.pxToTime(window.innerWidth / 2);
   const d = new Date(t).toISOString().split('T')[0];
-  var event = {significance:2, label:'New event', date:d, timeline:appState.editingTimeline};
+
+  var event = {
+    significance:2, 
+    label:'New event', 
+    date:d, 
+    timeline:tl
+  };
+
   initializeEvent(event);
   appState.selected.event = event;
-  appState.editingTimeline.events.push(event);
-  appState.editingTimeline.dirty = true;
+  appState.selected.timeline = tl;
+  tl.events.push(event);
+  tl.dirty = true;
   updateSaveButton();
   draw(true);
   openEventForEdit(event);

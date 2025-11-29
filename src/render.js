@@ -381,7 +381,7 @@ function drawTimelineLabel(tl, highlight) {
 }
 
 function drawDateHandles(event) {
-  const y = appState.editingTimeline.yPos;
+  const y = event.timeline.yPos;
   const color = 'rgba(200,200,200,1)';
   const lineWidth = 2;
   const majorHeight = 80;
@@ -485,7 +485,7 @@ function drawDateHandles(event) {
   ctx.restore();
 }
 
-function drawAddEventButton() {
+function drawAddEventButton(tl) {
   ctx.save();
   ctx.font = DRAW.TITLE_FONT;
   const btnText = "Add event";
@@ -495,11 +495,11 @@ function drawAddEventButton() {
   const height = 30;
   const left = (window.innerWidth / 2) - (width / 2);
   const right = (window.innerWidth / 2) + (width / 2)
-  const top = appState.editingTimeline.yPos + distance;
+  const top = tl.yPos + distance;
   const bottom = top + height;
   let highlight = false;
 
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'button', subType:'add-event'});
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'button', subType:'add-event', timeline:tl});
   if (isMouseOver(left, right, top, bottom)) {
     appState.highlighted.idx = screenElements.length - 1;
     highlight = true;
@@ -543,15 +543,16 @@ export function drawEvents() {
     if (se.type === 'label') drawLabelBelow(e, highlight);
   });
 
-  for (const tl of timelines) drawTimelineLabel(tl, tl===appState.highlighted.timeline);
+  for (const tl of timelines) {
+    drawTimelineLabel(tl, tl===appState.highlighted.timeline);
+    // draw 'Add event' button if editing timeline and not currently editing an event
+    if (tl.mode === 'edit' && !appState.selected.event) drawAddEventButton(tl);
+  }
 
   // draw date handles if editing timeline and currently editing an event
-  if (appState.editingTimeline && appState.selected.event && isPanelOpen('panel-edit-event'))
-    drawDateHandles(appState.selected.event);
-
-  // draw 'Add event' button if editing timeline and not currently editing an event
-  if (appState.editingTimeline && (!isPanelOpen('panel-edit-event') || !appState.selected.event))
-    drawAddEventButton();
+  if (appState.selected.event) {
+    if (appState.selected.timeline.mode === 'edit') drawDateHandles(appState.selected.event);
+  }
 
   // if highlighted or selected event has been identified but no label is displayed, draw it hovering
   const f = (e) => { if (e) {if (e.yOffset===0) drawLabelHover(e, Util.timeToPx(e.dateTime), e.yPos)}};

@@ -143,6 +143,7 @@ export async function loadTimeline(timelineID, idx=0) {
   // load timelineID into timelines array
   const tl = await getTimeline(timelineID);
   initializeTimeline(tl);
+  tl.mode = 'view';
   timelines.splice(idx, 0, tl);
   return tl;
 }
@@ -168,12 +169,13 @@ export function addNewTimeline(title) {
     details:null, 
     events:[],
     labelWidth:null,
+    mode:'edit',
     dirty:true
   };
 
   initializeTitle(newTL);
   timelines.push(newTL);
-  appState.editingTimeline = newTL;
+
   positionTimelines(false);
   draw(true);
 }
@@ -195,7 +197,6 @@ export async function saveTimeline(tl)
 
 export function closeTimeline(tl) {
   const idx = timelines.indexOf(tl);
-  if (tl === appState.editingTimeline) appState.editingTimeline = null;
   timelines.splice(idx, 1);
   if (timelines.length === 0)
     draw(false) 
