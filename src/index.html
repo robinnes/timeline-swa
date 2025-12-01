@@ -137,77 +137,36 @@
       </main>
     </div>
     <!-- New Timeline Modal -->
-    <div
-      id="new-timeline-modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="new-timeline-modal-title"
-      hidden
-    >
+    <div id="new-timeline-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="new-timeline-modal-title" hidden>
       <div class="modal__backdrop" data-modal-close="new-timeline-modal"></div>
-
       <div class="modal__dialog" role="document">
         <header class="modal__header">
           <h2 id="new-timeline-modal-title" class="modal__title">New timeline</h2>
         </header>
-
         <div class="modal__body">
           <label for="new-timeline-title-input" class="control-label">Title</label>
           <input type="text" id="new-timeline-title-input" class="edit-text" />
         </div>
-
         <footer class="modal__footer">
-          <button
-            type="button"
-            class="modal__btn modal__btn--secondary"
-            data-modal-action="cancel"
-            data-modal-target="new-timeline-modal"
-          >Cancel</button>
-          <button
-            type="button"
-            class="modal__btn modal__btn--primary"
-            data-modal-action="create"
-            data-modal-target="new-timeline-modal"
-          >Create</button>
+          <button type="button" class="modal__btn modal__btn--secondary" data-modal-action="cancel" data-modal-target="new-timeline-modal">Cancel</button>
+          <button type="button" class="modal__btn modal__btn--primary" data-modal-action="create" data-modal-target="new-timeline-modal" id="new-timeline-create-btn">Create</button>
         </footer>
       </div>
     </div>
     <!-- Open Timeline Modal -->
-    <div
-      id="open-timeline-modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="open-timeline-modal-title"
-      hidden
-    >
+    <div id="open-timeline-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="open-timeline-modal-title" hidden>
       <div class="modal__backdrop" data-modal-close="open-timeline-modal"></div>
-
       <div class="modal__dialog modal__dialog--wide" role="document">
         <header class="modal__header">
           <h2 id="open-timeline-modal-title" class="modal__title">Open timeline</h2>
         </header>
-
         <div class="modal__body">
           <div class="open-dialog__table-container">
-            <table class="open-dialog__table" aria-label="Available timelines">
+            <table class="open-dialog__table" aria-label="Available timelines" tabindex="0">
               <thead>
                 <tr>
-                  <th
-                    scope="col"
-                    class="open-dialog__th open-dialog__th--sortable"
-                    data-open-sort-key="name"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    class="open-dialog__th open-dialog__th--sortable"
-                    data-open-sort-key="lastModified"
-                  >
-                    Last modified
-                  </th>
+                  <th scope="col" class="open-dialog__th open-dialog__th--sortable" data-open-sort-key="name">Name</th>
+                  <th scope="col" class="open-dialog__th open-dialog__th--sortable" data-open-sort-key="lastModified">Last modified</th>
                 </tr>
               </thead>
               <tbody id="open-timeline-tbody">
@@ -215,31 +174,15 @@
               </tbody>
             </table>
           </div>
-
-          <!-- Future enhancement: save-as filename row (hidden by default) -->
+          <!-- Save-as filename row (hidden by default) -->
           <div class="open-dialog__filename-row">
             <label for="open-timeline-filename-input" class="control-label">File name</label>
-            <input
-              type="text"
-              id="open-timeline-filename-input"
-              class="edit-text open-dialog__filename-input"
-            />
+            <input type="text" id="open-timeline-filename-input" class="edit-text open-dialog__filename-input"/>
           </div>
         </div>
-
         <footer class="modal__footer">
-          <button
-            type="button"
-            class="modal__btn modal__btn--secondary"
-            data-modal-action="cancel"
-            data-modal-target="open-timeline-modal"
-          >Cancel</button>
-          <button
-            type="button"
-            class="modal__btn modal__btn--primary"
-            id="open-timeline-open-btn"
-            disabled
-          >Open</button>
+          <button type="button" class="modal__btn modal__btn--secondary" data-modal-action="cancel" data-modal-target="open-timeline-modal">Cancel</button>
+          <button type="button" class="modal__btn modal__btn--primary" id="open-timeline-open-btn" disabled>Open</button>
         </footer>
       </div>
     </div>

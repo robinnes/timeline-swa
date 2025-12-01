@@ -1,7 +1,7 @@
 import {CONTAINER} from './constants.js';
 import {addNewTimeline, loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
 import {listTimelinesInContainer} from './database.js';
-import {appState, timelines, zoomToTimeline} from './canvas.js';
+import {appState, timelines, canvas, zoomToTimeline} from './canvas.js';
 import {positionTimelines} from './render.js';
 import {updateSaveButton} from './panel.js';
 
@@ -12,151 +12,150 @@ const newTimelineItem = document.querySelector('.app-menu__item[data-action="new
 const openTimelineItem = document.querySelector('.app-menu__item[data-action="open-timeline"]');
 
 const newTimelineModal = document.getElementById('new-timeline-modal');
-const titleInput = document.getElementById('new-timeline-title-input');
+const newTimelineTitle = document.getElementById('new-timeline-title-input');
+const newTimelineCreateBtn = document.getElementById('new-timeline-create-btn');
 
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
-const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
+const openTimelineTable = document.querySelector('.open-dialog__table');
 const openTimelineModalTitle = document.getElementById('open-timeline-modal-title');
-const openTimelineDialog = openTimelineModal
-  ? openTimelineModal.querySelector('.modal__dialog')
-  : null;
 const openTimelineFilenameInput = document.getElementById('open-timeline-filename-input');
+const openTimelineDialog = openTimelineModal ? openTimelineModal.querySelector('.modal__dialog') : null;
+const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
 
 const OPEN_DIALOG_MODE_OPEN = 'open';
 const OPEN_DIALOG_MODE_SAVE_AS = 'save-as';
-
-let openDialogBlobs = [];
-let openDialogSelectedName = null;
-let openDialogSort = { key: 'name', direction: 'asc' };
 let openDialogMode = OPEN_DIALOG_MODE_OPEN;
-
 
 /******************************* appMenu (elipsis) button *******************************/
 
+// Elipsis button
 appMenuButton.addEventListener('click', () => {
   const isOpen = appMenu.classList.toggle('is-open');
   appMenuButton.setAttribute('aria-expanded', String(isOpen));
   appMenuDropdown.setAttribute('aria-hidden', String(!isOpen));
-  if (!isOpen) {canvas.focus();}
-});
 
-document.addEventListener('click', (e) => {
-  if (!appMenu.contains(e.target)) {
-    appMenu.classList.remove('is-open');
-    appMenuButton.setAttribute('aria-expanded', 'false');
-    appMenuDropdown.setAttribute('aria-hidden', 'true');
+  if (!isOpen) {
+    appMenuButton.blur(); // remove focus from button
     canvas.focus();
   }
 });
 
+export function closeAppMenu() {
+  appMenu.classList.remove('is-open');
+  appMenuButton.setAttribute('aria-expanded', 'false');
+  appMenuDropdown.setAttribute('aria-hidden', 'true');
+  appMenuButton.blur();
+  canvas.focus();
+}
+
+// "New timeline..."
+newTimelineItem.addEventListener('click', () => {
+  newTimelineTitle.value = '';
+  newTimelineCreateBtn.disabled = true;
+  openModal(newTimelineModal);
+  newTimelineTitle.focus();
+});
+
+// "Open timeline..."
+openTimelineItem.addEventListener('click', () => {
+  configureOpenTimelineDialogForOpen();
+  openModal(openTimelineModal);
+  refreshTimelineList();
+
+  // Ensure key events go to the modal
+  //openTimelineOpenBtn.focus();
+});
 
 /******************************* Modal helpers *******************************/
 
 function openModal(el) {
   if (!el) return;
+  
+  closeAppMenu();
   el.removeAttribute('hidden');
   document.body.classList.add('modal-open');
-
-  // Only focus the title for the "new timeline" dialog
-  if (el === newTimelineModal && titleInput) {
-    titleInput.value = '';
-    titleInput.focus();
-  }
 }
 
-function closeModal(el) {
+export function closeModal(el) {
   if (!el) return;
   el.setAttribute('hidden', '');
   document.body.classList.remove('modal-open');
   canvas.focus();
 }
 
-/******************************* Open / Save-as dialog config *******************************/
+/******************************* New timeline modal *******************************/
 
-function configureOpenTimelineDialogForOpen() {
-  openDialogMode = OPEN_DIALOG_MODE_OPEN;
-
-  if (openTimelineDialog) {
-    openTimelineDialog.classList.remove('modal__dialog--save-mode');
-  }
-
-  if (openTimelineModalTitle) {
-    openTimelineModalTitle.textContent = 'Open timeline';
-  }
-
-  if (openTimelineOpenBtn) {
-    openTimelineOpenBtn.textContent = 'Open';
-    openTimelineOpenBtn.disabled = !openDialogSelectedName;
-  }
-
-  if (openTimelineFilenameInput) {
-    openTimelineFilenameInput.value = '';
-  }
-}
-
-function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
-  openDialogMode = OPEN_DIALOG_MODE_SAVE_AS;
-
-  if (openTimelineDialog) {
-    openTimelineDialog.classList.add('modal__dialog--save-mode');
-  }
-
-  if (openTimelineModalTitle) {
-    openTimelineModalTitle.textContent = 'Save timeline as…';
-  }
-
-  if (openTimelineOpenBtn) {
-    openTimelineOpenBtn.textContent = 'Save';
-    // Enabled when there is some filename text
-    openTimelineOpenBtn.disabled = !defaultFilename;
-  }
-
-  if (openTimelineFilenameInput) {
-    openTimelineFilenameInput.value = defaultFilename;
-    openTimelineFilenameInput.focus();
-  }
-}
-
-/******************************* New timeline *******************************/
-
-if (newTimelineItem && newTimelineModal) {
-  newTimelineItem.addEventListener('click', () => {
-    openModal(newTimelineModal);
-  });
-}
+// Title input field keyboard handler
+newTimelineTitle.addEventListener('input', () => {
+  const hasText = newTimelineTitle.value.trim().length > 0;
+  newTimelineCreateBtn.disabled = !hasText;
+});
 
 // Close / cancel / create inside New Timeline modal
-if (newTimelineModal) {
-  newTimelineModal.addEventListener('click', (e) => {
-    const target = e.target;
-    const modalId = target.getAttribute('data-modal-target');
+newTimelineModal.addEventListener('click', (e) => {
+  const target = e.target;
+  const modalId = target.getAttribute('data-modal-target');
 
-    if (target.matches('[data-modal-close]')) {
-      closeModal(newTimelineModal);
-    }
+  if (target.matches('[data-modal-close]')) {
+    closeModal(newTimelineModal);
+  }
 
-    if (target.matches('[data-modal-action="cancel"]')) {
-      const el = document.getElementById(modalId);
-      if (el) closeModal(el);
-    }
+  if (target.matches('[data-modal-action="cancel"]')) {
+    const el = document.getElementById(modalId);
+    if (el) closeModal(el);
+  }
 
-    if (target.matches('[data-modal-action="create"]')) {
-      const el = document.getElementById(modalId);
-      const title = titleInput.value.trim();
-      addNewTimeline(title);
-      if (el) closeModal(el);
+  if (target.matches('[data-modal-action="create"]')) {
+    const el = document.getElementById(modalId);
+    const title = newTimelineTitle.value.trim();
+    addNewTimeline(title);
+    if (el) closeModal(el);
+  }
+});
+
+// Enter key handler
+newTimelineModal.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') {
+    ev.preventDefault();
+
+    // Only allow Create if text is entered
+    if (!newTimelineCreateBtn.disabled) {
+      newTimelineCreateBtn.click();
     }
-  });
+  }
+});
+
+/******************************* File list table *******************************/
+
+let openDialogBlobs = [];
+let openDialogSelectedName = null;
+let openDialogSort = { key: 'name', direction: 'asc' };
+
+async function refreshTimelineList() {
+  try {
+    openDialogSelectedName = null;
+    openTimelineOpenBtn.disabled = true;
+
+    const blobs = await listTimelinesInContainer(CONTAINER);
+
+    openDialogBlobs = blobs || [];
+    renderOpenTimelineTable();
+  } catch (err) {
+    //console.error(err);
+    //openDialogBlobs = [];
+    const fakeBlobs = tempSimulateList();
+    openDialogBlobs = fakeBlobs || [];
+    renderOpenTimelineTable();
+  }
 }
-
-/******************************* Open timeline helpers *******************************/
 
 function renderOpenTimelineTable() {
   if (!openTimelineTbody) return;
 
   openTimelineTbody.innerHTML = '';
 
+  // No timelines
   if (!openDialogBlobs || openDialogBlobs.length === 0) {
     const tr = document.createElement('tr');
     tr.classList.add('open-dialog__row', 'open-dialog__row--empty');
@@ -222,7 +221,7 @@ function renderOpenTimelineTable() {
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
     });
 
-    // Optional: double-click to open immediately
+    // double-click to open immediately
     tr.addEventListener('dblclick', () => {
       openDialogSelectedName = blob.name;
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
@@ -248,34 +247,61 @@ function renderOpenTimelineTable() {
     });
 }
 
-async function refreshTimelineList() {
-  try {
-    openDialogSelectedName = null;
-    if (openTimelineOpenBtn) {
-      openTimelineOpenBtn.disabled = true;
-    }
+// Keyboard scrolling via arrow buttons
+openTimelineTable.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return;
+  ev.preventDefault();
 
-    const blobs = await listTimelinesInContainer(CONTAINER);
+  // All non-empty rows
+  const rows = Array.from(
+    openTimelineTbody.querySelectorAll('.open-dialog__row:not(.open-dialog__row--empty)')
+  );
+  if (!rows.length) return;
 
-    openDialogBlobs = blobs || [];
-    renderOpenTimelineTable();
-  } catch (err) {
-    //console.error(err);
-    //openDialogBlobs = [];
-    const fakeBlobs = tempSimulateList();
-    openDialogBlobs = fakeBlobs || [];
-    renderOpenTimelineTable();
+  // Find current selection
+  let index = rows.findIndex((row) => row.classList.contains('is-selected'));
+
+  // If nothing is selected yet, start at first/last depending on arrow
+  if (index === -1) {
+    index = ev.key === 'ArrowDown' ? 0 : rows.length - 1;
+  } else {
+    index += ev.key === 'ArrowDown' ? 1 : -1;
+    // Clamp to bounds
+    if (index < 0) index = 0;
+    if (index >= rows.length) index = rows.length - 1;
   }
-}
+  const nextRow = rows[index];
 
-if (openTimelineFilenameInput && openTimelineOpenBtn) {
-  openTimelineFilenameInput.addEventListener('input', () => {
-    if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
-      const hasText = openTimelineFilenameInput.value.trim().length > 0;
-      openTimelineOpenBtn.disabled = !hasText;
-    }
+  // Apply selection styling
+  rows.forEach((row) => {
+    row.classList.toggle('is-selected', row === nextRow);
   });
-}
+
+  // Update selected name + button state
+  openDialogSelectedName = nextRow.dataset.blobName || null;
+  openTimelineOpenBtn.disabled = !openDialogSelectedName;
+
+  // Keep selected row visible in the scroll container
+  nextRow.scrollIntoView({ block: 'nearest' });
+});
+
+// Sorting header clicks
+document.querySelectorAll('.open-dialog__th--sortable')
+  .forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.getAttribute('data-open-sort-key');
+      if (!key) return;
+
+      if (openDialogSort.key === key) {
+        // Toggle direction
+        openDialogSort.direction = openDialogSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        openDialogSort.key = key;
+        openDialogSort.direction = 'asc';
+      }
+      renderOpenTimelineTable();
+    });
+  });
 
 async function handleOpenTimelineConfirm() {
   if (openDialogMode === OPEN_DIALOG_MODE_OPEN) {
@@ -324,69 +350,77 @@ async function handleOpenTimelineConfirm() {
   }
 }
 
-/******************************* Open timeline *******************************/
+/******************************* Open timeline modal *******************************/
 
-if (openTimelineItem && openTimelineModal) {
-  openTimelineItem.addEventListener('click', () => {
-    configureOpenTimelineDialogForOpen();
-    openModal(openTimelineModal);
-    refreshTimelineList();
-  });
+function configureOpenTimelineDialogForOpen() {
+  openDialogMode = OPEN_DIALOG_MODE_OPEN;
+
+  openTimelineDialog.classList.remove('modal__dialog--save-mode');
+  openTimelineModalTitle.textContent = 'Open timeline';
+  openTimelineOpenBtn.textContent = OPEN_DIALOG_MODE_OPEN;
+
+  openTimelineOpenBtn.disabled = !openDialogSelectedName;
+  openTimelineFilenameInput.value = '';
 }
 
 // Click handling inside Open Timeline modal
-if (openTimelineModal) {
-  openTimelineModal.addEventListener('click', (e) => {
-    const target = e.target;
-    const modalId = target.getAttribute('data-modal-target');
+openTimelineModal.addEventListener('click', (e) => {
+  const target = e.target;
+  const modalId = target.getAttribute('data-modal-target');
 
-    if (target.matches('[data-modal-close]')) {
-      closeModal(openTimelineModal);
-    }
-
-    if (target.matches('[data-modal-action="cancel"]')) {
-      const el = document.getElementById(modalId);
-      if (el) closeModal(el);
-    }
-  });
-
-  if (openTimelineOpenBtn) {
-    openTimelineOpenBtn.addEventListener('click', () => {
-      handleOpenTimelineConfirm();
-    });
+  if (target.matches('[data-modal-close]')) {
+    closeModal(openTimelineModal);
   }
 
-  // Sorting header clicks
-  document
-    .querySelectorAll('.open-dialog__th--sortable')
-    .forEach((th) => {
-      th.addEventListener('click', () => {
-        const key = th.getAttribute('data-open-sort-key');
-        if (!key) return;
+  if (target.matches('[data-modal-action="cancel"]')) {
+    const el = document.getElementById(modalId);
+    if (el) closeModal(el);
+  }
+});
 
-        if (openDialogSort.key === key) {
-          // Toggle direction
-          openDialogSort.direction = openDialogSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-          openDialogSort.key = key;
-          openDialogSort.direction = 'asc';
-        }
-        renderOpenTimelineTable();
-      });
-    });
-}
+// Open button clicked
+openTimelineOpenBtn.addEventListener('click', () => {
+  handleOpenTimelineConfirm();
+});
 
-/******************************* Public API *******************************/
+// Enter key handler
+openTimelineModal.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') {
+    ev.preventDefault();
+    if (!openTimelineOpenBtn.disabled)
+        openTimelineOpenBtn.click();
+  }
+});
 
-/**
- * Open the Open/Save dialog in "Save as" mode.
- * @param {string} [defaultFilename] Optional default file name (without or with .json).
- */
+/******************************* Save As timeline modal *******************************/
+
+// Called from side panel button
 export function openSaveAsTimelineDialog(defaultFilename = '') {
   configureOpenTimelineDialogForSaveAs(defaultFilename);
   openModal(openTimelineModal);
   refreshTimelineList();
+  openTimelineFilenameInput.focus();
 }
+
+function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
+  openDialogMode = OPEN_DIALOG_MODE_SAVE_AS;
+
+  openTimelineDialog.classList.add('modal__dialog--save-mode');
+  openTimelineModalTitle.textContent = 'Save timeline';
+  openTimelineOpenBtn.textContent = 'Save';
+
+  openTimelineOpenBtn.disabled = !defaultFilename;
+  openTimelineFilenameInput.value = defaultFilename;
+}
+
+// Save as filename field keyboard handler
+openTimelineFilenameInput.addEventListener('input', () => {
+  if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
+    const hasText = openTimelineFilenameInput.value.trim().length > 0;
+    openTimelineOpenBtn.disabled = !hasText;
+  }
+});
+
 
 /******************************* temp *******************************/
 

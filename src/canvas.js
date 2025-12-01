@@ -6,6 +6,7 @@ import {openEventForView, openEventForEdit, openTimelineForView, openTimelineFor
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
+import {closeAppMenu, closeModal} from './appmenu.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -53,7 +54,7 @@ export const timelines = [];
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
 export function tick(now) {
-  requestAnimationFrame(tick);  // I'm assured that this doesn't cause stack growth
+  requestAnimationFrame(tick);
 
   const dt = (now - appState.momentum.lastTick) / 1000;
   appState.momentum.lastTick = now;
@@ -205,7 +206,7 @@ canvas.addEventListener('pointermove', (e)=>{
 
 }, { passive:false });
 
-window.addEventListener('pointerup', (e)=>{
+canvas.addEventListener('pointerup', (e)=>{
   if (e.pointerType !== 'mouse') return;
 
   if (appState.pan.isPanning) {
@@ -245,16 +246,13 @@ canvas.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowUp') {
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
       zoomToTick(appState.fixedPanMode.start(midT));
-    }
-    else if (e.key === 'ArrowDown') {
+    } else if (e.key === 'ArrowDown') {
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomOut);  // zoom out one level
       const w = appState.fixedPanMode.step(midT, 1) - appState.fixedPanMode.start(midT);
       zoomToTick(midT - w/2, midT + w/2);
-    }
-    else if (e.key === 'ArrowRight') {
+    } else if (e.key === 'ArrowRight') {
       zoomToTick(appState.fixedPanMode.step(appState.fixedPanMode.start(midT),1));
-    }
-    else if (e.key === 'ArrowLeft') {
+    } else if (e.key === 'ArrowLeft') {
       zoomToTick(appState.fixedPanMode.step(appState.fixedPanMode.start(midT),-1));
     }
     
@@ -266,10 +264,38 @@ canvas.addEventListener('keydown', function (e) {
   }
 });
 
+document.addEventListener('keydown', (ev) => {
+  // Escape key handling
+  if (ev.key !== 'Escape') return;
+
+  if (appState.drag.isDragging) {
+    stopDragging(true);
+    return;
+  }
+  if (document.querySelector('.app-menu').classList.contains('is-open')) {
+    closeAppMenu();
+    return;
+  }
+  const openModalEl = document.querySelector('.modal:not([hidden])');
+  if (openModalEl) {
+    closeModal(openModalEl);
+    return;
+  }
+  if (sidebar.classList.contains('open')) {
+    closeSidebar();
+    return;
+  }
+  //ev.stopPropagation();
+  //ev.preventDefault();
+});
+
 canvas.addEventListener('click', function (e) {
   
   if (appState.pan.ignoreClick) return;
   
+  if (document.querySelector('.app-menu').classList.contains('is-open'))
+    closeAppMenu();
+
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
     if (sidebar.classList.contains('open')) closeSidebar();
@@ -409,7 +435,7 @@ function addNewEvent(tl) {
 
 export function draw(reposition){
   if (reposition) positionLabels();
-
+//console.log(document.activeElement);
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
   appState.highlighted.idx = -1;

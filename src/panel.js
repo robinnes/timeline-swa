@@ -81,17 +81,6 @@ export function closeSidebar() {
 }
 sidebarClose.addEventListener('click', closeSidebar);
 
-document.addEventListener('keydown', (ev) => {
-  if (ev.key === 'Escape') {
-    if (appState.drag.isDragging) {
-      stopDragging(true);
-    } else {
-      if (sidebar.classList.contains('open')) closeSidebar();
-    }
-  }
-});
-
-
 /* ------------------- Panel navigation -------------------- */
 
 // Attach click handlers to tab buttons
