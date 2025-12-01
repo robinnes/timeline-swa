@@ -27,12 +27,6 @@ const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 
 /* ------------------- Helper functions -------------------- */
 
-function htmlToPlainText(html) {
-  const d = document.createElement('div');
-  d.innerHTML = html || '';
-  return d.innerText;
-}
-
 /*
 // Initialize tab state to reflect the currently visible panel (disabled - do I need it?)
 (() => {
@@ -59,7 +53,6 @@ export function formatEventDates(e) {
   const to = formatTextDate(e.dateTo);
   return `${from ?? "?"} - ${to ?? "?"}`;
 }
-
 
 /* ------------------- Sidebar -------------------- */
 
@@ -299,12 +292,15 @@ function setSidebarEvent(e) {
   const $ = (id) => document.getElementById(id);
   
   // view event panel
-  $("event-label").textContent = e.label ?? '';
+  //$("event-label").textContent = e.label ?? '';
+$("event-label").innerHTML = e.label;
+
   $("event-date").innerHTML = formatEventDates(e);;
+
   // if details looks like HTML, show as HTML; otherwise plain-text
   const isHtml = /<[a-z][\s\S]*>/i.test(e.details);  // necessary?
-  if (isHtml) $("details").innerHTML = e.details;
-  else $("details").innerText = e.details ?? ''
+  if (isHtml) $("event-details").innerHTML = e.details;
+  else $("event-details").innerText = e.details ?? '';
 
   // edit event panel
   editEventLabel.value = e.label ?? '';

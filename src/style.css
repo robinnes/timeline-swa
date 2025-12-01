@@ -400,6 +400,12 @@ h2.label {
   letter-spacing: .2px;
   font-weight: 650;
 }
+.label p { margin: 0 0 10px; }
+.label p:last-child { margin-bottom: 0; }
+.label h3 { font-size: 14px; margin: 12px 0 6px; }
+.label ul { margin: 8px 0 8px 18px; }
+.label a { color: var(--accent); text-decoration: none; }
+.label a:hover { text-decoration: underline; }
 
 .control-label {
   display: block;
@@ -483,7 +489,6 @@ h2.label {
 .details ul { margin: 8px 0 8px 18px; }
 .details a { color: var(--accent); text-decoration: none; }
 .details a:hover { text-decoration: underline; }
-
 
 /********************************* Significance selecitons *********************************/
 

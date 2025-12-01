@@ -294,6 +294,7 @@ function drawLabelBelow(e, highlight) {
   const p = getLabelPosition(e, y);
   const spec = zoomSpec(e.significance);
   let zoomFade = spec.fade;
+  const label = Util.htmlToPlainText(e.label);
 
   // check for mouse over only if not fading out
   //if (zoomFade > DRAW.FADE_HIGHLIGHT_THRESHOLD) {
@@ -304,7 +305,7 @@ function drawLabelBelow(e, highlight) {
     ctx.fillStyle = `rgba(255, 255, 255, ${zoomFade})`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(e.label, p.left, p.top + DRAW.EDGE_GAP);  // separate label a bit from the line while keeping hover area continiguous
+    ctx.fillText(label, p.left, p.top + DRAW.EDGE_GAP);  // separate label a bit from the line while keeping hover area continiguous
     ctx.restore();
   //}
 }

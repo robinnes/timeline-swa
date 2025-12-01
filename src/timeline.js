@@ -67,7 +67,8 @@ export function initializeEvent(e) {
   const style = spec.style;
   
   // Establish properties for positioning labels
-  const parsed = parseLabel(e.label);
+  //const parsed = parseLabel(e.label);
+  const parsed = parseLabel(Util.htmlToPlainText(e.label));
   e.labelWidth = parsed.labelWidth;
   e.parsedLabel = parsed.labels;
   e.parsedWidth = parsed.width;

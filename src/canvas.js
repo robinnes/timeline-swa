@@ -312,16 +312,16 @@ canvas.addEventListener('click', function (e) {
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
     // for now, open event indicated in details (*.json), but not in editing mode
-    if (/.\.json/.test(appState.highlighted.event.details) && !(appState.highlighted.event.timeline.mode === "edit")) {
+    /*if (/.\.json/.test(appState.highlighted.event.details) && !(appState.highlighted.event.timeline.mode === "edit")) {
       followLink({container:CONTAINER, file:appState.highlighted.event.details});
     }
-    else {
+    else {*/
       appState.selected.event = appState.highlighted.event;
       appState.selected.timeline = appState.selected.event.timeline;
       if (appState.selected.timeline.mode === "edit") openEventForEdit(appState.selected.event) 
       else openEventForView(appState.selected.event);
       draw(false);
-    }
+    //}
   } else if (elem.type === 'timeline') {
     appState.selected.timeline = elem.timeline;
     if (appState.selected.timeline.mode === "edit") openTimelineForEdit(appState.selected.timeline)
@@ -380,7 +380,8 @@ async function followLink(timelineID) {
     zoomToTimeline(existingTL);
   } else {
     // load and zoom to timelineID; begin positioned at clicked timeline
-    const tl = appState.highlighted.event.timeline;
+    //const tl = appState.highlighted.event.timeline;
+    const tl = appState.selected.timeline;
     const idx = timelines.indexOf(tl);
     const yPos = tl.yPos
     const ceiling = tl.ceiling;
@@ -432,6 +433,18 @@ function addNewEvent(tl) {
   draw(true);
   openEventForEdit(event);
 }
+
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a");
+  if (!a) return;
+
+  // Internal links:
+  if (a.hasAttribute("data-internal-link")) {
+    e.preventDefault();
+    const timelineID = {container:CONTAINER, file:a.dataset.internalLink + '.json'};
+    followLink(timelineID);
+  }
+});
 
 export function draw(reposition){
   if (reposition) positionLabels();

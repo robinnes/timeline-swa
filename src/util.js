@@ -21,6 +21,12 @@ export function hideGlobalBusyCursor() {
   if (style) style.remove();
 }
 
+export function htmlToPlainText(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  return d.innerText;
+}
+
 
 // **********************************************************************************************************************
 
