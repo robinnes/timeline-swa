@@ -439,9 +439,11 @@ document.addEventListener("click", (e) => {
   if (!a) return;
 
   // Internal links:
-  if (a.hasAttribute("data-internal-link")) {
+  //if (a.hasAttribute("data-internal-link")) {
+  if (a.hasAttribute("tl")) {
     e.preventDefault();
-    const timelineID = {container:CONTAINER, file:a.dataset.internalLink + '.json'};
+    //const timelineID = {container:CONTAINER, file:a.dataset.internalLink + '.json'};
+    const timelineID = {container:CONTAINER, file:a.getAttribute('tl') + '.json'};
     followLink(timelineID);
   }
 });

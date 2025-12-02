@@ -263,6 +263,7 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   // label text
   ctx.font = DRAW.LABEL_FONT;
   ctx.fillStyle = `rgba(255,255,255,${DRAW.LABEL_BRIGHTNESS})`;
+  //ctx.fillStyle = `rgba(106, 166, 255, ${DRAW.LABEL_BRIGHTNESS})`; // hyperlink blue
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   for (let i=0; i<e.parsedLabel.length; i++) 

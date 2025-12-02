@@ -1,7 +1,6 @@
 import {appState, draw} from './canvas.js';
 import {zoomSpec, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
-import {stopDragging} from './dragging.js';
 import {openSaveAsTimelineDialog} from './appmenu.js';
 
 const sidebar = document.getElementById('sidebar');
@@ -15,9 +14,6 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const eventDeleteBtn = document.getElementById('event-delete');
-const eventEditBtn = document.getElementById('event-edit');
-const eventSaveBtn = document.getElementById('event-save');
-const eventCancelBtn = document.getElementById('event-cancel');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
@@ -193,14 +189,6 @@ eventDeleteBtn.addEventListener('click', (e) => {
   openTimelineForEdit(tl);
 });
 
-if (eventEditBtn) {
-  eventEditBtn.addEventListener('click', (ev) => {
-    ev.preventDefault();
-    if (!appState.selected.event) return;
-    openEventForEdit(appState.selected.event);
-  });
-}
-
 
 /* ------------------- Edit event panel -------------------- */
 
@@ -293,7 +281,7 @@ function setSidebarEvent(e) {
   
   // view event panel
   //$("event-label").textContent = e.label ?? '';
-$("event-label").innerHTML = e.label;
+  $("event-label").innerHTML = e.label;
 
   $("event-date").innerHTML = formatEventDates(e);;
 
@@ -342,7 +330,7 @@ for (const r of significanceButtons) {
     initializeEvent(event);
     // mark timeline dirty when event changed
     if (tl.mode === 'edit') tl.dirty = true;
-    updateSaveButton?.();
+    updateSaveButton();
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color
     draw(true);  // may need to reposition labels
@@ -415,6 +403,7 @@ for (const btn of colorButtons) {
     }
     
     event.timeline.dirty = true;
+    updateSaveButton();
     updateColorButtons();
     draw();
   });
