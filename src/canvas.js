@@ -387,8 +387,7 @@ async function followLink(timelineID) {
     zoomToTimeline(existingTL);
   } else {
     // load and zoom to timelineID; begin positioned at clicked timeline
-    //const tl = appState.highlighted.event.timeline;
-    const tl = appState.highlighted.event.timeline;
+    const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
     const idx = timelines.indexOf(tl);
     const yPos = tl.yPos
     const ceiling = tl.ceiling;
