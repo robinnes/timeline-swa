@@ -144,7 +144,7 @@ export function setPointerCursor() {
 
   if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
   else if (idx === -1) canvas.style.cursor = 'default'
-  else if (linkIdx) canvas.style.cursor = 'pointer'
+  else if (linkIdx > -1) canvas.style.cursor = 'pointer'
   else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
   else if (screenElements[idx].type === 'handle') canvas.style.cursor = 'ew-resize'
   else canvas.style.cursor = 'default';
