@@ -3,7 +3,9 @@ import {TIME, DRAW} from './constants.js';
 import {appState, timelines, draw, zoomToTimeline} from './canvas.js';
 import {zoomSpec, positionTimelines} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
+import {parseLabel} from './label.js';
 
+/*
 function parseLabel(label) {
   // attempt to minimize label width by splitting longer values up
   const ctx = canvas.getContext('2d');
@@ -45,6 +47,7 @@ function parseLabel(label) {
 
   return {labels, width:maxWidth, labelWidth};
 }
+*/
 
 function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
@@ -67,11 +70,12 @@ export function initializeEvent(e) {
   const style = spec.style;
   
   // Establish properties for positioning labels
-  //const parsed = parseLabel(e.label);
-  const parsed = parseLabel(Util.htmlToPlainText(e.label));
-  e.labelWidth = parsed.labelWidth;
-  e.parsedLabel = parsed.labels;
-  e.parsedWidth = parsed.width;
+  const parsed = parseLabel(e.label);
+  e.labelSingle = parsed.singleRow;
+  e.labelWidth = parsed.singleWidth;
+  e.parsedLabel = parsed.multiRow;
+  e.parsedWidth = parsed.multiWidth;
+  e.parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   e.yOffset = null;
 
   if (style === 'line') {
@@ -80,7 +84,7 @@ export function initializeEvent(e) {
     if (!e.fadeLeft) e.fadeLeft = e.dateFrom;
     if (!e.fadeRight) e.fadeRight = e.dateTo;
   
-    if (e.color === 'white') e.color = DRAW.DEFAULT_LINE_COLOR;
+    //if (e.color === 'white') e.color = DRAW.DEFAULT_LINE_COLOR;
 
     //sanity checks
     if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;

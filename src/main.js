@@ -5,4 +5,3 @@ resize();
 requestAnimationFrame(tick);
 canvas.focus();
 initialLoad("robinnes");
-

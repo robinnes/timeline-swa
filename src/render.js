@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {DRAW, TICK} from './constants.js';
 import {appState, timelines, screenElements, setPointerCursor, ctx} from './canvas.js';
-import {isPanelOpen} from './panel.js';
+
 
 export function isMouseOver(left, right, top, bottom) {
   return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
@@ -121,7 +121,7 @@ function getLabelPosition(e, y) {
   if (e.yOffset > 0) {
     // bubble above y
     const width = Math.ceil(e.parsedWidth) + DRAW.EDGE_GAP*2;
-    const height = Math.ceil(e.parsedLabel.length * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+    const height = Math.ceil(e.parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
     const left = Math.round(x - width/2);
     const right = left + width;
     const top = Math.round(y - DRAW.LABEL_STEM_HEIGHT - e.yOffset);
@@ -241,11 +241,55 @@ function drawEventLine(e, highlight) {
 function drawLabelHover(e, x, y) {
   // display label right where the event is drawn
   const width = Math.ceil(e.parsedWidth) + DRAW.EDGE_GAP*2;
-  const height = Math.ceil(e.parsedLabel.length * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+  const height = Math.ceil(e.parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
   const left = Math.round(x - width/2);
   const top = Math.round(y - height/2);
 
   drawLabelBubble(e, left, width, top, height, true);
+}
+
+function drawLabelText(label, x, y, fade) {
+  ctx.font = DRAW.LABEL_FONT;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  let hoverLink = null;
+
+  // iterate through text blocks, establish screenElements for simulated hyperlinks
+  label.forEach(b => {
+    if (b.link) {
+      const left = x + b.left;
+      const right = left + b.width;
+      const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
+      const bottom = top + DRAW.LABEL_LINE_HEIGHT;
+
+      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'link', subType:b.link});
+      if (isMouseOver(left, right, top, bottom)) {
+        appState.highlighted.linkIdx = screenElements.length - 1;
+        hoverLink = b.link;
+      }
+    }
+  });
+
+  // iterate again and render each text block
+  label.forEach(b => {
+    const left = x + b.left;
+    const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
+    
+    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${fade})` : 'rgba(106,166,255,1)';
+    ctx.fillText(b.text, left, top);
+
+    // underline any hyperlink blocks with matching link target
+    if (hoverLink != null && b.link === hoverLink) {
+      const right = left + b.width;
+      const bottom = top + DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP - 0.5;
+      ctx.strokeStyle = 'rgba(106,166,255,1)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+    }
+  });
 }
 
 function drawLabelBubble(e, left, width, top, height, highlight) {
@@ -260,14 +304,7 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   ctx.fill();
   ctx.stroke();
 
-  // label text
-  ctx.font = DRAW.LABEL_FONT;
-  ctx.fillStyle = `rgba(255,255,255,${DRAW.LABEL_BRIGHTNESS})`;
-  //ctx.fillStyle = `rgba(106, 166, 255, ${DRAW.LABEL_BRIGHTNESS})`; // hyperlink blue
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  for (let i=0; i<e.parsedLabel.length; i++) 
-    ctx.fillText(e.parsedLabel[i], left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP + (DRAW.LABEL_LINE_HEIGHT * i));
+  drawLabelText(e.parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
   ctx.restore();
 }
 
@@ -295,20 +332,12 @@ function drawLabelBelow(e, highlight) {
   const p = getLabelPosition(e, y);
   const spec = zoomSpec(e.significance);
   let zoomFade = spec.fade;
-  const label = Util.htmlToPlainText(e.label);
 
-  // check for mouse over only if not fading out
-  //if (zoomFade > DRAW.FADE_HIGHLIGHT_THRESHOLD) {
-    if (highlight) zoomFade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
+  if (highlight) zoomFade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
 
-    ctx.save();
-    ctx.font = DRAW.LABEL_FONT
-    ctx.fillStyle = `rgba(255, 255, 255, ${zoomFade})`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(label, p.left, p.top + DRAW.EDGE_GAP);  // separate label a bit from the line while keeping hover area continiguous
-    ctx.restore();
-  //}
+  ctx.save();
+  drawLabelText(e.labelSingle, p.left + DRAW.EDGE_GAP, p.top + DRAW.EDGE_GAP, zoomFade);
+  ctx.restore();
 }
 
 function positionTimelineLabel(tl) {
@@ -585,7 +614,7 @@ function positionLabelsForTL(tl){
       const x = e.x;
       const left = x - e.parsedWidth/2 - DRAW.EDGE_GAP
       const right = x + e.parsedWidth/2 + DRAW.EDGE_GAP;
-      const height = Math.ceil(e.parsedLabel.length * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+      const height = Math.ceil(e.parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
       let bot = 0;
       let top = bot - height;
       let open = false;
@@ -601,7 +630,7 @@ function positionLabelsForTL(tl){
           const cLeft = event.x - event.parsedWidth/2 - DRAW.EDGE_GAP;
           const cRight = event.x + event.parsedWidth/2 + DRAW.EDGE_GAP;
           const cTop = 0 - event.yOffset;
-          const cBot = cTop + Math.ceil(event.parsedLabel.length * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+          const cBot = cTop + Math.ceil(event.parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
 
           // if c's bubble is over e's stem (x) then can't display
           if (cLeft < x && cRight > x) { e.yOffset = 0; break scanUpwardLoop; }

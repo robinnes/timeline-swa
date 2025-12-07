@@ -18,7 +18,8 @@ export const appState = {
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
     event: null,
-    timeline: null
+    timeline: null,
+    linkIdx: -1
   },
   selected: {
     event: null,
@@ -139,8 +140,11 @@ window.addEventListener('resize', resize);
 export function setPointerCursor() {
   // change pointer is appropriate
   const idx = appState.highlighted.idx;
+  const linkIdx = appState.highlighted.linkIdx;
+
   if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
   else if (idx === -1) canvas.style.cursor = 'default'
+  else if (linkIdx) canvas.style.cursor = 'pointer'
   else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
   else if (screenElements[idx].type === 'handle') canvas.style.cursor = 'ew-resize'
   else canvas.style.cursor = 'default';
@@ -191,14 +195,16 @@ canvas.addEventListener('pointermove', (e)=>{
 
   } else {
     // check if mouse is over any interactive elements
-    let found = -1;  
-    for (let i=screenElements.length-1; i>0; i--) {  
+    let foundIdx = -1, foundLinkIdx = -1;  
+    for (let i = screenElements.length-1; i > 0; i--) {  
       const se = screenElements[i];
       if (isMouseOver(se.left, se.right, se.top, se.bottom)) {
-        found = i;  break; };
+        if (!se.type === "link") foundIdx = i;
+        else foundLinkIdx = i;
+      };
     }
-    // if so, draw, which will reset screenElements and highlight the one under mouseX/mouseY
-    if (found !== appState.highlighted.idx) {
+    // if so then draw, which will reset screenElements and highlight the one under mouseX/mouseY
+    if (foundIdx !== appState.highlighted.idx || foundLinkIdx !== appState.highlighted.linkIdx) {
       draw(false);
     }
     return;
@@ -296,6 +302,13 @@ canvas.addEventListener('click', function (e) {
   if (document.querySelector('.app-menu').classList.contains('is-open'))
     closeAppMenu();
 
+  if (appState.highlighted.linkIdx > -1) {
+    // hyperlink clicked
+    const link = screenElements[appState.highlighted.linkIdx].subType;
+    followLink({container:CONTAINER, file: link + ".json"});
+    return;
+  }
+
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
     if (sidebar.classList.contains('open')) closeSidebar();
@@ -311,17 +324,11 @@ canvas.addEventListener('click', function (e) {
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-    // for now, open event indicated in details (*.json), but not in editing mode
-    /*if (/.\.json/.test(appState.highlighted.event.details) && !(appState.highlighted.event.timeline.mode === "edit")) {
-      followLink({container:CONTAINER, file:appState.highlighted.event.details});
-    }
-    else {*/
       appState.selected.event = appState.highlighted.event;
       appState.selected.timeline = appState.selected.event.timeline;
       if (appState.selected.timeline.mode === "edit") openEventForEdit(appState.selected.event) 
       else openEventForView(appState.selected.event);
       draw(false);
-    //}
   } else if (elem.type === 'timeline') {
     appState.selected.timeline = elem.timeline;
     if (appState.selected.timeline.mode === "edit") openTimelineForEdit(appState.selected.timeline)
@@ -381,7 +388,7 @@ async function followLink(timelineID) {
   } else {
     // load and zoom to timelineID; begin positioned at clicked timeline
     //const tl = appState.highlighted.event.timeline;
-    const tl = appState.selected.timeline;
+    const tl = appState.highlighted.event.timeline;
     const idx = timelines.indexOf(tl);
     const yPos = tl.yPos
     const ceiling = tl.ceiling;
@@ -454,6 +461,7 @@ export function draw(reposition){
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
   appState.highlighted.idx = -1;
+  appState.highlighted.linkIdx = -1;
   drawTicks();
   drawEvents();
   //Util.debugVars();
