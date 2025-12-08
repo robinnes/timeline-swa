@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {TIME, CONTAINER} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
-import {positionTimelines, positionLabels, drawEvents, isMouseOver} from './render.js';
+import {positionTimelines, positionLabels, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
@@ -235,7 +235,7 @@ canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
   appState.fixedPanMode = null;
-  //appState.zoom.isZooming = false;  // stop any zooming in progress
+  appState.zoom.isZooming = false;  // stop any zooming in progress
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(TIME.ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
@@ -422,9 +422,15 @@ function addNewEvent(tl) {
   // Todo: set significance according to zoom level
   const t = Util.pxToTime(window.innerWidth / 2);
   const d = new Date(t).toISOString().split('T')[0];
+  let sig = 3;
+  // smallest sig that will fully render
+  for (let s = 3; s > 0; s--) {
+    if (zoomSpec(s).fade < 1) break;
+    sig = s;
+  }
 
   var event = {
-    significance:2, 
+    significance:sig, 
     label:'New event', 
     date:d, 
     timeline:tl
@@ -456,7 +462,7 @@ document.addEventListener("click", (e) => {
 
 export function draw(reposition){
   if (reposition) positionLabels();
-//console.log(document.activeElement);
+
   ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
   screenElements.length = 0;  // reset list of screen elements
   appState.highlighted.idx = -1;

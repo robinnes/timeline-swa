@@ -2,7 +2,7 @@ export const TIME = {
   EPOCH: Date.UTC(2000,0,1),
   MS_PER_DAY: 86400000, // 1000*60*60*24
   ZOOM_FACTOR: 1.1,  // zoom speed applied to wheel and incremental panning
-  PAN_FACTOR: 200,
+  PAN_FACTOR: 200,  // zoom speed for panning in fixed pan mode (arrow keys)
   MIN_MS_PER_PX: 1000 * 60 * 5,        // 5 minutes per pixel (very zoomed in)
   MAX_MS_PER_PX: 1000 * 60 * 60 * 24 * 365 * 5, // ~5 years per pixel
   MAX_CLICK_MOVE: 1, // maximum mouse movement allowed for a mouse click
@@ -26,7 +26,7 @@ export const DRAW = {
 };
 
 export const TICK = {
-  PUSHING_THRESHOLD: 150, // px distance from corner label to start "pushing"
+  PUSHING_THRESHOLD: 200, // px distance from corner label to start "pushing"
   MAX_TICK_LABEL_BRIGHT: 0.85, // max brightness for tick labels
   TICK_TOP: 6,
   TICK_LABEL_HEIGHT: 18,

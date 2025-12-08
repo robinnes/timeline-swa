@@ -57,13 +57,13 @@ function formatDayMonth(t){ return new Date(t).toLocaleString(undefined,{month:'
 function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric', timeZone:'UTC'}); }
 
 export const tickSpec = new Map([
-  ['day',     { mode:'day', zoomOut:'week', zoomIn:'day', start:startOfDay, step:addDays, label:formatDay, majorLabel:formatMonth, majorEvery:30, msPerTick:86400000, minWidth:18 }],
-  ['week',    { mode:'week', zoomOut:'month', zoomIn:'week', start:startOfWeek, step:addWeeks, label:formatDay, majorLabel:formatMonth, majorEvery:7, msPerTick:86400000*7, minWidth:18 }],
-  ['month',   { mode:'month', zoomOut:'year', zoomIn:'week', start:startOfMonth, step:addMonths, label:formatMonth, majorLabel:formatYear, majorEvery:12, msPerTick:86400000*30, minWidth:30 }],
-  ['year',    { mode:'year', zoomOut:'decade', zoomIn:'month', start:startOfYear, step:addYears, label:formatYear, majorLabel:formatYear, majorEvery:10, msPerTick:86400000*365, minWidth:30 }],
-  ['decade',  { mode:'decade', zoomOut:'century', zoomIn:'year',start:startOfDecade, step:addDecades, label:formatYear, majorLabel:formatYear, majorEvery:100, msPerTick:86400000*365*10, minWidth:30 }],
-  ['century', { mode:'century', zoomOut:'millenium', zoomIn:'decade', start:startOfCentury, step:addCenturies, label:formatYear, majorLabel:formatYear, majorEvery:1000, msPerTick:86400000*365*100, minWidth:30 }],
-  ['millenium', { mode:'millenium', zoomOut:'millenium', zoomIn:'century', start:startOfMillenium, step:addMillenia, label:formatYear, majorLabel:formatYear, majorEvery:10000, msPerTick:86400000*365*1000, minWidth:30 }]
+  ['day',     { mode:'day', zoomOut:'week', zoomIn:'day', start:startOfDay, step:addDays, label:formatDay, majorLabel:formatMonth, majorEvery:30, msPerTick:86400000, minWidth:18, newEventSig:1 }],
+  ['week',    { mode:'week', zoomOut:'month', zoomIn:'week', start:startOfWeek, step:addWeeks, label:formatDay, majorLabel:formatMonth, majorEvery:7, msPerTick:86400000*7, minWidth:18, newEventSig:1 }],
+  ['month',   { mode:'month', zoomOut:'year', zoomIn:'week', start:startOfMonth, step:addMonths, label:formatMonth, majorLabel:formatYear, majorEvery:12, msPerTick:86400000*30, minWidth:30, newEventSig:2 }],
+  ['year',    { mode:'year', zoomOut:'decade', zoomIn:'month', start:startOfYear, step:addYears, label:formatYear, majorLabel:formatYear, majorEvery:10, msPerTick:86400000*365, minWidth:30, newEventSig:3 }],
+  ['decade',  { mode:'decade', zoomOut:'century', zoomIn:'year',start:startOfDecade, step:addDecades, label:formatYear, majorLabel:formatYear, majorEvery:100, msPerTick:86400000*365*10, minWidth:30, newEventSig:3 }],
+  ['century', { mode:'century', zoomOut:'millenium', zoomIn:'decade', start:startOfCentury, step:addCenturies, label:formatYear, majorLabel:formatYear, majorEvery:1000, msPerTick:86400000*365*100, minWidth:30, newEventSig:3 }],
+  ['millenium', { mode:'millenium', zoomOut:'millenium', zoomIn:'century', start:startOfMillenium, step:addMillenia, label:formatYear, majorLabel:formatYear, majorEvery:10000, msPerTick:86400000*365*1000, minWidth:30, newEventSig:3 }]
 ]);
 
 function getTickSpec() {

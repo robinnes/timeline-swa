@@ -194,6 +194,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
 
 export function openEventForEdit(e) {
   setSidebarEvent(e);
+  setSidebarTimeline(e.timeline);
 
   showPanel('panel-edit-event');
   setActiveEditTab('event');

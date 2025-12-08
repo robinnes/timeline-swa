@@ -97,7 +97,7 @@ function combineWords(words) {
   // (also do some space manipulation that should be done upstream)
   const combined = [];
   let row = 0;
-  let link = words[0].link;
+  let link = words[0]?.link;
   let block = "";
   let blockLeft = 0;
   let blockWidth = 0;

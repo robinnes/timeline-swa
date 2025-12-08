@@ -5,49 +5,6 @@ import {zoomSpec, positionTimelines} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 
-/*
-function parseLabel(label) {
-  // attempt to minimize label width by splitting longer values up
-  const ctx = canvas.getContext('2d');
-  ctx.font = DRAW.LABEL_FONT;
-  const labelWidth = ctx.measureText(label).width;
-  const words = label.split(" "); // what about hyphens?
-  let line = "", labels = [], maxWidth = 0;
-
-  // parse label by words, start a new line when width exceeds MAX_LABEL_WIDTH
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const testWidth = ctx.measureText(testLine).width;
-    if (testWidth > DRAW.MAX_LABEL_WIDTH && n > 0) {
-      line = line.trimEnd();
-      if (ctx.measureText(line).width > maxWidth) maxWidth = ctx.measureText(line).width;
-      labels.push(line);
-      line = words[n] + " ";
-    } else {
-      line = testLine;
-    }
-  }
-  line = line.trimEnd();
-  labels.push(line);
-  if (ctx.measureText(line).width > maxWidth) maxWidth = ctx.measureText(line).width;
-
-  // if there are 2 rows, try to balance the widths
-  if (labels.length === 2) {
-    const words = labels[0].split(" ");
-    let try0 = labels[0], try1 = labels[1];
-    for (let w = words.length-1; w > 0; w--) {
-      const word = words[w];
-      try0 = try0.slice(0, (word.length+1) * -1);
-      try1 = word + " " + try1;
-      if (ctx.measureText(try1).width > ctx.measureText(try0).width) break;
-      labels[0] = try0; labels[1] = try1;
-      maxWidth = ctx.measureText(try0).width;
-    }
-  }
-
-  return {labels, width:maxWidth, labelWidth};
-}
-*/
 
 function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
