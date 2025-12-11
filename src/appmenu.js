@@ -341,8 +341,8 @@ async function handleOpenTimelineConfirm() {
 
     const blobName = filename;
     const timelineID = { container: CONTAINER, file: blobName };
-    appState.editingTimeline.timelineID = timelineID;
-    saveTimeline(appState.editingTimeline).then(() => {
+    appState.selected.timeline.timelineID = timelineID;
+    saveTimeline(appState.selected.timeline).then(() => {
       updateSaveButton();
     });
 
