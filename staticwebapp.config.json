@@ -4,9 +4,9 @@
       "customOpenIdConnectProviders": {
         "auth0": {
           "registration": {
-            "clientIdSettingName": "AZURE_CLIENT_ID",
+            "clientIdSettingName": "AUTH0_CLIENT_ID",
             "clientCredential": {
-              "clientSecretSettingName": "AZURE_CLIENT_SECRET_APP_SETTING_NAME"
+              "clientSecretSettingName": "AUTH0_CLIENT_SECRET"
             },
             "openIdConnectConfiguration": {
               "wellKnownOpenIdConfiguration": "https://dev-0y1p0vgy7bddbufi.us.auth0.com/.well-known/openid-configuration"
