@@ -1,0 +1,36 @@
+{
+  "auth": {
+    "identityProviders": {
+      "customOpenIdConnectProviders": {
+        "auth0": {
+          "registration": {
+            "clientIdSettingName": "AUTH0_CLIENT_ID",
+            "clientCredential": {
+              "clientSecretSettingName": "AUTH0_CLIENT_SECRET"
+            },
+            "openIdConnectConfiguration": {
+              "wellKnownOpenIdConfiguration": "https://dev-0y1p0vgy7bddbufi.us.auth0.com/.well-known/openid-configuration"
+            }
+          },
+          "login": {
+            "scopes": ["openid", "profile", "email"]
+          }
+        }
+      }
+    }
+  }, 
+
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/auth0"
+    }
+  }
+}
