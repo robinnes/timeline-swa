@@ -4,7 +4,7 @@ import {canvas, resize, tick, initialLoad} from './canvas.js';
 resize();
 requestAnimationFrame(tick);
 canvas.focus();
-initialLoad("robinnes");
+//initialLoad("robinnes");
 
 /*
 import {parseLabel} from './label.js';
