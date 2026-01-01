@@ -35,7 +35,8 @@ appMenuButton.addEventListener('click', () => {
   const isOpen = appMenu.classList.toggle('is-open');
   appMenuButton.setAttribute('aria-expanded', String(isOpen));
   appMenuDropdown.setAttribute('aria-hidden', String(!isOpen));
-
+  updateAuthMenuItem();
+  
   if (!isOpen) {
     appMenuButton.blur(); // remove focus from button
     canvas.focus();
@@ -77,7 +78,7 @@ async function getAuthState() {
   const data = await res.json();
 
   // SWA returns identities array; presence usually indicates auth
-  const identities = data?.clientPrincipal?.identities || [];
+  const identities = data?.clientPrincipal?.identityProvider || [];
   const isAuthenticated = identities.length > 0;
 
   return { isAuthenticated, data };
