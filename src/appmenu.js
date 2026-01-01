@@ -10,6 +10,7 @@ const appMenuButton = document.getElementById('app-menu-button');
 const appMenuDropdown = document.getElementById('app-menu-dropdown');
 const newTimelineItem = document.querySelector('.app-menu__item[data-action="new-timeline"]');
 const openTimelineItem = document.querySelector('.app-menu__item[data-action="open-timeline"]');
+const authMenuItem = document.querySelector('.app-menu__item[data-action="auth"]');
 
 const newTimelineModal = document.getElementById('new-timeline-modal');
 const newTimelineTitle = document.getElementById('new-timeline-title-input');
@@ -66,6 +67,39 @@ openTimelineItem.addEventListener('click', () => {
   // Ensure key events go to the modal
   //openTimelineOpenBtn.focus();
 });
+
+/******************************* Authorization *******************************/
+
+async function getAuthState() {
+  const res = await fetch('/.auth/me', { cache: 'no-store' });
+  if (!res.ok) return { isAuthenticated: false };
+
+  const data = await res.json();
+
+  // SWA returns identities array; presence usually indicates auth
+  const identities = data?.clientPrincipal?.identities || [];
+  const isAuthenticated = identities.length > 0;
+
+  return { isAuthenticated, data };
+}
+
+export async function updateAuthMenuItem() {
+  const { isAuthenticated } = await getAuthState();
+
+  if (isAuthenticated) {
+    authMenuItem.textContent = 'Sign out';
+    authMenuItem.onclick = () => {
+      // Return to the app after logout
+      const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+      window.location.href = `/.auth/logout?post_logout_redirect_uri=${returnTo}`;
+    };
+  } else {
+    authMenuItem.textContent = 'Sign in';
+    authMenuItem.onclick = () => {
+      window.location.href = '/.auth/login/auth0';
+    };
+  }
+}
 
 /******************************* Modal helpers *******************************/
 
