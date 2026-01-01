@@ -55,7 +55,7 @@ async function loadTimelineFromStorage(container, file) {
     const blobUrl = formatURL(file, url, container, sasKey); 
 
     // fetch the blob
-    const resp = await fetch(blobUrl);
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
     const text = await resp.text();
 
