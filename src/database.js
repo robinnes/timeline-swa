@@ -19,6 +19,7 @@ function formatURL(file, url, container, sasKey) {
 
 /******************* Blob storage functions *******************/
 
+/*
 async function acquireSasToken() {
   try {
     const response = await fetch("/api/credentials");
@@ -29,11 +30,28 @@ async function acquireSasToken() {
     throw new Error(`Failed to aquire SAS token: ${err.message}`);
   }
 }
+*/
+
+async function acquireBlobSas(file) {
+  try {
+    const url = `/api/getBlobSas?name=${file}&mode=read`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {'Accept': 'application/json'}
+    });
+
+    const {sasUrl, sasKey, blobName} = await response.json();
+    return {url:sasUrl, sasKey};
+
+  } catch (err) {
+    throw new Error(`Failed to aquire SAS token: ${err.message}`);
+  }
+}
 
 async function loadTimelineFromStorage(container, file) {
   try {
     // acquire SAS token
-    const {url, sasKey} = await acquireSasToken();
+    const {url, sasKey} = await acquireBlobSas(file);
     const blobUrl = formatURL(file, url, container, sasKey); 
 
     // fetch the blob
