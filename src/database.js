@@ -32,9 +32,9 @@ async function acquireSasToken() {
 }
 */
 
-async function acquireBlobSas(file) {
+async function acquireBlobSas(file, mode) {
   try {
-    const url = `/api/getBlobSas?name=${file}&mode=read`;
+    const url = `/api/getBlobSas?name=${file}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
@@ -51,8 +51,8 @@ async function acquireBlobSas(file) {
 async function loadTimelineFromStorage(container, file) {
   try {
     // acquire SAS token
-    const {url, sasKey} = await acquireBlobSas(file);
-    const blobUrl = formatURL(file, url, container, sasKey); 
+    const {url, sasKey} = await acquireBlobSas(file, "read");
+    //const blobUrl = formatURL(file, url, container, sasKey); 
 
     // fetch the blob
     const resp = await fetch(url);
@@ -69,10 +69,10 @@ async function loadTimelineFromStorage(container, file) {
 
 export async function saveTimelineToStorage(container, file, text) {
   try {
-    const {url, sasKey} = await acquireSasToken();
-    const blobUrl = formatURL(file, url, container, sasKey);
+    const {url, sasKey} = await acquireBlobSas(file, "write");
+    //const blobUrl = formatURL(file, url, container, sasKey);
 
-    const resp = await fetch(blobUrl, {
+    const resp = await fetch(url, {
       method: 'PUT',
       headers: {
         'x-ms-blob-type': 'BlockBlob',
