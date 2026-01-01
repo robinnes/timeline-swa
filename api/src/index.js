@@ -8,3 +8,5 @@ app.setup({
 // Register all function modules
 require('./functions/credentials/index.js');
 require('./functions/getTimeline/index.js');
+require('./functions/getBlobSas/index.js');
+require('./functions/listTimelines/index.js');

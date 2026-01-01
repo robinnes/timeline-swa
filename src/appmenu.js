@@ -1,6 +1,6 @@
 import {CONTAINER} from './constants.js';
 import {addNewTimeline, loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
-import {listTimelinesInContainer} from './database.js';
+import {getTimelineList} from './database.js';
 import {appState, timelines, canvas, zoomToTimeline} from './canvas.js';
 import {positionTimelines} from './render.js';
 import {updateSaveButton} from './panel.js';
@@ -137,7 +137,7 @@ async function refreshTimelineList() {
     openDialogSelectedName = null;
     openTimelineOpenBtn.disabled = true;
 
-    const blobs = await listTimelinesInContainer(CONTAINER);
+    const blobs = await getTimelineList();
 
     openDialogBlobs = blobs || [];
     renderOpenTimelineTable();

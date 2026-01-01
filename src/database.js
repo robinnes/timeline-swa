@@ -92,7 +92,7 @@ export async function getTimeline(timelineID) {
     return tl;
   }
 }
-
+/*
 export async function listTimelinesInContainer(container) {
   try {
     const { url, sasKey } = await acquireSasToken();
@@ -138,5 +138,17 @@ export async function listTimelinesInContainer(container) {
     return blobs;
   } catch (e) {
     throw new Error(`Failed to list blobs in container '${container}': ${e.message}`);
+  }
+}
+*/
+
+export async function getTimelineList() {
+  try {
+    const response = await fetch("/api/listUserTimelines");
+    const {prefix, items} = await response.json();
+    return items;
+
+  } catch (err) {
+    throw new Error(`Failed to aquire list of timelines: ${err.message}`);
   }
 }
