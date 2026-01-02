@@ -78,8 +78,10 @@ async function getAuthState() {
   const data = await res.json();
 
   // SWA returns identities array; presence usually indicates auth
-  const identities = data?.clientPrincipal?.identityProvider || [];
-  const isAuthenticated = identities.length > 0;
+  //const identities = data?.clientPrincipal?.identityProvider || [];
+  //const isAuthenticated = identities.length > 0;
+  const userId = data?.clientPrincipal?.userId;
+  const isAuthenticated = !!userId;
 
   return { isAuthenticated, data };
 }
