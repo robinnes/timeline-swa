@@ -107,8 +107,9 @@ export async function updateAuthMenuItem() {
 
 function signOut() {
   // Return to the app after logout
-  const signedOutLanding = encodeURIComponent(`${window.location.origin}/signedout.html`);
-  window.location.href = `/.auth/logout?post_logout_redirect_uri=${signedOutLanding}`;
+  /*const signedOutLanding = encodeURIComponent(`${window.location.origin}/signedout.html`);
+  window.location.href = `/.auth/logout?post_logout_redirect_uri=${signedOutLanding}`;*/
+  window.location.href = `/.auth/logout?post_logout_redirect_uri=/signedout.html`;
 }
 
 /******************************* Modal helpers *******************************/
