@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Signing out…</title>
+    <script>
+      // Put your Auth0 Client ID here (the one from your Auth0 Application)
+      const AUTH0_CLIENT_ID = "auth0|6944c28eccf080dd1b3a8d76";
+      const AUTH0_DOMAIN = "dev-0y1p0vgy7bddbufi.us.auth0.com";
+
+      const returnTo = encodeURIComponent(window.location.origin + "/");
+      const auth0Logout =
+        `https://${AUTH0_DOMAIN}/v2/logout?client_id=${encodeURIComponent(AUTH0_CLIENT_ID)}&returnTo=${returnTo}`;
+
+      window.location.replace(auth0Logout);
+    </script>
+  </head>
+  <body>Signing out…</body>
+</html>

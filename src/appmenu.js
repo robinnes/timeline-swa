@@ -36,7 +36,7 @@ appMenuButton.addEventListener('click', () => {
   appMenuButton.setAttribute('aria-expanded', String(isOpen));
   appMenuDropdown.setAttribute('aria-hidden', String(!isOpen));
   updateAuthMenuItem();
-  
+
   if (!isOpen) {
     appMenuButton.blur(); // remove focus from button
     canvas.focus();
@@ -90,9 +90,10 @@ export async function updateAuthMenuItem() {
   if (isAuthenticated) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
-      // Return to the app after logout
-      const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
-      window.location.href = `/.auth/logout?post_logout_redirect_uri=${returnTo}`;
+      signOut();
+      
+      //const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+      //window.location.href = `/.auth/logout?post_logout_redirect_uri=${returnTo}`;
     };
   } else {
     authMenuItem.textContent = 'Sign in';
@@ -100,6 +101,12 @@ export async function updateAuthMenuItem() {
       window.location.href = '/.auth/login/auth0';
     };
   }
+}
+
+function signOut() {
+  // Return to the app after logout
+  const signedOutLanding = encodeURIComponent(`${window.location.origin}/signedout.html`);
+  window.location.href = `/.auth/logout?post_logout_redirect_uri=${signedOutLanding}`;
 }
 
 /******************************* Modal helpers *******************************/
