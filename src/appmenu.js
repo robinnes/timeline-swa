@@ -109,7 +109,16 @@ function signOut() {
   // Return to the app after logout
   /*const signedOutLanding = encodeURIComponent(`${window.location.origin}/signedout.html`);
   window.location.href = `/.auth/logout?post_logout_redirect_uri=${signedOutLanding}`;*/
-  window.location.href = `/.auth/logout?post_logout_redirect_uri=/signedout.html`;
+  /*window.location.href = `/.auth/logout?post_logout_redirect_uri=/signedout.html`;*/
+
+  const AUTH0_DOMAIN = "dev-0y1p0vgy7bddbufi.us.auth0.com";
+  const AUTH0_CLIENT_ID = "0bsh9anm9bRu5s2u9IxjGWN55o7HA8rG"; // from your signedout.html :contentReference[oaicite:3]{index=3}
+
+  const returnTo = encodeURIComponent(`${window.location.origin}/swa-logout.html`);
+  const auth0Logout =
+    `https://${AUTH0_DOMAIN}/v2/logout?client_id=${encodeURIComponent(AUTH0_CLIENT_ID)}&returnTo=${returnTo}`;
+
+  window.location.href = auth0Logout;
 }
 
 /******************************* Modal helpers *******************************/
