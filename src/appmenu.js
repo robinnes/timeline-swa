@@ -99,9 +99,9 @@ export async function updateAuthMenuItem() {
     };
   } else {
     authMenuItem.textContent = 'Sign in';
-    /*authMenuItem.onclick = () => {
+    authMenuItem.onclick = () => {
       window.location.href = '/.auth/login/auth0';
-    };*/
+    };
   }
 }
 
