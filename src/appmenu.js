@@ -121,7 +121,7 @@ function signOut() {
   window.location.href = auth0Logout;*/
 
 
-  window.location.href = `/.auth/logout`;
+  window.location.href = `/.auth/logout/complete`;
 
 }
 
