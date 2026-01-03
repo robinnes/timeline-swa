@@ -119,7 +119,7 @@ function signOut() {
   window.location.href = auth0Logout;
   */
   
-  const signedOutLanding = encodeURIComponent(`${window.location.origin}/.auth/logout/complete`);
+  const signedOutLanding = encodeURIComponent(`${window.location.origin}/.auth/logout/complete/`);
   window.location.href = `/.auth/logout?post_logout_redirect_uri=${signedOutLanding}`;
 
 //  window.location.href = `/.auth/logout/complete`;
