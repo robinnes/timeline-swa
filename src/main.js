@@ -3,7 +3,7 @@ import {updateAuthMenuItem} from './appmenu.js';
 
 // Kick things off
 resize();
-updateAuthMenuItem();
+//updateAuthMenuItem();
 requestAnimationFrame(tick);
 canvas.focus();
 //initialLoad("robinnes");
