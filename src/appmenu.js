@@ -28,26 +28,24 @@ const OPEN_DIALOG_MODE_OPEN = 'open';
 const OPEN_DIALOG_MODE_SAVE_AS = 'save-as';
 let openDialogMode = OPEN_DIALOG_MODE_OPEN;
 
-/******************************* appMenu (elipsis) button *******************************/
+/******************************* appMenu (and elipsis button) *******************************/
 
 // Elipsis button
 appMenuButton.addEventListener('click', () => {
-  const isOpen = appMenu.classList.toggle('is-open');
-  appMenuButton.setAttribute('aria-expanded', String(isOpen));
-  appMenuDropdown.setAttribute('aria-hidden', String(!isOpen));
-  updateAuthMenuItem();
-
-  if (!isOpen) {
-    appMenuButton.blur(); // remove focus from button
-    canvas.focus();
-  }
+  if (appMenu.classList.contains('is-open')) closeAppMenu();
+  else openAppMenu();
 });
+
+function openAppMenu() {
+  appMenu.classList.add('is-open');
+  appMenuButton.setAttribute('aria-expanded', 'true');
+  appMenuDropdown.setAttribute('aria-hidden', 'false');
+}
 
 export function closeAppMenu() {
   appMenu.classList.remove('is-open');
   appMenuButton.setAttribute('aria-expanded', 'false');
   appMenuDropdown.setAttribute('aria-hidden', 'true');
-  appMenuButton.blur();
   canvas.focus();
 }
 
@@ -76,10 +74,6 @@ async function getAuthState() {
   if (!res.ok) return { isAuthenticated: false };
 
   const data = await res.json();
-
-  // SWA returns identities array; presence usually indicates auth
-  //const identities = data?.clientPrincipal?.identityProvider || [];
-  //const isAuthenticated = identities.length > 0;
   const userId = data?.clientPrincipal?.userId;
   const isAuthenticated = !!userId;
 
@@ -93,11 +87,13 @@ export async function updateAuthMenuItem() {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
       window.location.href = `/.auth/logout`;
+      openAppMenu();
     };
   } else {
     authMenuItem.textContent = 'Sign in';
     authMenuItem.onclick = () => {
       window.location.href = '/.auth/login/auth0';
+      openAppMenu();
     };
   }
 }
