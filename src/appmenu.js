@@ -49,6 +49,30 @@ export function closeAppMenu() {
   canvas.focus();
 }
 
+export async function updateAppMenu() {
+  const isAuthenticated = await getAuthState();
+
+  // Display "New timeline" only if authenticated
+  if (isAuthenticated) {
+    newTimelineItem.removeAttribute('hidden');
+  } else {
+    newTimelineItem.setAttribute('hidden', '');
+  }
+
+  // Update Sign In/Out item
+  if (isAuthenticated) {
+    authMenuItem.textContent = 'Sign out';
+    authMenuItem.onclick = () => {
+      window.location.href = `/.auth/logout`;
+    };
+  } else {
+    authMenuItem.textContent = 'Sign in';
+    authMenuItem.onclick = () => {
+      window.location.href = '/.auth/login/auth0';
+    };
+  }
+}
+
 // "New timeline..."
 newTimelineItem.addEventListener('click', () => {
   newTimelineTitle.value = '';
@@ -78,30 +102,6 @@ async function getAuthState() {
   const isAuthenticated = !!appState.authentication.userId;
 
   return isAuthenticated;
-}
-
-export async function updateAppMenu() {
-  const isAuthenticated = await getAuthState();
-
-  // Display "New timeline" only if authenticated
-  if (isAuthenticated) {
-    newTimelineItem.removeAttribute('hidden');
-  } else {
-    newTimelineItem.setAttribute('hidden', '');
-  }
-
-  // Update Sign In/Out item
-  if (isAuthenticated) {
-    authMenuItem.textContent = 'Sign out';
-    authMenuItem.onclick = () => {
-      window.location.href = `/.auth/logout`;
-    };
-  } else {
-    authMenuItem.textContent = 'Sign in';
-    authMenuItem.onclick = () => {
-      window.location.href = '/.auth/login/auth0';
-    };
-  }
 }
 
 /******************************* Modal helpers *******************************/
