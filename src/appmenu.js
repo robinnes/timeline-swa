@@ -80,9 +80,17 @@ async function getAuthState() {
   return isAuthenticated;
 }
 
-export async function updateAuthMenuItem() {
+export async function updateAppMenu() {
   const isAuthenticated = await getAuthState();
 
+  // Display "New timeline" only if authenticated
+  if (isAuthenticated) {
+    newTimelineItem.removeAttribute('hidden');
+  } else {
+    newTimelineItem.setAttribute('hidden', '');
+  }
+
+  // Update Sign In/Out item
   if (isAuthenticated) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {

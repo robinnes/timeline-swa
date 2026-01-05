@@ -1,9 +1,9 @@
 import {canvas, resize, tick, initialLoad} from './canvas.js';
-import {updateAuthMenuItem} from './appmenu.js';
+import {updateAppMenu} from './appmenu.js';
 
 // Kick things off
 resize();
-updateAuthMenuItem();
+updateAppMenu();
 requestAnimationFrame(tick);
 canvas.focus();
 //initialLoad("robinnes");
