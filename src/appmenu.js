@@ -71,29 +71,27 @@ openTimelineItem.addEventListener('click', () => {
 
 async function getAuthState() {
   const res = await fetch('/.auth/me', { cache: 'no-store' });
-  if (!res.ok) return { isAuthenticated: false };
+  if (!res.ok) return false;
 
   const data = await res.json();
-  const userId = data?.clientPrincipal?.userId;
-  const isAuthenticated = !!userId;
+  appState.authentication.userId = data?.clientPrincipal?.userId;
+  const isAuthenticated = !!appState.authentication.userId;
 
-  return { isAuthenticated, data };
+  return isAuthenticated;
 }
 
 export async function updateAuthMenuItem() {
-  const { isAuthenticated } = await getAuthState();
+  const isAuthenticated = await getAuthState();
 
   if (isAuthenticated) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
       window.location.href = `/.auth/logout`;
-      openAppMenu();
     };
   } else {
     authMenuItem.textContent = 'Sign in';
     authMenuItem.onclick = () => {
       window.location.href = '/.auth/login/auth0';
-      openAppMenu();
     };
   }
 }

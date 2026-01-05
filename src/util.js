@@ -34,26 +34,26 @@ import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
 
 export function debugVars() {
-  if (!appState.selected.event) return;
+  //if (!appState.selected.event) return;
   
   const ctx = canvas.getContext('2d');
-  const sig = appState.selected.event.significance;
-  const spec = zoomSpec(sig);
-  const leftLabel = window.innerWidth - 100;
-  const leftValue = window.innerWidth - 30;
+  //const sig = appState.selected.event.significance;
+  //const spec = zoomSpec(sig);
+  const leftLabel = window.innerWidth - 200;
+  const leftValue = window.innerWidth - 150;
   let top = window.innerHeight - 75;
 
   ctx.save();
   ctx.font = DRAW.LABEL_FONT;
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
-  ctx.textAlign = 'right';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   
   //if (highlightedEvent) {
   //  const t = highlightedEvent.label;
   //  ctx.fillText(t, window.innerWidth - 30, window.innerHeight - 95);
   //}
-  
+  /*
   ctx.fillText("factor:", leftLabel, top);
   ctx.fillText(Math.round(spec.factor*1000)/1000, leftValue, top);
   top += 20;
@@ -62,7 +62,10 @@ export function debugVars() {
   top += 20;
   ctx.fillText(`size(${sig}):`, leftLabel, top);
   ctx.fillText(Math.round((spec.size)*1000)/1000, leftValue, top);
-  
+  */
+  ctx.fillText("userId:", leftLabel, top);
+  ctx.fillText(appState.authentication.userId, leftValue, top);
+
   ctx.restore();
   
 };

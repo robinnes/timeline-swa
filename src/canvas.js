@@ -48,6 +48,9 @@ export const appState = {
     origMsPerPx: null,
     newOffset: null,
     newMsPerPx: null
+  },
+  authentication: {
+    userId: null
   }
 }
 
@@ -469,7 +472,7 @@ export function draw(reposition){
   appState.highlighted.linkIdx = -1;
   drawTicks();
   drawEvents();
-  //Util.debugVars();
+  Util.debugVars();
 }
 
 export async function initialLoad(defaultTL) {
