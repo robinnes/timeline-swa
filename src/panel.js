@@ -1,7 +1,7 @@
 import {appState, draw} from './canvas.js';
 import {zoomSpec, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
-import {openSaveAsTimelineDialog} from './appmenu.js';
+import {openSaveAsTimelineDialog} from './fileDialog.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');

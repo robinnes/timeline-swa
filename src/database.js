@@ -92,13 +92,13 @@ export async function getTimeline(timelineID) {
   const container = timelineID.container
   const file = timelineID.file;
   Util.showGlobalBusyCursor();
-  //try {
+  try {
     // retrieve from Azure blob storage
     const tl = await loadTimelineFromStorage(container, file);
     tl.timelineID = timelineID;
     Util.hideGlobalBusyCursor();
     return tl;
-  /*} catch (err) {
+  } catch (err) {
     // look for the timeline locally
     //const obj = file.split(".")[0];
     //const tl = window[obj];  // look for variable matching the filename (minus ext)
@@ -108,7 +108,7 @@ export async function getTimeline(timelineID) {
     await sleep(500);  // simulate database access
     Util.hideGlobalBusyCursor();
     return tl;
-  }*/
+  }
 }
 /*
 export async function listTimelinesInContainer(container) {
