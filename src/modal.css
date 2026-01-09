@@ -58,7 +58,7 @@ body.modal-open .app-menu {
 
 /* Header/title */
 .modal__header {
-  margin-bottom: 8px;
+  /*margin-bottom: 8px;*/
 }
 
 .modal__title {
@@ -180,7 +180,7 @@ body.modal-open .app-menu {
 
 /****************************** Buttons *******************************/
 .modal__btn {
-  font: inherit;
+  /*font: inherit;*/
   padding: 8px 12px; /* 8px 14px */
   border-radius: 6px;
   cursor: pointer;

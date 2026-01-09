@@ -48,7 +48,7 @@ async function acquireBlobSas(file, mode) {
   }
 }
 
-async function loadTimelineFromStorage(container, file) {
+async function loadTimelineFromStorage(file) {
   try {
     // acquire SAS token
     const {url, sasKey} = await acquireBlobSas(file, "read");
@@ -89,12 +89,11 @@ export async function saveTimelineToStorage(container, file, text) {
 }
 
 export async function getTimeline(timelineID) {
-  const container = timelineID.container
   const file = timelineID.file;
   Util.showGlobalBusyCursor();
   try {
     // retrieve from Azure blob storage
-    const tl = await loadTimelineFromStorage(container, file);
+    const tl = await loadTimelineFromStorage(file);
     tl.timelineID = timelineID;
     Util.hideGlobalBusyCursor();
     return tl;
@@ -162,7 +161,7 @@ export async function listTimelinesInContainer(container) {
 
 export async function getTimelineList() {
   try {
-    const response = await fetch("/api/listUserTimelines");
+    const response = await fetch("/api/listUserTimelines?max=3");
     const {prefix, items} = await response.json();
     return items;
 
