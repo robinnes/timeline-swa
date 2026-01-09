@@ -179,11 +179,11 @@ async function refreshTimelineList() {
     openDialogBlobs = blobs || [];
     renderOpenTimelineTable();
   } catch (err) {
-    //console.error(err);
-    //openDialogBlobs = [];
-    const fakeBlobs = tempSimulateList();
-    openDialogBlobs = fakeBlobs || [];
-    renderOpenTimelineTable();
+    console.error(err);
+    openDialogBlobs = [];
+    //const fakeBlobs = tempSimulateList();
+    //openDialogBlobs = fakeBlobs || [];
+    //renderOpenTimelineTable();
   }
 }
 
