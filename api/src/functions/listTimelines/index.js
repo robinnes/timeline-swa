@@ -6,8 +6,10 @@ const {
   badRequest,
   unauthorized,
   serverError,
-  requireUserKey,
-  privatePrefixForUserKey
+  //requireUserKey,
+  requireUsernameFolderKey,
+  //privatePrefixForUserKey,
+  privatePrefixForUsername
 } = require('../utils');
 
 app.http('listUserTimelines', {
