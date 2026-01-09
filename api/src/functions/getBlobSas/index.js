@@ -28,9 +28,9 @@ app.http('getBlobSas', {
       }
 
       // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
-      let userKey;
+      let usernameKey;
       try {
-        userKey = requireUserKey(request); // sanitized already
+        usernameKey = await requireUsernameFolderKey(request);
       } catch (e) {
         return unauthorized(e.message);
       }
@@ -52,7 +52,7 @@ app.http('getBlobSas', {
       }
 
       const containerName = 'timelines';
-      const prefix = privatePrefixForUserKey(userKey); // "private/<userKey>/"
+      const prefix = privatePrefixForUsername(usernameKey);
       const blobName = `${prefix}${filename}`;
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');

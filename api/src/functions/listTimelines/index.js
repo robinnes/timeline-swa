@@ -20,15 +20,10 @@ app.http('listUserTimelines', {
         return serverError('Missing TIMELINE_STORAGE_CONN environment variable');
       }
 
-      let userKey;
-      try {
-        userKey = requireUserKey(request); // sanitized already
-      } catch (e) {
-        return unauthorized(e.message);
-      }
+      let usernameKey = await requireUsernameFolderKey(request);
 
       const containerName = 'timelines';
-      const prefix = privatePrefixForUserKey(userKey); // "private/<userKey>/"
+      const prefix = privatePrefixForUsername(usernameKey);
 
       // Optional query params (all optional)
       const url = new URL(request.url);

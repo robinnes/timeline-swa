@@ -37,6 +37,8 @@ module.exports = {
  * - Provide small response helpers
  */
 
+const { getUsernameKey } = require('./auth0Mgmt');
+
 /* --------------------------------- Responses --------------------------------- */
 
 function json(status, obj) {
@@ -186,6 +188,43 @@ function extractConnectionStringParts(connectionString) {
   return { url, accountName, accountKey };
 }
 
+
+/* ------------------------ UserName -------------------- */
+
+/**
+ * Require an authenticated user and return a username-based folder key.
+ * Throws if unauthenticated or username unavailable.
+ */
+async function requireUsernameFolderKey(request) {
+  const auth0UserId = getRawUserId(request);
+  if (!auth0UserId) {
+    throw new Error('Not authenticated');
+  }
+
+  const usernameKey = await getUsernameKey(auth0UserId);
+  if (!usernameKey) {
+    throw new Error('Username not available for this user');
+  }
+
+  return usernameKey;
+}
+
+/**
+ * private/<username>/
+ */
+function privatePrefixForUsername(usernameKey) {
+  return `private/${usernameKey}/`;
+}
+
+/**
+ * public/<username>/
+ */
+function publicPrefixForUsername(usernameKey) {
+  return `public/${usernameKey}/`;
+}
+
+
+
 /* --------------------------------- Exports ---------------------------------- */
 
 module.exports = {
@@ -208,5 +247,10 @@ module.exports = {
   requireSafeFilename,
 
   // storage parsing
-  extractConnectionStringParts
+  extractConnectionStringParts,
+
+  // username
+  requireUsernameFolderKey,
+  privatePrefixForUsername,
+  publicPrefixForUsername
 };
