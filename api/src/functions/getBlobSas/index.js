@@ -11,8 +11,10 @@ const {
   badRequest,
   unauthorized,
   serverError,
-  requireUserKey,
-  privatePrefixForUserKey,
+  //requireUserKey,
+  requireUsernameFolderKey,
+  //privatePrefixForUserKey,
+  privatePrefixForUsername,
   requireSafeFilename,
   extractConnectionStringParts
 } = require('../utils');
