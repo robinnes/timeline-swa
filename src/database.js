@@ -164,7 +164,6 @@ export async function getTimelineList(scope) {
   try {
     const url = "/api/listTimelines" + (scope === "public" ? "?public" : "");
     const response = await fetch(url);
-    if (scope === "public") response = response + "?public";
     const {prefix, items} = await response.json();
     Util.hideGlobalBusyCursor();
     return items;
