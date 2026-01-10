@@ -39,7 +39,7 @@ app.http('getBlobSas', {
       let blobName;
       if (public) { // && mode === "read") {
         //blobName = `public/${name}`;
-        blobName = "public/wrob/modernisrael.json";
+        blobName = "private/wrob/modernisrael.json";
       } else {
         // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
         let usernameKey;
