@@ -27,7 +27,7 @@ app.http('getBlobSas', {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = 'timelines';
       const {name, mode} = await getParams(request);
-      const public = request.url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
+//      const public = request.url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
 
       if (!name) {
         return badRequest(
@@ -36,10 +36,10 @@ app.http('getBlobSas', {
       }
 
       let blobName;
-      if (public && mode == "read") {
-        blobName = `public/${name}`;
+//      if (public && mode == "read") {
+//        blobName = `public/${name}`;
 
-      } else {
+//      } else {
         // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
         let usernameKey;
         try {
@@ -58,7 +58,7 @@ app.http('getBlobSas', {
 
         const prefix = privatePrefixForUsername(usernameKey);
         blobName = `${prefix}${filename}`;
-      }
+//      }
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');
 
