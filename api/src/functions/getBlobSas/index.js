@@ -29,18 +29,18 @@ app.http('getBlobSas', {
       const {name, mode} = await getParams(request);
       const url = new URL(request.url);
       const public = url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
-return json(401, { error: `public=${public}` });
+
       if (!name) {
         return badRequest(
           'Missing filename. Provide ?name=<filename> or JSON body { "name": "file.json" }.'
         );
       }
 
-      let blobName;
-      if (public) { // && mode === "read") {
-        blobName = `public/${name}`;
+      //let blobName;
+      //if (public) { // && mode === "read") {
+      //  blobName = `public/${name}`;
 
-      } else {
+      //} else {
         // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
         let usernameKey;
         try {
@@ -59,7 +59,7 @@ return json(401, { error: `public=${public}` });
 
         const prefix = privatePrefixForUsername(usernameKey);
         blobName = `${prefix}${filename}`;
-      }
+      //}
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');
 
