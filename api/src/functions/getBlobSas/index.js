@@ -36,11 +36,11 @@ app.http('getBlobSas', {
         );
       }
 
-      //let blobName;
-      //if (public) { // && mode === "read") {
-      //  blobName = `public/${name}`;
+      let blobName;
+      if (!public) { // && mode === "read") {
+        blobName = `public/${name}`;
 
-      //} else {
+      } else {
         // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
         let usernameKey;
         try {
@@ -59,7 +59,7 @@ app.http('getBlobSas', {
 
         const prefix = privatePrefixForUsername(usernameKey);
         blobName = `${prefix}${filename}`;
-      //}
+      }
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');
 
