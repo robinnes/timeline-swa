@@ -12,28 +12,28 @@ const {
   privatePrefixForUsername
 } = require('../utils');
 
-app.http('listUserTimelines', {
+app.http('listTimelines', {
   methods: ['GET'],
   authLevel: 'anonymous', // SWA route protection handles auth at the edge
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-      if (!conn) {
-        return serverError('Missing TIMELINE_STORAGE_CONN environment variable');
-      }
-
-      let usernameKey;
-      try {
-        usernameKey = await requireUsernameFolderKey(request);
-      } catch (e) {
-        return unauthorized(e.message);
-      }
-
       const containerName = 'timelines';
-      const prefix = privatePrefixForUsername(usernameKey);
-
-      // Optional query params (all optional)
       const url = new URL(request.url);
+      const public = url.searchParams.get('public');  // return list of public docs if 'public' parameter present
+      let prefix = 'public';
+
+      if (!public) {
+        let usernameKey;
+        try {
+          usernameKey = await requireUsernameFolderKey(request);
+        } catch (e) {
+          return unauthorized(e.message);
+        }
+        prefix = privatePrefixForUsername(usernameKey);
+      }
+
+      // Optional query params
       const ext = (url.searchParams.get('ext') || '.json').toLowerCase(); // default: only .json
       const max = clampInt(url.searchParams.get('max'), 1, 500, 200); // default 200
 

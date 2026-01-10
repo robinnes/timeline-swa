@@ -7,7 +7,6 @@ const {
 } = require('@azure/storage-blob');
 
 const {
-  CONTAINER_NAME,
   json,
   badRequest,
   unauthorized,
@@ -26,9 +25,6 @@ app.http('getBlobSas', {
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-      if (!conn) {
-        return serverError('Missing TIMELINE_STORAGE_CONN environment variable');
-      }
 
       // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
       let usernameKey;
