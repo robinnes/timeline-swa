@@ -20,7 +20,7 @@ app.http('listTimelines', {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = 'timelines';
       const url = new URL(request.url);
-      const public = url.searchParams.get('public');  // return list of public docs if 'public' parameter present
+      const public = url.searchParams.has('public');  // return list of public docs if 'public' parameter is present
       let prefix = 'public/';
 
       if (!public) {
