@@ -34,7 +34,7 @@ async function acquireSasToken() {
 
 async function acquireBlobSas(file, mode) {
   try {
-    const url = `/api/getBlobSas?name=${file}&mode=${mode}`;
+    const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
