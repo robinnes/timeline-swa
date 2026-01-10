@@ -29,7 +29,7 @@ app.http('getBlobSas', {
       const {name, mode} = await getParams(request);
       const url = new URL(request.url);
       const public = url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
-
+return json(401, { error: `public=${public}` });
       if (!name) {
         return badRequest(
           'Missing filename. Provide ?name=<filename> or JSON body { "name": "file.json" }.'
@@ -37,7 +37,7 @@ app.http('getBlobSas', {
       }
 
       let blobName;
-      if (public && mode === "read") {
+      if (public) { // && mode === "read") {
         blobName = `public/${name}`;
 
       } else {
