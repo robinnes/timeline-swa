@@ -34,7 +34,7 @@ async function acquireSasToken() {
 
 async function acquireBlobSas(file, mode) {
   try {
-    const url = `/api/getBlobSas?name=${file}&mode=${mode}&public`;
+    const url = `/api/getBlobSas?name=${file}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
@@ -162,7 +162,7 @@ export async function listTimelinesInContainer(container) {
 export async function getTimelineList() {
   Util.showGlobalBusyCursor();
   try {
-    const response = await fetch("/api/listTimelines?public");  // ?max=200 (default)
+    const response = await fetch("/api/listTimelines");  // ?max=200 (default)
     const {prefix, items} = await response.json();
     Util.hideGlobalBusyCursor();
     return items;
