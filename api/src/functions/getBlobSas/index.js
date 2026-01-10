@@ -37,7 +37,7 @@ app.http('getBlobSas', {
       }
 
       let blobName;
-      if (!public) { // && mode === "read") {
+      if (name === "xxx") { // && mode === "read") {
         blobName = `public/${name}`;
 
       } else {
