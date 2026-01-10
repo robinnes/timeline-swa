@@ -147,7 +147,7 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    const {container, file} = tl.timelineID;
+    const {container, file, scope} = tl.timelineID;
     await saveTimelineToStorage(container, file, text);
     tl.dirty = false;
   } catch (err) {
