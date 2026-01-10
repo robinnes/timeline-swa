@@ -21,7 +21,7 @@ app.http('listTimelines', {
       const containerName = 'timelines';
       const url = new URL(request.url);
       const public = url.searchParams.get('public');  // return list of public docs if 'public' parameter present
-      let prefix = 'public';
+      let prefix = 'public/';
 
       if (!public) {
         let usernameKey;
