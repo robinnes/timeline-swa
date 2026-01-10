@@ -2,6 +2,7 @@ const { app } = require('@azure/functions');
 const { BlobServiceClient } = require('@azure/storage-blob');
 
 const {
+  CONTAINER_NAME,
   json,
   badRequest,
   unauthorized,
@@ -29,7 +30,7 @@ app.http('listUserTimelines', {
         return unauthorized(e.message);
       }
 
-      const containerName = 'timelines';
+      const containerName = CONTAINER_NAME; //'timelines';
       const prefix = privatePrefixForUsername(usernameKey);
 
       // Optional query params (all optional)

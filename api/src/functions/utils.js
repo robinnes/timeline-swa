@@ -38,6 +38,7 @@ module.exports = {
  */
 
 const { getUsernameKey } = require('./auth0Mgmt');
+const CONTAINER_NAME = "timelines";
 
 /* --------------------------------- Responses --------------------------------- */
 

@@ -160,12 +160,15 @@ export async function listTimelinesInContainer(container) {
 */
 
 export async function getTimelineList() {
+  Util.showGlobalBusyCursor();
   try {
-    const response = await fetch("/api/listUserTimelines?max=3");
+    const response = await fetch("/api/listUserTimelines");  // ?max=200 (default)
     const {prefix, items} = await response.json();
+    Util.hideGlobalBusyCursor();
     return items;
 
   } catch (err) {
+    Util.hideGlobalBusyCursor();
     throw new Error(`Failed to aquire list of timelines: ${err.message}`);
   }
 }

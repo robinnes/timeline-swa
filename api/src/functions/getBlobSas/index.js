@@ -7,6 +7,7 @@ const {
 } = require('@azure/storage-blob');
 
 const {
+  CONTAINER_NAME,
   json,
   badRequest,
   unauthorized,
