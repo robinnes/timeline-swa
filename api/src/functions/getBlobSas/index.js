@@ -25,16 +25,9 @@ app.http('getBlobSas', {
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-
-      // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
-      let usernameKey;
-      try {
-        usernameKey = await requireUsernameFolderKey(request);
-      } catch (e) {
-        return unauthorized(e.message);
-      }
-
-      const { name, mode } = await getParams(request);
+      const containerName = 'timelines';
+      const {name, mode} = await getParams(request);
+      const public = request.url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
 
       if (!name) {
         return badRequest(
@@ -42,17 +35,30 @@ app.http('getBlobSas', {
         );
       }
 
-      // Prevent path traversal / escaping out of private/<userKey>/
-      let filename;
-      try {
-        filename = requireSafeFilename(name);
-      } catch (e) {
-        return badRequest(e.message);
-      }
+      let blobName;
+      if (public) {
+        blobName = `public/${name}`;
 
-      const containerName = 'timelines';
-      const prefix = privatePrefixForUsername(usernameKey);
-      const blobName = `${prefix}${filename}`;
+      } else {
+        // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
+        let usernameKey;
+        try {
+          usernameKey = await requireUsernameFolderKey(request);
+        } catch (e) {
+          return unauthorized(e.message);
+        }
+
+        // Prevent path traversal / escaping out of private/<userKey>/
+        let filename;
+        try {
+          filename = requireSafeFilename(name);
+        } catch (e) {
+          return badRequest(e.message);
+        }
+
+        const prefix = privatePrefixForUsername(usernameKey);
+        blobName = `${prefix}${filename}`;
+      }
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');
 
