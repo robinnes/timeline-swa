@@ -1,4 +1,4 @@
-import {CONTAINER} from './constants.js';
+import {CONTAINER} from './constants.js';  // need to drop this
 import {loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
 import {appState, timelines, zoomToTimeline} from './canvas.js';
@@ -25,12 +25,15 @@ let openDialogBlobs = [];
 let openDialogSelectedName = null;
 let openDialogSort = { key: 'name', direction: 'asc' };
 
-async function refreshTimelineList() {
+async function refreshTimelineList(scope) {
   try {
     openDialogSelectedName = null;
     openTimelineOpenBtn.disabled = true;
 
-    const blobs = await getTimelineList();
+    const scope = appState.authentication.userId != null ? "private" : "public";
+    //console.log({scope});
+
+    const blobs = await getTimelineList(scope);
 
     openDialogBlobs = blobs || [];
     renderOpenTimelineTable();

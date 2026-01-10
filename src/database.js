@@ -159,10 +159,12 @@ export async function listTimelinesInContainer(container) {
 }
 */
 
-export async function getTimelineList() {
+export async function getTimelineList(scope) {
   Util.showGlobalBusyCursor();
   try {
-    const response = await fetch("/api/listTimelines");  // ?max=200 (default)
+    const url = "/api/listTimelines" + (scope === "public" ? "?public" : "");
+    const response = await fetch(url);
+    if (scope === "public") response = response + "?public";
     const {prefix, items} = await response.json();
     Util.hideGlobalBusyCursor();
     return items;
