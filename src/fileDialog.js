@@ -202,7 +202,9 @@ document.querySelectorAll('.open-dialog__th--sortable')
 async function handleOpenTimelineConfirm() {
   if (openDialogMode === OPEN_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
-    const timelineID = {container: CONTAINER, file: openDialogSelectedName};
+
+    const scope = appState.authentication.userId != null ? "private" : "public";
+    const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
 
     // check if timeline is already there
     const existingTL = timelines.find(t =>

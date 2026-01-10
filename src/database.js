@@ -32,9 +32,10 @@ async function acquireSasToken() {
 }
 */
 
-async function acquireBlobSas(file, mode) {
+async function acquireBlobSas(scope, file, mode) {
   try {
-    const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}&public`;
+    const scopeFlag = scope === "public" ? "&public" : "";
+    const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}${scopeFlag}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
@@ -48,10 +49,10 @@ async function acquireBlobSas(file, mode) {
   }
 }
 
-async function loadTimelineFromStorage(file) {
+async function loadTimelineFromStorage(scope, file) {
   try {
     // acquire SAS token
-    const {url, sasKey} = await acquireBlobSas(file, "read");
+    const {url, sasKey} = await acquireBlobSas(scope, file, "read");
     //const blobUrl = formatURL(file, url, container, sasKey); 
 
     // fetch the blob
@@ -90,10 +91,12 @@ export async function saveTimelineToStorage(container, file, text) {
 
 export async function getTimeline(timelineID) {
   const file = timelineID.file;
+  const scope = timelineID.scope;
+
   Util.showGlobalBusyCursor();
   try {
     // retrieve from Azure blob storage
-    const tl = await loadTimelineFromStorage(file);
+    const tl = await loadTimelineFromStorage(scope, file);
     tl.timelineID = timelineID;
     Util.hideGlobalBusyCursor();
     return tl;
