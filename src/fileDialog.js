@@ -49,7 +49,7 @@ function getActiveFileScope() {
 
 function updateFileScopeButtons() {
   // only enable 'Private' button if user is logged in
-  const authenticated = false; // appState.authentication.userId != null;
+  const authenticated = appState.authentication.userId != null;
 
   // if "Private" button is selected and user is not authenticated, select "Public"
   const currentScope = getActiveFileScope();
@@ -246,7 +246,7 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    const scope = appState.authentication.userId != null ? "private" : "public";
+    const scope = getActiveFileScope();  //appState.authentication.userId != null ? "private" : "public";
     const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
 
     // check if timeline is already there
