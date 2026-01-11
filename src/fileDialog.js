@@ -9,15 +9,58 @@ import {openModal, closeModal} from './appmenu.js';
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
 const openTimelineTable = document.querySelector('.open-dialog__table');
-const openTimelineModalTitle = document.getElementById('open-timeline-modal-title');
+//const openTimelineModalTitle = document.getElementById('open-timeline-modal-title');
 const openTimelineFilenameInput = document.getElementById('open-timeline-filename-input');
 const openTimelineDialog = openTimelineModal ? openTimelineModal.querySelector('.modal__dialog') : null;
 const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
+const fileModalTabButtons = Array.from(document.querySelectorAll('.filemodal__tabs .tab-btn'));
 
-const OPEN_DIALOG_MODE_OPEN = 'open';
-const OPEN_DIALOG_MODE_SAVE_AS = 'save-as';
-let openDialogMode = OPEN_DIALOG_MODE_OPEN;
+// Dialog functions as "Open" or "Save As"
+const FILE_DIALOG_MODE_OPEN = 'open';
+const FILE_DIALOG_MODE_SAVE_AS = 'save-as';
+let fileDialogMode = FILE_DIALOG_MODE_OPEN;
 
+
+/******************************* Public/Private tabs *******************************/
+
+// Attach click handlers to tab buttons
+for (const btn of fileModalTabButtons) {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (btn.disabled) return;
+    const target = btn.dataset.target;
+    setActiveFileScope(target);
+  });
+}
+
+function setActiveFileScope(scope) {
+  for (const btn of fileModalTabButtons) {
+    const isTarget = btn.dataset.target === scope;
+    btn.classList.toggle('is-active', isTarget);
+    btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  }
+}
+
+function getActiveFileScope() {
+  // return "public" or "private", whichever is selected
+  const activeButton = fileModalTabButtons.find(btn => btn.classList.contains('is-active'));
+  return activeButton?.dataset.target;
+}
+
+function updateFileScopeButtons() {
+  // only enable 'Private' button if user is logged in
+  const authenticated = false; // appState.authentication.userId != null;
+
+  // if "Private" button is selected and user is not authenticated, select "Public"
+  const currentScope = getActiveFileScope();
+  if (currentScope === "private" || !authenticated) setActiveFileScope("public");
+
+  // enable/disable the "Private button"
+  const privateButton = fileModalTabButtons.find(btn => btn.dataset.target === 'private');
+  privateButton.disabled = !authenticated;
+  privateButton.classList.toggle('is-disabled', !authenticated);
+  privateButton.setAttribute('aria-disabled', !authenticated ? 'true' : 'false');
+}
 
 /******************************* File list table *******************************/
 
@@ -30,8 +73,8 @@ async function refreshTimelineList(scope) {
     openDialogSelectedName = null;
     openTimelineOpenBtn.disabled = true;
 
-    const scope = appState.authentication.userId != null ? "private" : "public";
-    //console.log({scope});
+    //const scope = appState.authentication.userId != null ? "private" : "public";
+    console.log({scope});
 
     const blobs = await getTimelineList(scope);
 
@@ -200,7 +243,7 @@ document.querySelectorAll('.open-dialog__th--sortable')
   });
 
 async function handleOpenTimelineConfirm() {
-  if (openDialogMode === OPEN_DIALOG_MODE_OPEN) {
+  if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
     const scope = appState.authentication.userId != null ? "private" : "public";
@@ -223,7 +266,7 @@ async function handleOpenTimelineConfirm() {
     }
 
     closeModal(openTimelineModal);
-  } else if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
+  } else if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {
     if (!openTimelineFilenameInput) return;
 
     let filename = openTimelineFilenameInput.value.trim();
@@ -253,17 +296,20 @@ async function handleOpenTimelineConfirm() {
 export function openOpenTimelineDialog() {
   configureOpenTimelineDialogForOpen();
   openModal(openTimelineModal);
-  refreshTimelineList();
-    
+  const scope = getActiveFileScope();
+  refreshTimelineList(scope);
+  
   // Ensure key events go to the modal
   //openTimelineOpenBtn.focus();
 }
 
 function configureOpenTimelineDialogForOpen() {
-  openDialogMode = OPEN_DIALOG_MODE_OPEN;
+  fileDialogMode = FILE_DIALOG_MODE_OPEN;
+
+  updateFileScopeButtons();  // don't allow "Private" if user is not authenticated
 
   openTimelineDialog.classList.remove('modal__dialog--save-mode');
-  openTimelineModalTitle.textContent = 'Open timeline';
+  //openTimelineModalTitle.textContent = 'Open timeline';
   openTimelineOpenBtn.textContent = "Open";
 
   openTimelineOpenBtn.disabled = !openDialogSelectedName;
@@ -310,10 +356,10 @@ export function openSaveAsTimelineDialog(defaultFilename = '') {
 }
 
 function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
-  openDialogMode = OPEN_DIALOG_MODE_SAVE_AS;
+  fileDialogMode = FILE_DIALOG_MODE_SAVE_AS;
 
   openTimelineDialog.classList.add('modal__dialog--save-mode');
-  openTimelineModalTitle.textContent = 'Save timeline';
+  //openTimelineModalTitle.textContent = 'Save timeline';
   openTimelineOpenBtn.textContent = 'Save';
 
   openTimelineOpenBtn.disabled = !defaultFilename;
@@ -322,7 +368,7 @@ function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
 
 // Save as filename field keyboard handler
 openTimelineFilenameInput.addEventListener('input', () => {
-  if (openDialogMode === OPEN_DIALOG_MODE_SAVE_AS) {
+  if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {
     const hasText = openTimelineFilenameInput.value.trim().length > 0;
     openTimelineOpenBtn.disabled = !hasText;
   }

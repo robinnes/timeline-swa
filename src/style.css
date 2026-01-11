@@ -171,12 +171,12 @@ aside.sidebar {
 }
 
 /*************************** Sidebar header + app menu ***************************/
-
+/*
 .sidebar__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2px 0 4px 2px; /* 4px 0 8px 0 */
+  padding: 2px 0 4px 2px;      (4px 0 8px 0)
   margin-bottom: 4px;
 }
 
@@ -193,7 +193,7 @@ aside.sidebar {
   text-transform: uppercase;
   color: var(--muted);
 }
-
+*/
 /*************************** Tabs at top of edit panels ***************************/
 .panel__tabs {
   display: flex;

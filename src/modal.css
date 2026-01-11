@@ -84,6 +84,40 @@ body.modal-open .app-menu {
   margin-top: 4px;
 } */
 
+/*************************** Public/Private tabs ***************************/
+.filemodal__tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0 8px 0; /* was 12px on top */
+}
+.filemodal__tabs .tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 6px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.filemodal__tabs .tab-btn:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.01);
+}
+.filemodal__tabs .tab-btn.is-active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+.filemodal__tabs .tab-btn:disabled,
+.filemodal__tabs .tab-btn.is-disabled {
+  color: var(--muted);
+  cursor: default;
+  background: transparent;
+  pointer-events: none;
+  border-bottom-color: transparent;
+}
+
 /****************************** Table *******************************/
 
 /* Scrollable table container */
