@@ -28,8 +28,9 @@ for (const btn of fileModalTabButtons) {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     if (btn.disabled) return;
-    const target = btn.dataset.target;
-    setActiveFileScope(target);
+    const selectedScope = btn.dataset.target;
+    setActiveFileScope(selectedScope);
+    refreshTimelineList(selectedScope);
   });
 }
 
