@@ -71,7 +71,7 @@ openTimelineItem.addEventListener('click', () => {
   openOpenTimelineDialog();
 });
 
-/******************************* Authorization *******************************/
+/******************************* Authentication *******************************/
 
 async function getAuthState() {
   const res = await fetch('/.auth/me', { cache: 'no-store' });

@@ -9,10 +9,11 @@ import {openModal, closeModal} from './appmenu.js';
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
 const openTimelineTable = document.querySelector('.open-dialog__table');
-//const openTimelineModalTitle = document.getElementById('open-timeline-modal-title');
+const saveasTimelineModalTitle = document.getElementById('saveas-timeline-modal-title');
 const openTimelineFilenameInput = document.getElementById('open-timeline-filename-input');
 const openTimelineDialog = openTimelineModal ? openTimelineModal.querySelector('.modal__dialog') : null;
 const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
+const fileModalScopeTabs = document.getElementById( 'filemodal-scope-tabs');
 const fileModalTabButtons = Array.from(document.querySelectorAll('.filemodal__tabs .tab-btn'));
 
 // Dialog functions as "Open" or "Save As"
@@ -21,7 +22,7 @@ const FILE_DIALOG_MODE_SAVE_AS = 'save-as';
 let fileDialogMode = FILE_DIALOG_MODE_OPEN;
 
 
-/******************************* Public/Private tabs *******************************/
+/******************************* Header and Public/Private tabs *******************************/
 
 // Attach click handlers to tab buttons
 for (const btn of fileModalTabButtons) {
@@ -54,7 +55,7 @@ function updateFileScopeButtons() {
 
   // if "Private" button is selected and user is not authenticated, select "Public"
   const currentScope = getActiveFileScope();
-  if (currentScope === "private" || !authenticated) setActiveFileScope("public");
+  if (currentScope === "private" && !authenticated) setActiveFileScope("public");
 
   // enable/disable the "Private button"
   const privateButton = fileModalTabButtons.find(btn => btn.dataset.target === 'private');
@@ -74,13 +75,10 @@ async function refreshTimelineList(scope) {
     openDialogSelectedName = null;
     openTimelineOpenBtn.disabled = true;
 
-    //const scope = appState.authentication.userId != null ? "private" : "public";
-    console.log({scope});
-
     const blobs = await getTimelineList(scope);
-
     openDialogBlobs = blobs || [];
     renderOpenTimelineTable();
+
   } catch (err) {
     console.error(err);
     openDialogBlobs = [];
@@ -295,7 +293,8 @@ async function handleOpenTimelineConfirm() {
 /******************************* Open timeline modal *******************************/
 
 export function openOpenTimelineDialog() {
-  configureOpenTimelineDialogForOpen();
+  configureOpenTimelineDialogForOpen();  
+
   openModal(openTimelineModal);
   const scope = getActiveFileScope();
   refreshTimelineList(scope);
@@ -307,10 +306,11 @@ export function openOpenTimelineDialog() {
 function configureOpenTimelineDialogForOpen() {
   fileDialogMode = FILE_DIALOG_MODE_OPEN;
 
+  fileModalScopeTabs.removeAttribute('hidden');
+  saveasTimelineModalTitle.setAttribute('hidden', '');
   updateFileScopeButtons();  // don't allow "Private" if user is not authenticated
 
   openTimelineDialog.classList.remove('modal__dialog--save-mode');
-  //openTimelineModalTitle.textContent = 'Open timeline';
   openTimelineOpenBtn.textContent = "Open";
 
   openTimelineOpenBtn.disabled = !openDialogSelectedName;
@@ -352,7 +352,7 @@ openTimelineModal.addEventListener('keydown', (ev) => {
 export function openSaveAsTimelineDialog(defaultFilename = '') {
   configureOpenTimelineDialogForSaveAs(defaultFilename);
   openModal(openTimelineModal);
-  refreshTimelineList();
+  refreshTimelineList("private");
   openTimelineFilenameInput.focus();
 }
 
@@ -360,7 +360,9 @@ function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
   fileDialogMode = FILE_DIALOG_MODE_SAVE_AS;
 
   openTimelineDialog.classList.add('modal__dialog--save-mode');
-  //openTimelineModalTitle.textContent = 'Save timeline';
+  fileModalScopeTabs.setAttribute('hidden', '');
+  saveasTimelineModalTitle.removeAttribute('hidden');
+  
   openTimelineOpenBtn.textContent = 'Save';
 
   openTimelineOpenBtn.disabled = !defaultFilename;
@@ -378,13 +380,19 @@ openTimelineFilenameInput.addEventListener('input', () => {
 /******************************* temp *******************************/
 
 function tempSimulateList() {
-  const x = 
-    [{lastModified:"Mon, 17 Nov 2025 19:20:27 GMT", name:"career.json"},
-     {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json"},
-     {lastModified:"Mon, 17 Nov 2025 01:47:33 GMT", name:"movetotx.json"},
-     {lastModified:"Mon, 17 Nov 2025 05:33:13 GMT", name:"robandanh.json"},
-     {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robinnes.json"},
-     {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"sherryinnes.json"}
-    ];
-  return(x);
+  const scope = getActiveFileScope();
+  if (scope === "public") {
+    return([
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json"}
+    ]);
+  } else {
+    return([ 
+      {lastModified:"Mon, 17 Nov 2025 19:20:27 GMT", name:"career.json"},
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json"},
+      {lastModified:"Mon, 17 Nov 2025 01:47:33 GMT", name:"movetotx.json"},
+      {lastModified:"Mon, 17 Nov 2025 05:33:13 GMT", name:"robandanh.json"},
+      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robinnes.json"},
+      {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"sherryinnes.json"}
+    ]);
+  }
 }
