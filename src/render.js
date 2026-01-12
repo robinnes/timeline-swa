@@ -59,6 +59,16 @@ export function zoomSpec(sig){
   };
 }
 
+export function formatEventDates(e) {
+  const spec = zoomSpec(e.significance);
+
+  if (spec.style === 'dot') return Util.formatTextDate(e.date);
+
+  const from = Util.formatTextDate(e.dateFrom);
+  const to = Util.formatTextDate(e.dateTo);
+  return `${from ?? "?"} - ${to ?? "?"}`;
+}
+
 function registerEvents(tl) {
   // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
   const rangeLeft = 0 - DRAW.MAX_LABEL_WIDTH / 2;

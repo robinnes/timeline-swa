@@ -64,6 +64,7 @@ function updateFileScopeButtons() {
   privateButton.setAttribute('aria-disabled', !authenticated ? 'true' : 'false');
 }
 
+
 /******************************* File list table *******************************/
 
 let openDialogBlobs = [];
@@ -245,7 +246,7 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    const scope = getActiveFileScope();  //appState.authentication.userId != null ? "private" : "public";
+    const scope = getActiveFileScope();
     const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
 
     // check if timeline is already there
@@ -289,6 +290,7 @@ async function handleOpenTimelineConfirm() {
     closeModal(openTimelineModal);
   }
 }
+
 
 /******************************* Open timeline modal *******************************/
 
@@ -346,6 +348,7 @@ openTimelineModal.addEventListener('keydown', (ev) => {
   }
 });
 
+
 /******************************* Save As timeline modal *******************************/
 
 // Called from side panel button
@@ -377,13 +380,14 @@ openTimelineFilenameInput.addEventListener('input', () => {
   }
 });
 
+
 /******************************* temp *******************************/
 
 function tempSimulateList() {
   const scope = getActiveFileScope();
   if (scope === "public") {
     return([
-      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json"}
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/modernisrael.json"}
     ]);
   } else {
     return([ 

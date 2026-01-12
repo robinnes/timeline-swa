@@ -1,5 +1,6 @@
+import * as Util from './util.js';
 import {appState, draw} from './canvas.js';
-import {zoomSpec, positionLabels} from './render.js';
+import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 
@@ -14,41 +15,13 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const eventDeleteBtn = document.getElementById('event-delete');
+const viewTimelineFooter = document.getElementById('view-timeline-footer');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 
-
-/* ------------------- Helper functions -------------------- */
-
-/*
-// Initialize tab state to reflect the currently visible panel (disabled - do I need it?)
-(() => {
-  updateTabStates();
-  const activePanel = document.querySelector('.panel.is-active');
-  if (activePanel) {
-    if (activePanel.id === 'panel-view-timeline' || activePanel.id === 'panel-edit-timeline') setActiveEditTab('timeline');
-    else setActiveEditTab('event');
-  }
-})();
-*/
-
-function formatTextDate(txtDate) {
-  const d = new Date(txtDate); // adjusts for TZ, so must also be undone with timeZone:"UTC"
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
-}
-
-export function formatEventDates(e) {
-  const spec = zoomSpec(e.significance);
-
-  if (spec.style === 'dot') return formatTextDate(e.date);
-
-  const from = formatTextDate(e.dateFrom);
-  const to = formatTextDate(e.dateTo);
-  return `${from ?? "?"} - ${to ?? "?"}`;
-}
 
 /* ------------------- Sidebar -------------------- */
 
@@ -69,6 +42,7 @@ export function closeSidebar() {
   canvas.focus();
 }
 sidebarClose.addEventListener('click', closeSidebar);
+
 
 /* ------------------- Panel navigation -------------------- */
 
@@ -310,6 +284,12 @@ function setSidebarTimeline(tl) {
   const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
   if (isHtml) $("timeline-details").innerHTML = tl.details;
   else $("timeline-details").innerText = tl.details ?? '';
+
+  // no 'Edit' button for public timelines
+  if (tl.timelineID.scope === "public") 
+    viewTimelineFooter.setAttribute("hidden", "");
+  else 
+    viewTimelineFooter.removeAttribute("hidden");
 
   // edit timeline panel
   editTimelineTitle.value = tl.title ?? '';

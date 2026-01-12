@@ -1,8 +1,8 @@
 import * as Util from './util.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeEvent} from './timeline.js';
-import {formatEventDates, updateSaveButton} from './panel.js';
-import {positionLabels} from './render.js';
+import {updateSaveButton} from './panel.js';
+import {positionLabels, formatEventDates} from './render.js';
 
 export function startDragging() {
   // start dragging a handle

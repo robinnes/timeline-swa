@@ -27,6 +27,11 @@ export function htmlToPlainText(html) {
   return d.innerText;
 }
 
+export function formatTextDate(txtDate) {
+  const d = new Date(txtDate); // adjusts for TZ, so must also be undone with timeZone:"UTC"
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
+}
+
 
 // **********************************************************************************************************************
 
