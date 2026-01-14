@@ -308,7 +308,7 @@ canvas.addEventListener('click', function (e) {
   if (appState.highlighted.linkIdx > -1) {
     // hyperlink clicked
     const link = screenElements[appState.highlighted.linkIdx].subType;
-    followLink({container:CONTAINER, file: link + ".json"});
+    followLink(link + ".json");
     return;
   }
 
@@ -381,10 +381,10 @@ export function zoomToTimeline(tl) {
   positionTimelines(true);
 }
 
-async function followLink(timelineID) {
+async function followLink(file) {
   // check if timeline is already there
   const existingTL = timelines.find(t =>
-    JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
+    t.timelineID.file === file);
 
   if (existingTL) {
     zoomToTimeline(existingTL);
@@ -394,7 +394,7 @@ async function followLink(timelineID) {
     const idx = timelines.indexOf(tl);
     const yPos = tl.yPos
     const ceiling = tl.ceiling;
-    const newTL = await loadTimeline(timelineID, idx+1); // insert it above the clicked one
+    const newTL = await loadTimeline(file, idx+1); // insert it above the clicked one
     newTL.yPos = yPos;
     newTL.ceiling = ceiling;
     zoomToTimeline(newTL);
@@ -458,8 +458,9 @@ document.addEventListener("click", (e) => {
   if (a.hasAttribute("tl")) {
     e.preventDefault();
     //const timelineID = {container:CONTAINER, file:a.dataset.internalLink + '.json'};
-    const timelineID = {container:CONTAINER, file:a.getAttribute('tl') + '.json'};
-    followLink(timelineID);
+    //const timelineID = {container:CONTAINER, file:a.getAttribute('tl') + '.json'};
+    const file = a.getAttribute('tl') + '.json';
+    followLink(file);
   }
 });
 
@@ -475,11 +476,14 @@ export function draw(reposition){
   //Util.debugVars();
 }
 
-export async function initialLoad(defaultTL) {
-  // open timeline indicated param "tl" or default established in main()
+export async function initialLoad() {
+  // open public timeline indicated param "tl" if present
   const params = new URLSearchParams(window.location.search);
-  const file = (params.get("tl") || defaultTL) + ".json";
-  const tl = await loadTimeline({container:CONTAINER, file:file});
+  const tlParam = params.get("tl");
+  if (!tlParam) return;
+
+  const file = tlParam + ".json";
+  const tl = await loadTimeline(file);
   positionTimelines(false);
   centerOnTimeline(tl);
   draw(true);

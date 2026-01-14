@@ -246,8 +246,8 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    const scope = getActiveFileScope();
-    const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
+    //const scope = getActiveFileScope();
+    //const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
 
     // check if timeline is already there
     const existingTL = timelines.find(t =>
@@ -260,7 +260,7 @@ async function handleOpenTimelineConfirm() {
       zoomToTimeline(existingTL);
     } else {
       // load and zoom to timelineID
-      const tl = await loadTimeline(timelineID, timelines.length); // insert it above the clicked one
+      const tl = await loadTimeline(openDialogSelectedName, timelines.length); // insert it above the clicked one
       positionTimelines(false);
       zoomToTimeline(tl);
     }

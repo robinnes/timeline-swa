@@ -101,9 +101,15 @@ function initializeTimeline(tl) {
   tl.dateTo = maxDate;
 }
 
-export async function loadTimeline(timelineID, idx=0) {
+export async function loadTimeline(file, idx=0) {
+
+  // if file does not include a slash ("/") then it's private, otherwise public
+  const scope = file.includes('/') ? 'public' : 'private';
+
   // load timelineID into timelines array
-  const tl = await getTimeline(timelineID);
+  const tl = await getTimeline(scope, file);
+  const timelineID = {scope:scope, file:file};
+  tl.timelineID = timelineID;
   initializeTimeline(tl);
   tl.mode = 'view';
   timelines.splice(idx, 0, tl);
@@ -116,7 +122,7 @@ export async function reloadTimeline(tl) {
   const timelineID = tl.timelineID;
   const yPos = tl.yPos, ceiling = tl.ceiling;
   timelines[idx] = null;
-  const reloaded = await getTimeline(timelineID);
+  const reloaded = await getTimeline(timelineID.scope, timelineID.file);
   initializeTimeline(reloaded);
   reloaded.yPos = yPos; reloaded.ceiling = ceiling;
   timelines[idx] = reloaded;

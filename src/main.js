@@ -1,12 +1,13 @@
 import {canvas, resize, tick, initialLoad} from './canvas.js';
-import {updateAppMenu} from './appmenu.js';
+//import {updateAppMenu} from './appmenu.js';
 
 // Kick things off
 resize();
-updateAppMenu();
+//updateAppMenu();
 requestAnimationFrame(tick);
 canvas.focus();
-//initialLoad("robinnes");
+initialLoad();
+
 
 /*
 import {parseLabel} from './label.js';
