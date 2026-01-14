@@ -92,6 +92,7 @@ export async function saveTimelineToStorage(container, file, text) {
 export async function getTimeline(scope, file) {
   //const file = timelineID.file;
   //const scope = timelineID.scope;
+  const timelineID = {scope:scope, file:file};
 
   Util.showGlobalBusyCursor();
   try {
@@ -106,7 +107,6 @@ export async function getTimeline(scope, file) {
     //const tl = window[obj];  // look for variable matching the filename (minus ext)
     const response = await fetch(`data/${file}`);  // only works when a local server is running
     const tl = await response.json();
-    const timelineID = {scope:scope, file:file};
     tl.timelineID = timelineID;
     await sleep(500);  // simulate database access
     Util.hideGlobalBusyCursor();
