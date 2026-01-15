@@ -36,7 +36,7 @@ export function closeAppMenu() {
 }
 
 export async function updateAppMenu() {
-  const isAuthenticated = await getAuthState();
+  const isAuthenticated = true; // await getAuthState();
 
   // Display "New timeline" only if authenticated
   if (isAuthenticated) {

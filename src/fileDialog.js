@@ -275,7 +275,7 @@ async function handleOpenTimelineConfirm() {
 
     const timelineID = { scope:"private", file: filename };
     appState.selected.timeline.timelineID = timelineID;
-    saveTimeline(timelineID).then(() => {
+    saveTimeline(appState.selected.timeline).then(() => {
       updateSaveButton();
     });
 
