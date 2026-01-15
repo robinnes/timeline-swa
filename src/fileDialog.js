@@ -1,4 +1,3 @@
-import {CONTAINER} from './constants.js';  // need to drop this
 import {loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
 import {appState, timelines, zoomToTimeline} from './canvas.js';
@@ -246,9 +245,6 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    //const scope = getActiveFileScope();
-    //const timelineID = {container:CONTAINER, file:openDialogSelectedName, scope:scope};
-
     // check if timeline is already there
     const existingTL = timelines.find(t =>
       JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
@@ -264,26 +260,22 @@ async function handleOpenTimelineConfirm() {
       positionTimelines(false);
       zoomToTimeline(tl);
     }
-
     closeModal(openTimelineModal);
+
   } else if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {
     if (!openTimelineFilenameInput) return;
 
     let filename = openTimelineFilenameInput.value.trim();
-    if (!filename) {
-      // No name → do nothing (or you could show a validation message)
-      return;
-    }
+    if (!filename) return;
 
     // Ensure .json extension
     if (!filename.toLowerCase().endsWith('.json')) {
       filename = `${filename}.json`;
     }
 
-    const blobName = filename;
-    const timelineID = { container: CONTAINER, file: blobName };
+    const timelineID = { scope:"private", file: filename };
     appState.selected.timeline.timelineID = timelineID;
-    saveTimeline(appState.selected.timeline).then(() => {
+    saveTimeline(timelineID).then(() => {
       updateSaveButton();
     });
 

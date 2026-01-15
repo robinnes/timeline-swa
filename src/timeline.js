@@ -153,8 +153,7 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    const {container, file, scope} = tl.timelineID;
-    await saveTimelineToStorage(container, file, text);
+    await saveTimelineToStorage(tl.timelineID.file, text);
     tl.dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access

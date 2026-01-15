@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {TIME, CONTAINER} from './constants.js';
+import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionTimelines, positionLabels, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
@@ -457,8 +457,6 @@ document.addEventListener("click", (e) => {
   //if (a.hasAttribute("data-internal-link")) {
   if (a.hasAttribute("tl")) {
     e.preventDefault();
-    //const timelineID = {container:CONTAINER, file:a.dataset.internalLink + '.json'};
-    //const timelineID = {container:CONTAINER, file:a.getAttribute('tl') + '.json'};
     const file = a.getAttribute('tl') + '.json';
     followLink(file);
   }
