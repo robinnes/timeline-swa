@@ -138,7 +138,8 @@ export function addNewTimeline(title) {
     events:[],
     labelWidth:null,
     mode:'edit',
-    dirty:true
+    dirty:true,
+    timelineID:{scope:"private", file:null}
   };
 
   initializeTitle(newTL);

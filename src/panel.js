@@ -134,7 +134,7 @@ timelineCancelBtn.addEventListener('click', (e) => {
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
   const tl = appState.selected.timeline;
-  if (tl.timelineID === undefined) {
+  if (!tl.timelineID.file) {
     // new timeline... open dialog
     openSaveAsTimelineDialog('');
   } else {

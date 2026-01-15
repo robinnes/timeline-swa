@@ -82,7 +82,7 @@ async function refreshTimelineList(scope) {
   } catch (err) {
     console.error(err);
     openDialogBlobs = [];
-    const fakeBlobs = tempSimulateList();
+    const fakeBlobs = tempSimulateList(scope);
     openDialogBlobs = fakeBlobs || [];
     renderOpenTimelineTable();
   }
@@ -375,8 +375,7 @@ openTimelineFilenameInput.addEventListener('input', () => {
 
 /******************************* temp *******************************/
 
-function tempSimulateList() {
-  const scope = getActiveFileScope();
+function tempSimulateList(scope) {
   if (scope === "public") {
     return([
       {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/modernisrael.json"}
