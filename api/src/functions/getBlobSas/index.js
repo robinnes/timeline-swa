@@ -20,7 +20,7 @@ const {
 } = require('../utils');
 
 app.http('getBlobSas', {
-  methods: ['GET', 'POST'],
+  methods: ['GET'], //, 'POST'],
   authLevel: 'anonymous', // SWA enforces auth via staticwebapp.config.json routes :contentReference[oaicite:2]{index=2}
   handler: async (request, context) => {
     try {
@@ -79,13 +79,13 @@ app.http('getBlobSas', {
 async function getParams(request) {
   const url = new URL(request.url);
 
-  const nameFromQuery = url.searchParams.get('name') || url.searchParams.get('file');
+  const nameFromQuery = url.searchParams.get('name'); // || url.searchParams.get('file');
   const modeFromQuery = url.searchParams.get('mode');
 
   if (nameFromQuery) {
     return { name: nameFromQuery, mode: modeFromQuery };
   }
-
+/*
   if ((request.method || '').toUpperCase() === 'POST') {
     const ct = request.headers.get('content-type') || '';
     if (ct.includes('application/json')) {
@@ -97,6 +97,7 @@ async function getParams(request) {
   }
 
   return { name: null, mode: modeFromQuery };
+  */
 }
 
 function generateBlobSas(connectionString, containerName, blobName, mode) {
