@@ -26,18 +26,14 @@ app.http('getBlobSas', {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = 'timelines';
-      const {name, mode} = await getParams(request);
-      const url = new URL(request.url);
-      const public = url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
+      const {scope, name, mode} = await getParams(request);
+      //const url = new URL(request.url);
+      //const public = url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
       
-      if (!name) {
-        return badRequest(
-          'Missing filename. Provide ?name=<filename> or JSON body { "name": "file.json" }.'
-        );
-      }
+      if (!name) return badRequest('Missing filename. Provide ?scope=<public|private>&name=<filename>&mode=<read|write>.');
 
       let blobName;
-      if (public && mode === "read") {
+      if (scope === "public" && mode === "read") {
         // No need to apply user-level security; restricted to 'public' folder
         blobName = `public/${name}`;
 
@@ -73,17 +69,17 @@ app.http('getBlobSas', {
 });
 
 /**
- * GET /api/getBlobSas?name=<file.json>&mode=<read|write>
- * POST JSON: { "name": "file.json", "mode": "read" }
+ * GET /api/getBlobSas?scope=<public|private>&name=<filename>&mode=<read|write>
  */
 async function getParams(request) {
   const url = new URL(request.url);
 
+  const scopeFromQuery = url.searchParams.get('scope');
   const nameFromQuery = url.searchParams.get('name'); // || url.searchParams.get('file');
   const modeFromQuery = url.searchParams.get('mode');
 
   if (nameFromQuery) {
-    return { name: nameFromQuery, mode: modeFromQuery };
+    return {scope:scopeFromQuery, name:nameFromQuery, mode:modeFromQuery};
   }
 /*
   if ((request.method || '').toUpperCase() === 'POST') {

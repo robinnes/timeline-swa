@@ -34,8 +34,9 @@ async function acquireSasToken() {
 
 async function acquireBlobSas(scope, file, mode) {
   try {
-    const scopeFlag = scope === "public" ? "&public" : "";
-    const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}${scopeFlag}`;
+    //const scopeFlag = scope === "public" ? "&public" : "";
+    //const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}${scopeFlag}`;
+    const url = `/api/getBlobSas?scope=${scope}&name=${encodeURIComponent(file)}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
