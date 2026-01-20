@@ -147,7 +147,8 @@ function isSafeFilename(name, { maxLen = 200 } = {}) {
   const s = String(name || '');
   if (!s) return false;
   if (s.length > maxLen) return false;
-  if (s.includes('/') || s.includes('\\')) return false;
+  //if (s.includes('/') || s.includes('\\')) return false;
+  if (s.includes('\\')) return false;
   if (s.includes('..')) return false;
   // Optional tightening:
   // if (s.startsWith('.')) return false; // disallow dotfiles
