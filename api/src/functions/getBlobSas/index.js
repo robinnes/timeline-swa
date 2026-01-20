@@ -20,42 +20,41 @@ const {
 } = require('../utils');
 
 app.http('getBlobSas', {
-  methods: ['GET'], //, 'POST'],
+  methods: ['GET'], 
   authLevel: 'anonymous', // SWA enforces auth via staticwebapp.config.json routes :contentReference[oaicite:2]{index=2}
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = 'timelines';
       const {scope, name, mode} = await getParams(request);
-      //const url = new URL(request.url);
-      //const public = url.searchParams.has('public');  // if the 'public' parameter is present then retrieve from the public folder
-      
       if (!name) return badRequest('Missing filename. Provide ?scope=<public|private>&name=<filename>&mode=<read|write>.');
+
+      // Prevent path traversal / escaping out of private/<userKey>/
+      let filename;
+      try {
+        filename = requireSafeFilename(name);
+      } catch (e) {
+        return badRequest(e.message);
+      }
 
       let blobName;
       if (scope === "public" && mode === "read") {
-        // No need to apply user-level security; restricted to 'public' folder
-        blobName = `public/${name}`;
+        // No need to apply user-level security; restricted to 'public' folder, and virtual folder name is supplied
+        blobName = `${scope}/${filename}`;
 
       } else {
-        // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
+        // acquire user name - get user ID from SWA and use that to get username from the identity provider
         let usernameKey;
         try {
+          // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
           usernameKey = await requireUsernameFolderKey(request);
         } catch (e) {
           return unauthorized(e.message);
         }
 
-        // Prevent path traversal / escaping out of private/<userKey>/
-        let filename;
-        try {
-          filename = requireSafeFilename(name);
-        } catch (e) {
-          return badRequest(e.message);
-        }
-
-        const prefix = privatePrefixForUsername(usernameKey);
-        blobName = `${prefix}${filename}`;
+        //const prefix = privatePrefixForUsername(usernameKey);
+        //blobName = `${prefix}${filename}`;
+        blobName = `${scope}/${usernameKey}/${filename}`;
       }
 
       const payload = generateBlobSas(conn, containerName, blobName, mode || 'write');
@@ -81,19 +80,6 @@ async function getParams(request) {
   if (nameFromQuery) {
     return {scope:scopeFromQuery, name:nameFromQuery, mode:modeFromQuery};
   }
-/*
-  if ((request.method || '').toUpperCase() === 'POST') {
-    const ct = request.headers.get('content-type') || '';
-    if (ct.includes('application/json')) {
-      const body = await request.json().catch(() => null);
-      if (body && (body.name || body.file)) {
-        return { name: body.name || body.file, mode: body.mode };
-      }
-    }
-  }
-
-  return { name: null, mode: modeFromQuery };
-  */
 }
 
 function generateBlobSas(connectionString, containerName, blobName, mode) {
