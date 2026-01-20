@@ -245,6 +245,9 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
+    const scope = getActiveFileScope();
+    const timelineID = {scope:scope, file:openDialogSelectedName};
+
     // check if timeline is already there
     const existingTL = timelines.find(t =>
       JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
