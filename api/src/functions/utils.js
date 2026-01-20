@@ -120,18 +120,19 @@ function requireUserKey(request) {
 /**
  * Return the per-user private prefix inside the timelines container:
  * "private/<userKey>/"
- */
+ *
 function privatePrefixForUserKey(userKey) {
   return `private/${userKey}/`;
 }
 
 /**
  * Convenience: derive "private/<sanitizedUserId>/" directly from request.
- */
+ *
 function requirePrivatePrefix(request) {
   const userKey = requireUserKey(request);
   return privatePrefixForUserKey(userKey);
 }
+*/
 
 /* ---------------------------- Filename / Path Safety -------------------------- */
 
@@ -240,8 +241,8 @@ module.exports = {
   getRawUserId,
   sanitizeForPathSegment,
   requireUserKey,
-  privatePrefixForUserKey,
-  requirePrivatePrefix,
+  //privatePrefixForUserKey,
+  //requirePrivatePrefix,
 
   // filename safety
   isSafeFilename,

@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {appState, draw} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
-import {reloadTimeline, saveTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
+import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 
 const sidebar = document.getElementById('sidebar');
@@ -14,6 +14,7 @@ const editTimelineDetails = document.getElementById('edit-timeline-details');
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
+const timelinePublishBtn = document.getElementById('timeline-publish');
 const eventDeleteBtn = document.getElementById('event-delete');
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
 
@@ -102,7 +103,7 @@ function updateTabStates() {
 }
 
 
-/* ------------------- Edit/save/delete buttons -------------------- */
+/* ------------------- Edit/save/delete/publish buttons -------------------- */
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -163,6 +164,11 @@ eventDeleteBtn.addEventListener('click', (e) => {
   openTimelineForEdit(tl);
 });
 
+timelinePublishBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  const tl = appState.selected.timeline;
+  publishTimeline(tl);
+});
 
 /* ------------------- Edit event panel -------------------- */
 

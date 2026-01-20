@@ -14,7 +14,7 @@ const {
   //requireUserKey,
   requireUsernameFolderKey,
   //privatePrefixForUserKey,
-  privatePrefixForUsername,
+  //privatePrefixForUsername,
   requireSafeFilename,
   extractConnectionStringParts
 } = require('../utils');
@@ -51,9 +51,6 @@ app.http('getBlobSas', {
         } catch (e) {
           return unauthorized(e.message);
         }
-
-        //const prefix = privatePrefixForUsername(usernameKey);
-        //blobName = `${prefix}${filename}`;
         blobName = `${scope}/${usernameKey}/${filename}`;
       }
 

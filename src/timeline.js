@@ -154,11 +154,25 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage(tl.timelineID.file, text);
+    await saveTimelineToStorage("private", tl.timelineID.file, text);
     tl.dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
     console.error('Save failed:', err.message);
+  }
+  Util.hideGlobalBusyCursor();
+}
+
+export async function publishTimeline(tl)
+{
+  Util.showGlobalBusyCursor();
+  try {
+    const text = timelineString(tl);
+    await saveTimelineToStorage("public", tl.timelineID.file, text);
+    tl.dirty = false;
+  } catch (err) {
+    //await sleep(1200);  // simulate database access
+    console.error('Publish failed:', err.message);
   }
   Util.hideGlobalBusyCursor();
 }

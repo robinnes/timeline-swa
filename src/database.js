@@ -69,9 +69,9 @@ async function loadTimelineFromStorage(scope, file) {
   }
 }
 
-export async function saveTimelineToStorage(file, text) {
+export async function saveTimelineToStorage(scope, file, text) {
   try {
-    const {url, sasKey} = await acquireBlobSas("private", file, "write");
+    const {url, sasKey} = await acquireBlobSas(scope, file, "write");
     //const blobUrl = formatURL(file, url, container, sasKey);
 
     const resp = await fetch(url, {
