@@ -145,12 +145,12 @@ aside.sidebar {
 /* Close button in the top-right of the sidebar */
 .sidebar__close {
   position: absolute;
-  top: 8px; /* 10px */
-  right: 10px;
+  top: 0px; /* 10px */
+  right: 0px; /* 10px */
   background: transparent;
   border: none;
   color: var(--fg);
-  font-size: 18px;
+  font-size: 30px;  /* 18px */
   line-height: 1;
   padding: 6px;
   cursor: pointer !important;
@@ -294,6 +294,11 @@ aside.sidebar {
   justify-content: flex-start;
 }
 
+/* Modifier for split footer buttons (left and right) */
+.panel__footer-left {
+  margin-right: auto;
+}
+
 /********************************* Buttons in the panel footers *********************************/
 
 /* Edit button positioned at bottom-left of the timeline panel */
@@ -311,6 +316,25 @@ aside.sidebar {
   opacity: 0.95;
 }
 .panel__edit-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(106,166,255,0.18);
+}
+
+/* Publish button positioned at bottom-right of the timeline panel */
+.panel__publish-btn {
+  background: var(--accent);
+  color: #0b0d17;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0,0,0,.35);
+}
+.panel__publish-btn:hover {
+  opacity: 0.95;
+}
+.panel__publish-btn:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(106,166,255,0.18);
 }
