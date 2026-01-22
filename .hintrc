@@ -7,7 +7,9 @@
       "default",
       {
         "ignore": [
-          "border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent)"
+          "border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent)",
+          "backdrop-filter",
+          "user-select"
         ]
       }
     ],

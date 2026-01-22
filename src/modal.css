@@ -56,10 +56,10 @@ body.modal-open .app-menu {
   max-width: 720px;
 }
 
-/* Header/title */
+/* Header/title 
 .modal__header {
-  /*margin-bottom: 8px;*/
-}
+  margin-bottom: 8px;
+}*/
 
 .modal__title {
   margin: 0;

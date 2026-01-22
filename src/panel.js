@@ -121,7 +121,7 @@ timelineCancelBtn.addEventListener('click', (e) => {
 async function cancelTimelineEdit() {
   const tl = appState.selected.timeline;
 
-  if (tl.timelineID === undefined) {
+  if (!tl.timelineID.file) {
     const ok = await showModalDialog({message:'Abandon changes to timeline?'});
     if (!ok) return;
 
