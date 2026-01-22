@@ -3,6 +3,7 @@ import {appState, draw} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
+import {showModalDialog} from './confirmDialog.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -114,11 +115,22 @@ timelineEditBtn.addEventListener('click', (e) => {
 
 timelineCancelBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  cancelTimelineEdit();
+});
+
+async function cancelTimelineEdit() {
   const tl = appState.selected.timeline;
+
   if (tl.timelineID === undefined) {
+    const ok = await showModalDialog({message:'Abandon changes to timeline?'});
+    if (!ok) return;
+
     closeTimeline(tl);
     closeSidebar();
   } else if (tl.dirty) {
+    const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
+    if (!ok) return;
+
     reloadTimeline(tl).then(() => {
       tl.mode = 'view';
       setSidebarTimeline(appState.selected.timeline);
@@ -130,7 +142,7 @@ timelineCancelBtn.addEventListener('click', (e) => {
     openTimelineForView(tl); // cancel without reloading
     draw();
   }
-});
+}
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -166,9 +178,17 @@ eventDeleteBtn.addEventListener('click', (e) => {
 
 timelinePublishBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  const tl = appState.selected.timeline;
-  publishTimeline(tl);
+  tryPublishTimeline();
 });
+
+async function tryPublishTimeline() {
+  const tl = appState.selected.timeline;
+  
+  const ok = await showModalDialog({message:'Make timeline available to the public?'});
+  if (!ok) return;
+
+  publishTimeline(tl);
+}
 
 /* ------------------- Edit event panel -------------------- */
 

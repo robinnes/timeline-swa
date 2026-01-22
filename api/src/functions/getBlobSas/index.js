@@ -21,7 +21,7 @@ const {
 
 app.http('getBlobSas', {
   methods: ['GET'], 
-  authLevel: 'anonymous', // SWA enforces auth via staticwebapp.config.json routes :contentReference[oaicite:2]{index=2}
+  authLevel: 'anonymous', // SWA enforces auth via staticwebapp.config.json routes
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
@@ -46,7 +46,7 @@ app.http('getBlobSas', {
         // acquire user name - get user ID from SWA and use that to get username from the identity provider
         let usernameKey;
         try {
-          // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...") :contentReference[oaicite:3]{index=3}
+          // Authenticated identity from SWA -> userKey derived from principal.userId (Auth0: "auth0|...")
           usernameKey = await requireUsernameFolderKey(request);
         } catch (e) {
           return unauthorized(e.message);

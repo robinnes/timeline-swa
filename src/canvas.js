@@ -277,6 +277,9 @@ document.addEventListener('keydown', (ev) => {
   // Escape key handling
   if (ev.key !== 'Escape') return;
 
+  // Ignore if modal dialog is displayed; it handles Escape itself
+  if (document.getElementById('confirm-dialog').open) return;
+
   if (appState.drag.isDragging) {
     stopDragging(true);
     return;
