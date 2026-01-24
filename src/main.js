@@ -8,7 +8,6 @@ requestAnimationFrame(tick);
 canvas.focus();
 initialLoad();
 
-
 /*
 import {parseLabel} from './label.js';
 const st = 'one two three';

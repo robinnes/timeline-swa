@@ -1,3 +1,4 @@
+import * as Util from './util.js';
 import {addNewTimeline} from './timeline.js';
 import {appState, canvas} from './canvas.js';
 import {openOpenTimelineDialog} from './fileDialog.js';
@@ -37,7 +38,6 @@ export function closeAppMenu() {
 
 export async function updateAppMenu() {
   const isAuthenticated = await getAuthState();
-//appState.authentication.userId = "hello";
 
   // Display "New timeline" only if authenticated
   if (isAuthenticated) {
@@ -76,7 +76,15 @@ openTimelineItem.addEventListener('click', () => {
 /******************************* Authentication *******************************/
 
 async function getAuthState() {
-  const res = await fetch('/.auth/me', { cache: 'no-store' });
+
+  // simulate logged-in state if running locally
+  if (Util.isLocalEnv) {
+    appState.authentication.userId = "simulated";
+    return true;
+  }
+
+  // retrieve identity block from the ./auth/me URL 
+  const res = await fetch('/.auth/me', {cache:'no-store'});
   if (!res.ok) return false;
 
   const data = await res.json();

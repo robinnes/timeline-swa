@@ -13,6 +13,7 @@
         ]
       }
     ],
-    "meta-viewport": "off"
+    "meta-viewport": "off",
+    "button-type": "off"
   }
 }

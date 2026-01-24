@@ -7,6 +7,7 @@ import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
+import {showModalDialog} from './confirmDialog.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -341,7 +342,7 @@ canvas.addEventListener('click', function (e) {
     else openTimelineForView(appState.selected.timeline);
 
   } else if (elem.type === 'button') {
-    if (elem.subType === 'close-timeline') closeTimeline(elem.timeline)
+    if (elem.subType === 'close-timeline') closeBtnClick(elem.timeline); 
     else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
   }
 });
@@ -422,6 +423,14 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     this.closePath();
     return this;
   };
+}
+
+async function closeBtnClick(tl) {
+  if (tl.dirty) {
+    const ok = await showModalDialog({message:'Close timeline without saving?'});
+    if (!ok) return;
+  }
+  closeTimeline(tl);
 }
 
 function addNewEvent(tl) {

@@ -1,3 +1,4 @@
+import * as Util from './util.js';
 import {loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
 import {appState, timelines, zoomToTimeline} from './canvas.js';
@@ -80,11 +81,16 @@ async function refreshTimelineList(scope) {
     renderOpenTimelineTable();
 
   } catch (err) {
+    if (Util.isLocalEnv) {
+      // return simulated list if running locally
+      const fakeBlobs = tempSimulateList(scope);
+      openDialogBlobs = fakeBlobs || [];
+      renderOpenTimelineTable();
+      return;
+    }
+
     console.error(err);
     openDialogBlobs = [];
-    const fakeBlobs = tempSimulateList(scope);
-    openDialogBlobs = fakeBlobs || [];
-    renderOpenTimelineTable();
   }
 }
 

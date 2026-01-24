@@ -102,16 +102,19 @@ export async function getTimeline(scope, file) {
     tl.timelineID = timelineID;
     Util.hideGlobalBusyCursor();
     return tl;
+    
   } catch (err) {
-    // look for the timeline locally
-    //const obj = file.split(".")[0];
-    //const tl = window[obj];  // look for variable matching the filename (minus ext)
-    const response = await fetch(`data/${file}`);  // only works when a local server is running
-    const tl = await response.json();
-    tl.timelineID = timelineID;
-    await sleep(500);  // simulate database access
-    Util.hideGlobalBusyCursor();
-    return tl;
+    if (Util.isLocalEnv) {
+      // return local file if running locally
+      const response = await fetch(`data/${file}`);  // only works when a local server is running
+      const tl = await response.json();
+      tl.timelineID = timelineID;
+      await sleep(500);  // simulate database access
+      Util.hideGlobalBusyCursor();
+      return tl;
+    }
+
+    console.error(err);
   }
 }
 

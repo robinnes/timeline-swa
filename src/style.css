@@ -207,7 +207,7 @@ aside.sidebar {
   color: var(--muted);
   padding: 6px 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 18px;  /* 14px */
   border-bottom: 2px solid transparent;
   cursor: pointer;
 }
