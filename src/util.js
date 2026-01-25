@@ -34,6 +34,7 @@ export function formatTextDate(txtDate) {
 
 // Whether client is running locally (dev mode)
 export function isLocalEnv() {
+  console.log("isLocalEnv() running");
   const isLocal = (location.hostname === "127.0.0.1");
   return isLocal;
 }
