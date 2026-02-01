@@ -32,9 +32,7 @@ export function formatTextDate(txtDate) {
   return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
 }
 
-// Whether client is running locally (dev mode)
-export function isLocalEnv() {
-  console.log("isLocalEnv() running");
+export async function isLocalEnv() {
   const isLocal = (location.hostname === "127.0.0.1");
   return isLocal;
 }

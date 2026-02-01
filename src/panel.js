@@ -7,19 +7,24 @@ import {showModalDialog} from './confirmDialog.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
+
+const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const panels = Array.from(document.querySelectorAll('.panel'));
-const editEventLabel = document.getElementById('edit-event-label');
-const editEventDetails = document.getElementById('edit-event-details');
-const editTimelineTitle = document.getElementById('edit-timeline-title');
-const editTimelineDetails = document.getElementById('edit-timeline-details');
+
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const timelinePublishBtn = document.getElementById('timeline-publish');
-const eventDeleteBtn = document.getElementById('event-delete');
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
 
-const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
+const subtabButtons = Array.from(document.querySelectorAll('.subpanel__tabs .subtab-btn'));
+const subpanels = Array.from(document.querySelectorAll('.subpanel'));
+
+const eventDeleteBtn = document.getElementById('event-delete');
+const editEventLabel = document.getElementById('edit-event-label');
+const editEventDetails = document.getElementById('edit-event-details');
+const editTimelineTitle = document.getElementById('edit-timeline-title');
+const editTimelineDetails = document.getElementById('edit-timeline-details');
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
@@ -75,7 +80,6 @@ function showPanel(id) {
     const isActive = p.id === id;
     p.toggleAttribute('hidden', !isActive);
     p.toggleAttribute('inert', !isActive);
-    p.classList.toggle('is-active', isActive);
   }
 }
 
@@ -91,7 +95,6 @@ function setActiveEditTab(targetPanelId) {
 
 function updateTabStates() {
   // Disable or enable tabs based on application state
-  if (!tabButtons || !tabButtons.length) return;
   for (const btn of tabButtons) {
     // Disable 'Event' tab when there is no selected event
     if (btn.dataset.target === 'event') {
@@ -189,6 +192,38 @@ async function tryPublishTimeline() {
 
   publishTimeline(tl);
 }
+
+
+/* ------------------- Subpanel navigation (Edit View panel) -------------------- */
+
+// Attach click handlers to tab buttons
+for (const btn of subtabButtons) {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (btn.disabled) return;
+    const target = btn.dataset.target;
+    setActiveSubTabButton(target);
+    const panelId = document.getElementById(target);
+    if (panelId) showSubpanel(panelId);    
+  });
+}
+
+function showSubpanel(id) {
+  for (const sp of subpanels) {
+    const isActive = sp === id;
+    sp.toggleAttribute('hidden', !isActive);
+    sp.toggleAttribute('inert', !isActive);
+  }
+}
+
+function setActiveSubTabButton(target) {
+  for (const btn of subtabButtons) {
+    const isTarget = btn.dataset.target === target;
+    btn.classList.toggle('is-active', isTarget);
+    btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  }
+}
+
 
 /* ------------------- Edit event panel -------------------- */
 

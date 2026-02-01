@@ -14,8 +14,8 @@ function timelineString(tl) {
     details: tl.details,
     dateFrom: tl.dateFrom,
     dateTo: tl.dateTo,
-    events: tl.events.map(({significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
-                            significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details
+    events: tl.events.map(({eventID, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details}) => ({
+                            eventID, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details
     }))
   };
   return JSON.stringify(txt, null, 2);
@@ -26,6 +26,9 @@ export function initializeEvent(e) {
   const spec = zoomSpec(e.significance);
   const style = spec.style;
   
+  // Assign/establish unique ID
+  if (e.eventID === undefined) e.eventID = crypto.randomUUID();
+
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label);
   e.labelSingle = parsed.singleRow;

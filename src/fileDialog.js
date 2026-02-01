@@ -81,7 +81,7 @@ async function refreshTimelineList(scope) {
     renderOpenTimelineTable();
 
   } catch (err) {
-    if (Util.isLocalEnv) {
+    if (await Util.isLocalEnv()) {
       // return simulated list if running locally
       const fakeBlobs = tempSimulateList(scope);
       openDialogBlobs = fakeBlobs || [];

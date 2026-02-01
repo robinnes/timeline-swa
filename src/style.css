@@ -194,7 +194,7 @@ aside.sidebar {
   color: var(--muted);
 }
 */
-/*************************** Tabs at top of edit panels ***************************/
+/*************************** Panel tabs ***************************/
 .panel__tabs {
   display: flex;
   gap: 12px;
@@ -237,6 +237,10 @@ aside.sidebar {
 
 /********************************* Panels *********************************/
 
+[hidden] {
+  display: none !important;
+}
+
 /* Container for all panels */
 .panels-container {
   position: relative;
@@ -249,22 +253,11 @@ aside.sidebar {
 
 /* Panel base state: panels are flex children that can fill available height */
 .panel {
-  /* when active, you already re-set these */
-  flex: 1;
-  position: relative;
-  min-height: 0;
-  display: none;
-  flex-direction: column;
-}
-
-.panel.is-active {
   display: flex;
   flex-direction: column;
   flex: 1;
-}
-
-[hidden] {
-  display: none !important;
+  position: relative;
+  min-height: 0;
 }
 
 /* Scrollable region inside the panel */
@@ -273,7 +266,7 @@ aside.sidebar {
   overflow: auto;    /* scroll inside content only */
   padding: 0 0;
   min-height: 0;
-  padding-bottom: 12px; /* small buffer if you like */
+  padding-bottom: 12px;
 }
 
 /* Panel footer area for buttons */
@@ -297,6 +290,53 @@ aside.sidebar {
 /* Modifier for split footer buttons (left and right) */
 .panel__footer-left {
   margin-right: auto;
+}
+
+
+/*************************** Subpanel tabs ***************************/
+.subpanel__tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 20px;
+}
+.subpanel__tabs .subtab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.subpanel__tabs .subtab-btn:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.01);
+}
+.subpanel__tabs .subtab-btn.is-active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+.subpanel__tabs .subtab-btn:disabled,
+.subpanel__tabs .subtab-btn.is-disabled {
+  color: var(--muted);
+  cursor: default;
+  background: transparent;
+  pointer-events: none;
+  border-bottom-color: transparent;
+}
+
+
+/********************************* Subpanels (Edit Event) *********************************/
+
+/* Scrollable region inside the panel */
+.subpanel {
+  flex: 1;           /* take all remaining vertical space */
+  overflow: auto;    /* scroll inside content only */
+  padding: 0 0;
+  min-height: 0;
+  padding-bottom: 12px;
 }
 
 /********************************* Buttons in the panel footers *********************************/
@@ -513,6 +553,7 @@ h2.label {
 .details a { color: var(--accent); text-decoration: none; }
 .details a:hover { text-decoration: underline; }
 
+
 /********************************* Significance selecitons *********************************/
 
 /* Significance radio group (two rows of three) */
@@ -560,6 +601,7 @@ h2.label {
   background: var(--accent);
   color: #0b0d17;
 }
+
 
 /********************************* Color selection *********************************/
 

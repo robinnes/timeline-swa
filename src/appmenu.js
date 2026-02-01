@@ -78,14 +78,7 @@ openTimelineItem.addEventListener('click', () => {
 async function getAuthState() {
 
   // simulate logged-in state if running locally
-  /*const locl = await Util.isLocalEnv();
-  if (locl) {
-    appState.authentication.userId = "simulated";
-    return true;
-  }
-*/
-  const isLocal = (location.hostname === "127.0.0.1");
-  if (isLocal) {
+  if (await Util.isLocalEnv()) {
     appState.authentication.userId = "simulated";
     return true;
   }
