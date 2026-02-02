@@ -269,10 +269,21 @@ aside.sidebar {
   padding-bottom: 12px;
 }
 
+/* Panel header area */
+.panel__header {
+  position: static;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;  /* right-aligned */
+  gap: 8px;
+  flex-shrink: 0;             /* don't allow to compress */
+}
+
 /* Panel footer area for buttons */
 .panel__footer {
   position: static;           /* no absolute positioning */
-  /* or just remove position entirely */
   border-top: 1px solid var(--border);
   padding: 12px 8px;          /* 12px 16px */
   display: flex;
@@ -339,102 +350,43 @@ aside.sidebar {
   padding-bottom: 12px;
 }
 
-/********************************* Buttons in the panel footers *********************************/
 
-/* Edit button positioned at bottom-left of the timeline panel */
-.panel__edit-btn {
+/****************************** Action button *******************************/
+
+.action-btn,
+.action-btn-secondary {
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.action-btn {
   background: var(--accent);
   color: #0b0d17;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0,0,0,.35);
-}
-.panel__edit-btn:hover {
-  opacity: 0.95;
-}
-.panel__edit-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(106,166,255,0.18);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* Publish button positioned at bottom-right of the timeline panel */
-.panel__publish-btn {
-  background: var(--accent);
-  color: #0b0d17;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0,0,0,.35);
-}
-.panel__publish-btn:hover {
-  opacity: 0.95;
-}
-.panel__publish-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(106,166,255,0.18);
+.action-btn:hover {
+  opacity: 0.80;
 }
 
-/* Cancel button (bottom-right) */
-.panel__cancel-btn {
-  background: transparent;
-  color: var(--fg);
-  border: 1px solid rgba(255,255,255,0.06);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.panel__cancel-btn:hover {
-  background: rgba(255,255,255,0.02);
-  color: var(--accent);
-}
-.panel__cancel-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(106,166,255,0.12);
-}
-
-/* Save button (to the left of cancel) */
-.panel__save-btn {
-  background: var(--accent);
-  color: #0b0d17;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0,0,0,.35);
-}
-.panel__save-btn:hover { opacity: 0.95; }
-.panel__save-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(106,166,255,0.18); }
-.panel__save-btn:disabled {
+.action-btn:disabled {
   opacity: 0.45;
-  cursor: default; /*not-allowed;*/
+  cursor: default;
   box-shadow: none;
 }
 
-/* Delete button positioned at bottom-left of edit event panel */
-.panel__delete-event-btn {
-  background: var(--accent);
-  color: #0b0d17;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0,0,0,.35);
+.action-btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border-color: rgba(255, 255, 255, 0.08);
 }
-.panel__delete-event-btn:hover { opacity: 0.95; }
-.panel__delete-event-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(106,166,255,0.18); }
 
-/* Footer variant for view panels: left-aligned actions */
-.panel__footer--view {
-  justify-content: flex-start;
-  gap: 12px;
+.action-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--accent);
 }
 
 

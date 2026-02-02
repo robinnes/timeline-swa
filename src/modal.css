@@ -212,42 +212,6 @@ body.modal-open .app-menu {
   flex: 1;
 }
 
-/****************************** Buttons *******************************/
-.modal__btn {
-  /*font: inherit;*/
-  padding: 8px 12px; /* 8px 14px */
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  font-weight: 600;
-}
-
-.modal__btn--secondary {
-  background: transparent;
-  color: var(--fg);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.modal__btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--accent);
-}
-
-.modal__btn--primary {
-  background: var(--accent);
-  color: #0b0d17;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
-}
-
-.modal__btn--primary:hover {
-  opacity: 0.96;
-}
-
-.modal__btn--primary:disabled {
-  opacity: 0.45;
-  cursor: default;
-  box-shadow: none;
-}
 
 /****************************** <dialog> confirm *******************************/
 

@@ -28,6 +28,7 @@ const editTimelineDetails = document.getElementById('edit-timeline-details');
 const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
+const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
 
 
 /* ------------------- Sidebar -------------------- */
@@ -257,6 +258,10 @@ editEventDetails.addEventListener('input', (e) => {
   updateSaveButton?.();
 });
 
+selectThumbnailBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  console.log("click!");
+});
 
 /* ------------------- Edit timeline panel -------------------- */
 

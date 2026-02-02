@@ -51,7 +51,6 @@
                   <button class="subtab-btn" data-target="subpanel-edit-event-tags" role="subtab" aria-selected="false">Tags</button>
                 </div>
                 <div id="subpanel-edit-event-main" class="subpanel">
-            <!--  <div class="panel__content"> -->
                   <section class="sidebar__section">
                     <label for="edit-event-label" class="control-label">Label</label>
                     <textarea id="edit-event-label" class="edit-textarea" rows="2"></textarea>
@@ -103,13 +102,16 @@
                   </section>
                 </div>
                 <div id="subpanel-edit-event-photos" class="subpanel" hidden inert>
+                  <div class="panel__header">
+                    <button class="action-btn" id="select-thumbnail-btn">Select thumbnail</button>
+                  </div>
                 </div>
                 <div id="subpanel-edit-event-tags"class="subpanel" hidden inert>
                 </div>
               </div>
               <div class="panel__footer">
                 <div class="panel__footer-left">
-                  <button id="event-delete" class="panel__delete-event-btn" aria-label="Delete event">Delete event</button>
+                  <button id="event-delete" class="action-btn" aria-label="Delete event">Delete event</button>
                 </div>
               </div>
             </div>
@@ -125,9 +127,9 @@
               </div>
               <div class="panel__footer" id="view-timeline-footer">
                 <div class="panel__footer-left">
-                  <button id="timeline-edit" class="panel__edit-btn" aria-label="Edit timeline">Edit</button>
+                  <button id="timeline-edit" class="action-btn" aria-label="Edit timeline">Edit</button>
                 </div>
-                <button id="timeline-publish" class="panel__publish-btn" aria-label="Publish timeline">Publish</button>
+                <button id="timeline-publish" class="action-btn" aria-label="Publish timeline">Publish</button>
               </div>
             </div>
             <!-- Edit timeline panel -->
@@ -143,8 +145,8 @@
                 </section>
               </div>
               <div class="panel__footer">
-                <button id="timeline-save" class="panel__save-btn" aria-label="Save changes" disabled>Save changes</button>
-                <button id="timeline-cancel" class="panel__cancel-btn" aria-label="Cancel editing timeline">Cancel</button>
+                <button id="timeline-save" class="action-btn" aria-label="Save changes" disabled>Save changes</button>
+                <button id="timeline-cancel" class="action-btn-secondary" aria-label="Cancel editing timeline">Cancel</button>
               </div>
             </div>
           </div>
@@ -166,8 +168,8 @@
           <input type="text" id="new-timeline-title-input" class="edit-text" />
         </div>
         <footer class="modal__footer">
-          <button type="button" class="modal__btn modal__btn--secondary" data-modal-action="cancel" data-modal-target="new-timeline-modal">Cancel</button>
-          <button type="button" class="modal__btn modal__btn--primary" data-modal-action="create" data-modal-target="new-timeline-modal" id="new-timeline-create-btn">Create</button>
+          <button type="button" class="action-btn-secondary" data-modal-action="cancel" data-modal-target="new-timeline-modal">Cancel</button>
+          <button type="button" class="action-btn" data-modal-action="create" data-modal-target="new-timeline-modal" id="new-timeline-create-btn">Create</button>
         </footer>
       </div>
     </div>
@@ -204,8 +206,8 @@
           </div>
         </div>
         <footer class="modal__footer">
-          <button type="button" class="modal__btn modal__btn--secondary" data-modal-action="cancel" data-modal-target="open-timeline-modal">Cancel</button>
-          <button type="button" class="modal__btn modal__btn--primary" id="open-timeline-open-btn" disabled>Open</button>
+          <button type="button" class="action-btn-secondary" data-modal-action="cancel" data-modal-target="open-timeline-modal">Cancel</button>
+          <button type="button" class="action-btn" id="open-timeline-open-btn" disabled>Open</button>
         </footer>
       </div>
     </div>
@@ -219,8 +221,8 @@
       </div>
       <footer class="modal__footer">
         <form method="dialog" class="confirm-dialog__actions">
-          <button id="confirm-btn-cancel" class="modal__btn modal__btn--secondary" value="cancel">Cancel</button>
-          <button id="confirm-btn-ok" class="modal__btn modal__btn--primary" value="ok">OK</button>
+          <button id="confirm-btn-cancel" class="action-btn-secondary" value="cancel">Cancel</button>
+          <button id="confirm-btn-ok" class="action-btn" value="ok">OK</button>
         </form>
       </footer>
     </dialog>
