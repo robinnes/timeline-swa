@@ -4,6 +4,7 @@ import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
+import {showImageDialog} from './image.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -260,7 +261,7 @@ editEventDetails.addEventListener('input', (e) => {
 
 selectThumbnailBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  console.log("click!");
+  showImageDialog();
 });
 
 /* ------------------- Edit timeline panel -------------------- */

@@ -6,6 +6,7 @@
     <title>Interactive Zoomable Timeline</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
+    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
   </head>
   <body>
     <!-- App menu button (upper-right corner) -->
@@ -226,6 +227,10 @@
         </form>
       </footer>
     </dialog>
+    <dialog id="image-dialog">
+      <img id="edit-image"/>
+    </dialog>
+    <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
     <script type="module" src="./main.js"></script>
   </body>
 </html>

@@ -226,23 +226,33 @@ dialog.modal__dialog {
   max-width: min(480px, 92vw);
 }
 
-/* Remove UA defaults that can fight your layout */
+/* Remove UA defaults that fight the layout */
 dialog.modal__dialog:focus {
   outline: none;
 }
 
-/* Match your existing .modal__backdrop */
+/* Match existing .modal__backdrop */
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
 }
 
-/* Optional: tidy spacing for the message */
+/* Tidy spacing for the message */
 .confirm-dialog__message {
-  margin: 0;             /* your modal body already provides spacing */
+  margin: 0;             /* modal body already provides spacing */
 }
 
-/* Optional: make the footer form not alter layout */
+/* Make the footer form not alter layout */
 .confirm-dialog__actions {
   display: contents;      /* keep buttons aligned by .modal__footer flex */
 }
+
+
+/****************************** Image file *******************************/
+
+#edit-image {
+  max-width: 100%;
+  max-height: 60vh;
+  display: block;
+}
+
