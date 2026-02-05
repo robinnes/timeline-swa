@@ -353,6 +353,7 @@ export function setSidebarEvent(e) {
     }
   }
 
+  updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
 function setSidebarTimeline(tl) {

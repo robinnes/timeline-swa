@@ -21,7 +21,6 @@ export function getImageThumbnail() {
 
   input.addEventListener('change', () => {
     const file = input.files && input.files[0];
-    console.log(file);
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
