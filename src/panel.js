@@ -4,7 +4,7 @@ import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {showImageDialog} from './image.js';
+import {getImageThumbnail} from './image.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -261,7 +261,7 @@ editEventDetails.addEventListener('input', (e) => {
 
 selectThumbnailBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  showImageDialog();
+  getImageThumbnail();
 });
 
 /* ------------------- Edit timeline panel -------------------- */
@@ -317,7 +317,7 @@ export function openTimelineForView(tl) {
 
 /* ------------------- Populate fields for selection -------------------- */
 
-function setSidebarEvent(e) {
+export function setSidebarEvent(e) {
   // update sidebar (all panels) to selected event
   const $ = (id) => document.getElementById(id);
   
@@ -340,6 +340,19 @@ function setSidebarEvent(e) {
   updateSignificanceButton();
   updateColorSelectorState();
   updateColorButtons();
+
+  // event thumbnail (Photos subpanel)
+  const thumbImg = $('event-thumbnail-img');
+  if (thumbImg) {
+    if (e.thumbnail) {
+      thumbImg.src = e.thumbnail;     // data URL string
+      thumbImg.hidden = false;
+    } else {
+      thumbImg.removeAttribute('src'); // prevents broken-image icon
+      thumbImg.hidden = true;
+    }
+  }
+
 }
 
 function setSidebarTimeline(tl) {

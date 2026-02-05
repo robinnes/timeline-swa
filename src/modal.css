@@ -1,6 +1,5 @@
 :root {
   /* reuse existing custom properties from style.css */
-  /* (no need to repeat if they’re already defined) */
 }
 
 /****************************** Body *******************************/
@@ -56,10 +55,16 @@ body.modal-open .app-menu {
   max-width: 720px;
 }
 
-/* Header/title 
+/* Flex width for image dialog */
+.modal__dialog--flexsize {
+  min-width: 36px;
+  max-width: 100%;
+}
+
+/* Header/title */
 .modal__header {
   margin-bottom: 8px;
-}*/
+}
 
 .modal__title {
   margin: 0;
@@ -213,7 +218,7 @@ body.modal-open .app-menu {
 }
 
 
-/****************************** <dialog> confirm *******************************/
+/****************************** Modal dialog (confirm) *******************************/
 
 /* Ensure <dialog> uses the same box styling as .modal__dialog */
 dialog.modal__dialog {
@@ -250,9 +255,24 @@ dialog::backdrop {
 
 /****************************** Image file *******************************/
 
-#edit-image {
+.image-crop-area {
+  width: min(75vw, 1000px);
+  height: min(75vh, 600px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* prevents odd overflow during zoom */
+}
+
+.image-crop-area img {
   max-width: 100%;
-  max-height: 60vh;
+  max-height: 100%;
   display: block;
+}
+
+/* Help Cropper occupy the crop area */
+.image-crop-area .cropper-container {
+  width: 100% !important;
+  height: 100% !important;
 }
 

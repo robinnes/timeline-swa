@@ -1,7 +1,11 @@
-const imageDialog = document.getElementById('image-dialog');
+import {appState} from './canvas.js';
+import {setSidebarEvent} from './panel.js';
+
+const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
 
 let cropper = null;
+let currentObjectUrl = null;
 
 function destroyCropper() {
   if (cropper) {
@@ -10,13 +14,14 @@ function destroyCropper() {
   }
 }
 
-export function showImageDialog() {
+export function getImageThumbnail() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
 
   input.addEventListener('change', () => {
     const file = input.files && input.files[0];
+    console.log(file);
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -26,41 +31,88 @@ export function showImageDialog() {
 
     destroyCropper();
 
-    const objectUrl = URL.createObjectURL(file);
-    console.log(objectUrl);
-    editImage.src = objectUrl;
+    // Revoke previous URL if any
+    if (currentObjectUrl) {
+      URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = null;
+    }
 
-
+    currentObjectUrl = URL.createObjectURL(file);
+    editImage.src = currentObjectUrl;
+    
     editImage.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-
-      const CropperCtor = window.Cropper?.default ?? window.Cropper;
-      if (typeof CropperCtor !== 'function') {
-        console.error('Cropper constructor not found:', window.Cropper);
-        return;
-      }
-
-      cropper = new CropperCtor(editImage, {
+      openImageModal();
+      cropper = new window.Cropper(editImage, {
         aspectRatio: 1,
+        cropBoxResizable: true,
         viewMode: 1,
-        autoCropArea: 1,
         responsive: true,
-        background: false
+        background: false,
+        dragMode: 'move',
+        autoCropArea: 0.8
       });
     };
 
-
-    imageDialog.showModal();
   });
-
-  imageDialog.addEventListener(
-    'close',
-    () => {
-      destroyCropper();
-      editImage.removeAttribute('src');
-    },
-    { once: true }
-  );
 
   input.click();
 }
+
+function openImageModal() {
+  imageModal.removeAttribute('hidden');
+  document.body.classList.add('modal-open');
+}
+
+function closeImageModal() {
+  imageModal.setAttribute('hidden', '');
+  document.body.classList.remove('modal-open');
+
+  destroyCropper();
+  editImage.removeAttribute('src');
+
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+  canvas.focus();
+}
+
+imageModal.addEventListener('click', (e) => {
+  const target = e.target;
+  //const modalId = target.getAttribute('data-modal-target');
+
+  if (target.matches('[data-modal-close]')) {
+    closeImageModal();
+  }
+
+  if (target.matches('[data-modal-action="cancel"]')) {
+    closeImageModal();
+  }
+
+  if (target.matches('[data-modal-action="ok"]')) {
+    if (cropper) {
+      // Retrieve cropped image
+      const canvas32 = cropper.getCroppedCanvas({
+        width: 36,
+        height: 36
+      });
+
+      // Encode thumbnail (WebP)
+      const dataUrl = canvas32.toDataURL('image/webp', 0.9);
+      
+      if (appState.selected?.event) {
+        const e = appState.selected.event;
+
+        // Update the selected event
+        e.thumbnail = dataUrl;
+        appState.selected.timeline.dirty = true;
+        
+        // Update panel
+        setSidebarEvent(e)
+      }
+
+    }
+    closeImageModal();
+  }
+
+});
