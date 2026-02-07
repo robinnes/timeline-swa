@@ -1,5 +1,7 @@
-import {appState} from './canvas.js';
+import {DRAW} from './constants.js';
+import {appState, draw} from './canvas.js';
 import {setSidebarEvent} from './panel.js';
+import {initializeEvent} from "./timeline.js";
 
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
@@ -92,8 +94,8 @@ imageModal.addEventListener('click', (e) => {
     if (cropper) {
       // Retrieve cropped image
       const canvas32 = cropper.getCroppedCanvas({
-        width: 36,
-        height: 36
+        width: DRAW.THUMBNAIL_SIZE,
+        height: DRAW.THUMBNAIL_SIZE
       });
 
       // Encode thumbnail (WebP)
@@ -107,11 +109,12 @@ imageModal.addEventListener('click', (e) => {
         appState.selected.timeline.dirty = true;
         
         // Update panel
-        setSidebarEvent(e)
+        setSidebarEvent(e);
+        initializeEvent(e);
+        draw(true);
       }
 
     }
     closeImageModal();
   }
-
 });

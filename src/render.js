@@ -302,6 +302,12 @@ function drawLabelText(label, x, y, fade) {
   });
 }
 
+function drawLabelThumb(e, left, top) {
+  var img = new Image();
+  img.src = e.thumbnail;
+  ctx.drawImage(img, left + 4, top + 3);
+}
+
 function drawLabelBubble(e, left, width, top, height, highlight) {
   // label box
   ctx.save();
@@ -315,6 +321,7 @@ function drawLabelBubble(e, left, width, top, height, highlight) {
   ctx.stroke();
 
   drawLabelText(e.parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
+  if (e.thumbnail) drawLabelThumb(e, left, top);
   ctx.restore();
 }
 

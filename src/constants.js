@@ -22,7 +22,9 @@ export const DRAW = {
   DOT_HOVER_PAD: 6,  // maximum padding around dots for hover detection
   FADE_HIGHLIGHT_THRESHOLD: 0.4,  // lines where fade is below will not highlight
   MAX_SIGNIFICANCE: 6,  // largest possible value for event.significance
-  DEFAULT_LINE_COLOR: "blue"
+  DEFAULT_LINE_COLOR: "blue",
+  THUMBNAIL_SIZE: 36,  // size in square pixes of thumbnails
+  THUMBNAIL_ROWS: 2  // the number of rows in labels needed to accommodate a thumbnail
 };
 
 export const TICK = {

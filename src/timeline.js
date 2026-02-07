@@ -30,12 +30,13 @@ export function initializeEvent(e) {
   if (e.eventID === undefined) e.eventID = crypto.randomUUID();
 
   // Establish properties for positioning labels
-  const parsed = parseLabel(e.label);
+  const parsed = parseLabel(e.label, e.thumbnail);
   e.labelSingle = parsed.singleRow;
   e.labelWidth = parsed.singleWidth;
   e.parsedLabel = parsed.multiRow;
   e.parsedWidth = parsed.multiWidth;
   e.parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
+  if (e.thumbnail && e.parsedRows < 2) e.parsedRows = 2;
   e.yOffset = null;
 
   if (style === 'line') {
