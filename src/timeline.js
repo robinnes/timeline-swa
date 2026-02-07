@@ -36,7 +36,7 @@ export function initializeEvent(e) {
   e.parsedLabel = parsed.multiRow;
   e.parsedWidth = parsed.multiWidth;
   e.parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
-  if (e.thumbnail && e.parsedRows < 2) e.parsedRows = 2;
+  if (e.thumbnail && e.parsedRows < DRAW.THUMB_LABEL_ROWS) e.parsedRows = DRAW.THUMB_LABEL_ROWS;
   e.yOffset = null;
 
   if (style === 'line') {

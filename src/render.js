@@ -322,7 +322,7 @@ function drawLabelThumb(e, left, top) {
   if (!img.complete) return; // still decoding
 
   // draw at a fixed size so it fits your label bubble cleanly
-  ctx.drawImage(img, left + 4, top + 3, DRAW.THUMBNAIL_SIZE, DRAW.THUMBNAIL_SIZE);
+  ctx.drawImage(img, left + 4, top + 3, DRAW.THUMB_LABEL_SIZE, DRAW.THUMB_LABEL_SIZE);
 }
 
 function drawLabelBubble(e, left, width, top, height, highlight) {

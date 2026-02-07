@@ -50,8 +50,10 @@ function processLinks(text) {
 
 function assignRows(words, totalWidth, thumb) {
   // Attempt to minimize label width by splitting longer values up
-  const thumbW = thumb ? DRAW.THUMBNAIL_SIZE+4 : 0;  // if thumbnail is present, reserve space on the first <x> rows for it
-  const rows = [{width:totalWidth + thumbW, lastIdx:words.length - 1}];
+  if (words.length === 0) return;
+
+  const thumbW = thumb ? DRAW.THUMB_LABEL_SIZE+4 : 0;  // if thumbnail is present, reserve space on the first <x> rows for it
+  const rows = [{width:totalWidth + thumbW, lastIdx:words.length-1}];
   let widest = 0;
 
   // Iterate words
@@ -61,7 +63,7 @@ function assignRows(words, totalWidth, thumb) {
     const w = words[idx].width;        // it's width
 
     if (widest === rows.length-1) {  // widest row is at the end; add a row
-      const tw = rows.length < DRAW.THUMBNAIL_ROWS ? thumbW : 0;  // account for new row that needs to accommodate the thumbnail
+      const tw = rows.length < DRAW.THUMB_LABEL_ROWS ? thumbW : 0;  // account for new row that needs to accommodate the thumbnail
       rows.push({width:w + tw, lastIdx:idx});
     } else {
       rows[widest+1].width += w;
@@ -78,16 +80,17 @@ function assignRows(words, totalWidth, thumb) {
   }
 
   // If there's a thumbnail, ensure there are at least enough rows
-  if (thumb) while (rows.length < DRAW.THUMBNAIL_ROWS) rows.push({width:thumbW, lastIdx:null})
+  if (thumb) while (rows.length < DRAW.THUMB_LABEL_ROWS) rows.push({width:thumbW, lastIdx:null})
 
   // Continue shifting last word at the widest row down (without adding rows) until it no longer helps
   while (widest < rows.length-1) {
     const idx = rows[widest].lastIdx;  // index of the word at the end of the widest row
     const w = words[idx].width;        // it's width
 
-    if (rows[widest+1].width + w >= rows[widest].width) break;  // moving that word down would result in a wider row; we're done
+    if (rows[widest+1].width + w >= rows[widest].width - w) break;  // moving that word down would result in a wider row; we're done
 
-    rows[widest+1].width += w;  // move the word down
+    rows[widest+1].lastIdx = idx;  // move the word down
+    rows[widest+1].width += w;
     rows[widest].lastIdx -= 1;
     rows[widest].width -= w;
     words[idx].row += 1;
@@ -97,13 +100,12 @@ function assignRows(words, totalWidth, thumb) {
       (maxIdx, row, i, arr) => row.width > arr[maxIdx].width ? i : maxIdx, 0
     );
   }
-
 }
 
 function combineWords(words, thumb) {
   // concatenate adjacent words if they're assigned the same row, but not hyperlinks and non-hyperlinks
   // (also do some space manipulation that should be done upstream)
-  const thumbW = thumb ? DRAW.THUMBNAIL_SIZE+4 : 0;
+  const thumbW = thumb ? DRAW.THUMB_LABEL_SIZE+4 : 0;
   const combined = [];
   let row = 0;
   let link = words[0]?.link;
@@ -125,7 +127,7 @@ function combineWords(words, thumb) {
       if (words[i].row != row) {
         if (rowWidth > maxWidth) maxWidth = rowWidth;
         blockWidth = words[i].width;
-        blockLeft = (row + 1) < DRAW.THUMBNAIL_ROWS ? thumbW : 0;  // account for new row that needs to accommodate the thumbnail
+        blockLeft = (row + 1) < DRAW.THUMB_LABEL_ROWS ? thumbW : 0;  // account for new row that needs to accommodate the thumbnail
         rowWidth =  blockLeft;
       } else {
         blockLeft += blockWidth;
@@ -145,7 +147,7 @@ function combineWords(words, thumb) {
 export function parseLabel(text, thumbnail) {
   // Given a text label that can contain hyperlinks, return single and multi-line parsed versions for canvas display
   const thumb = !!thumbnail;  // the presence of a thumbnail affects the size and distribution of text
-  
+
   const {words, totalWidth} = processLinks(text);
   const s = combineWords(words, false);
 

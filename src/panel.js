@@ -264,6 +264,7 @@ selectThumbnailBtn.addEventListener('click', (e) => {
   getImageThumbnail();
 });
 
+
 /* ------------------- Edit timeline panel -------------------- */
 
 export function openTimelineForEdit(tl) {
@@ -341,15 +342,19 @@ export function setSidebarEvent(e) {
   updateColorSelectorState();
   updateColorButtons();
 
-  // event thumbnail (Photos subpanel)
-  const thumbImg = $('event-thumbnail-img');
-  if (thumbImg) {
-    if (e.thumbnail) {
-      thumbImg.src = e.thumbnail;     // data URL string
-      thumbImg.hidden = false;
+  // event thumbnail (on view and edit panels)
+  const thumb = e.thumbnail;
+  const imgs = [
+    $('event-thumb-edit-img'),
+    $('event-thumb-view-img')
+  ];
+  for (const img of imgs) {
+    if (thumb) {
+      img.src = thumb;
+      img.hidden = false;
     } else {
-      thumbImg.removeAttribute('src'); // prevents broken-image icon
-      thumbImg.hidden = true;
+      img.removeAttribute('src');
+      img.hidden = true;
     }
   }
 

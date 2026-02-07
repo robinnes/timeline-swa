@@ -36,7 +36,10 @@
               <div class="panel__content">
                 <section class="sidebar__section">
                   <div class="date" id="event-date"></div>
-                  <h2 class="label" id="event-label"></h2>
+                  <div class="thumb-label">
+                    <img class="thumbnail-img" id="event-thumb-view-img" alt="View event thumbnail"/>
+                    <h2 class="label" id="event-label"></h2>
+                  </div>
                 </section>
                 <section class="sidebar__section">
                   <div class="details" id="event-details"></div>
@@ -106,9 +109,10 @@
                 <!-- Photos subpanel-->
                 <div id="subpanel-edit-event-photos" class="subpanel" hidden inert>
                   <div class="panel__header">
-                    <button class="action-btn" id="select-thumbnail-btn">Select thumbnail</button>
-                    <div class="panel__header panel__header--left"></div>
-                    <img id="event-thumbnail-img" alt="Event thumbnail" />
+                    <div class="panel__header panel__header--left">
+                      <button class="action-btn" id="select-thumbnail-btn">Select thumbnail</button>
+                    </div>
+                    <img class="thumbnail-img" id="event-thumb-edit-img" alt="Edit event thumbnail"/>
                   </div>
                 </div>
                 <!-- Tags subpanel -->

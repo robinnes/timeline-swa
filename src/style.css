@@ -352,15 +352,27 @@ aside.sidebar {
   padding-bottom: 12px;
 }
 
-#event-thumbnail-img {
-  /*width: 36px;
-  height: 36px;*/
+/* Thumbnail/label section */
+.thumb-label {
+  display: flex;
+  align-items: flex-start;   /* top-align thumbnail + text */
+  gap: 8px;                  /* exact spacing you want */
+  padding-top: 14px;
+}
+.thumb-label .label {
+  flex: 1 1 auto;   /* take remaining horizontal space */
+  margin: 0;        /* remove default h2 margin */
+}
+
+
+.thumbnail-img {
+  /*width: 72px;
+  height: 72px;
+  border-radius: 6px;*/
   object-fit: cover;
-  /* border-radius: 6px; */
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(0,0,0,0.2);
 }
-
 
 /****************************** Action button *******************************/
 

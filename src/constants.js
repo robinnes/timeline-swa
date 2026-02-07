@@ -23,8 +23,9 @@ export const DRAW = {
   FADE_HIGHLIGHT_THRESHOLD: 0.4,  // lines where fade is below will not highlight
   MAX_SIGNIFICANCE: 6,  // largest possible value for event.significance
   DEFAULT_LINE_COLOR: "blue",
-  THUMBNAIL_SIZE: 36,  // size in square pixes of thumbnails
-  THUMBNAIL_ROWS: 2  // the number of rows in labels needed to accommodate a thumbnail
+  THUMB_SIZE: 54,        // size in square pixes of native thumbnail image
+  THUMB_LABEL_SIZE: 36,  // size rendered on the canvas
+  THUMB_LABEL_ROWS: 2    // the number of rows in labels needed to accommodate a thumbnail
 };
 
 export const TICK = {

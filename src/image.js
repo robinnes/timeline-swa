@@ -94,8 +94,8 @@ imageModal.addEventListener('click', (e) => {
     if (cropper) {
       // Retrieve cropped image
       const canvas32 = cropper.getCroppedCanvas({
-        width: DRAW.THUMBNAIL_SIZE,
-        height: DRAW.THUMBNAIL_SIZE
+        width: DRAW.THUMB_SIZE,
+        height: DRAW.THUMB_SIZE
       });
 
       // Encode thumbnail (WebP)
