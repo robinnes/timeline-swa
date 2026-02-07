@@ -85,7 +85,7 @@ function assignRows(words, totalWidth, thumb) {
     const idx = rows[widest].lastIdx;  // index of the word at the end of the widest row
     const w = words[idx].width;        // it's width
 
-    if (rows[widest+1].width + w > rows[widest].width) break;  // moving that word down would result in a wider row; we're done
+    if (rows[widest+1].width + w >= rows[widest].width) break;  // moving that word down would result in a wider row; we're done
 
     rows[widest+1].width += w;  // move the word down
     rows[widest].lastIdx -= 1;

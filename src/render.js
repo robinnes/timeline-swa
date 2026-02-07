@@ -1,7 +1,9 @@
 import * as Util from './util.js';
 import {DRAW, TICK} from './constants.js';
 import {appState, timelines, screenElements, setPointerCursor, ctx} from './canvas.js';
+import {draw} from "./canvas.js";
 
+const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement
 
 export function isMouseOver(left, right, top, bottom) {
   return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
@@ -303,9 +305,24 @@ function drawLabelText(label, x, y, fade) {
 }
 
 function drawLabelThumb(e, left, top) {
-  var img = new Image();
-  img.src = e.thumbnail;
-  ctx.drawImage(img, left + 4, top + 3);
+  // The encoded thumbnail on e can sometimes not finish decoding in time, and img.src = thumbnail won't render.
+  // We cache encoded thumbnails in a map, and when necessary wait for them to load then invoke draw() again.
+  const key = e.thumbnail;
+  if (!key) return;
+
+  let img = thumbCache.get(key);
+  if (!img) {
+    img = new Image();
+    img.onload = () => draw(false);   // redraw once when ready
+    img.src = key;
+    thumbCache.set(key, img);
+    return; // not ready this frame
+  }
+
+  if (!img.complete) return; // still decoding
+
+  // draw at a fixed size so it fits your label bubble cleanly
+  ctx.drawImage(img, left + 4, top + 3, DRAW.THUMBNAIL_SIZE, DRAW.THUMBNAIL_SIZE);
 }
 
 function drawLabelBubble(e, left, width, top, height, highlight) {
