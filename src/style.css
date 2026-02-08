@@ -352,18 +352,34 @@ aside.sidebar {
   padding-bottom: 12px;
 }
 
+
+/********************************* Thumbnail *********************************/
+
 /* Thumbnail/label section */
-.thumb-label {
+.thumblabel__section {
   display: flex;
   align-items: flex-start;   /* top-align thumbnail + text */
-  gap: 8px;                  /* exact spacing you want */
+  gap: 8px;
   padding-top: 14px;
 }
-.thumb-label .label {
+.thumblabel__section .label {
   flex: 1 1 auto;   /* take remaining horizontal space */
   margin: 0;        /* remove default h2 margin */
 }
 
+.thumb__section {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.thumb__right {
+  display: flex;
+  align-items: flex-start;  /* top aligned */
+  margin-left: auto;        /* push to far right */
+  gap: 4px;
+  min-height: 52px;
+}
 
 .thumbnail-img {
   /*width: 72px;
@@ -412,6 +428,15 @@ aside.sidebar {
   color: var(--accent);
 }
 
+.action-btn-small {
+  padding: 2px 12px;
+  border-radius: 4px;
+}
+
+.action-btn-close {
+  padding: 0px 2px;
+  border-radius: 2px;
+}
 
 /********************************* Sidebar section *********************************/
 

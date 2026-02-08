@@ -118,3 +118,12 @@ imageModal.addEventListener('click', (e) => {
     closeImageModal();
   }
 });
+
+export function removeImageThumbnail() {
+  const event = appState.selected.event;
+  event.thumbnail = null;
+  event.timeline.dirty = true;
+  setSidebarEvent(event);
+  initializeEvent(event);
+  draw(true);
+}

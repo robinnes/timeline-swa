@@ -4,7 +4,7 @@ import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail} from './image.js';
+import {getImageThumbnail, removeImageThumbnail} from './image.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -30,7 +30,7 @@ const significanceButtons = Array.from(document.querySelectorAll('input[name="ev
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
-
+const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
 
 /* ------------------- Sidebar -------------------- */
 
@@ -264,6 +264,10 @@ selectThumbnailBtn.addEventListener('click', (e) => {
   getImageThumbnail();
 });
 
+closeThumbnailBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  removeImageThumbnail();
+});
 
 /* ------------------- Edit timeline panel -------------------- */
 
@@ -352,9 +356,11 @@ export function setSidebarEvent(e) {
     if (thumb) {
       img.src = thumb;
       img.hidden = false;
+      closeThumbnailBtn.removeAttribute("hidden");
     } else {
       img.removeAttribute('src');
       img.hidden = true;
+      closeThumbnailBtn.setAttribute("hidden", "");
     }
   }
 
