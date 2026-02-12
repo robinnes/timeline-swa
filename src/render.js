@@ -304,9 +304,19 @@ function drawLabelText(label, x, y, fade) {
   });
 }
 
+function roundedRectPath(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 function drawLabelThumb(e, left, top) {
   // The encoded thumbnail on e can sometimes not finish decoding in time, and img.src = thumbnail won't render.
-  // We cache encoded thumbnails in a map, and when necessary wait for them to load then invoke draw() again.
+  // Cached encoded thumbnails in a map, and when necessary wait for them to load then invoke draw() again.
   const key = e.thumbnail;
   if (!key) return;
 
@@ -321,8 +331,12 @@ function drawLabelThumb(e, left, top) {
 
   if (!img.complete) return; // still decoding
 
-  // draw at a fixed size so it fits your label bubble cleanly
+  // draw thumbnail in rounded rectangle (simulate 'border-radius:xpx' css style)
+  ctx.save();
+  roundedRectPath(left + 4, top + 3, DRAW.THUMB_LABEL_SIZE, DRAW.THUMB_LABEL_SIZE, 4);
+  ctx.clip();
   ctx.drawImage(img, left + 4, top + 3, DRAW.THUMB_LABEL_SIZE, DRAW.THUMB_LABEL_SIZE);
+  ctx.restore();
 }
 
 function drawLabelBubble(e, left, width, top, height, highlight) {

@@ -12,14 +12,13 @@ const sidebarClose = document.getElementById('sidebar-close');
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const panels = Array.from(document.querySelectorAll('.panel'));
 
+const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
+
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const timelinePublishBtn = document.getElementById('timeline-publish');
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
-
-const subtabButtons = Array.from(document.querySelectorAll('.subpanel__tabs .subtab-btn'));
-const subpanels = Array.from(document.querySelectorAll('.subpanel'));
 
 const eventDeleteBtn = document.getElementById('event-delete');
 const editEventLabel = document.getElementById('edit-event-label');
@@ -196,34 +195,39 @@ async function tryPublishTimeline() {
 }
 
 
-/* ------------------- Subpanel navigation (Edit View panel) -------------------- */
+/* ------------------- Subpanel navigation (scoped per panel) -------------------- */
 
-// Attach click handlers to tab buttons
-for (const btn of subtabButtons) {
-  btn.addEventListener('click', (e) => {
+for (const tabsEl of subpanelTabs) {
+  tabsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.subtab-btn');
+    if (!btn || !tabsEl.contains(btn)) return;
+
     e.preventDefault();
     if (btn.disabled) return;
-    const target = btn.dataset.target;
-    setActiveSubTabButton(target);
-    const panelId = document.getElementById(target);
-    if (panelId) showSubpanel(panelId);    
+
+    const targetId = btn.dataset.target;
+    if (!targetId) return;
+
+    const panelEl = tabsEl.closest('.panel');
+    if (!panelEl) return;
+
+    // activate only the subtabs in this tab strip
+    for (const b of tabsEl.querySelectorAll('.subtab-btn')) {
+      const isTarget = b.dataset.target === targetId;
+      b.classList.toggle('is-active', isTarget);
+      b.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+    }
+
+    // show only the subpanels in this panel
+    const targetEl = panelEl.querySelector('#' + CSS.escape(targetId));
+    if (!targetEl) return;
+
+    for (const sp of panelEl.querySelectorAll('.subpanel')) {
+      const isActive = sp === targetEl;
+      sp.toggleAttribute('hidden', !isActive);
+      sp.toggleAttribute('inert', !isActive);
+    }
   });
-}
-
-function showSubpanel(id) {
-  for (const sp of subpanels) {
-    const isActive = sp === id;
-    sp.toggleAttribute('hidden', !isActive);
-    sp.toggleAttribute('inert', !isActive);
-  }
-}
-
-function setActiveSubTabButton(target) {
-  for (const btn of subtabButtons) {
-    const isTarget = btn.dataset.target === target;
-    btn.classList.toggle('is-active', isTarget);
-    btn.setAttribute('aria-selected', isTarget ? 'true' : 'false');
-  }
 }
 
 

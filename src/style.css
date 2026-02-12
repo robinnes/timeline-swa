@@ -331,8 +331,8 @@ aside.sidebar {
   color: var(--fg);
   border-bottom-color: var(--accent);
 }
-.subpanel__tabs .subtab-btn:disabled,
-.subpanel__tabs .subtab-btn.is-disabled {
+.subpanel__tabs .subtab-btn:disabled { /*,
+.subpanel__tabs .subtab-btn.is-disabled { */
   color: var(--muted);
   cursor: default;
   background: transparent;
