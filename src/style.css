@@ -28,6 +28,15 @@ html, body {
   height: 100%;
 }
 
+/********************************* Canvas *********************************/
+
+.canvas { 
+  display: block;
+  width: 100vw; 
+  height: 100vw; 
+  touch-action: none; 
+}
+
 /*************************** Floating App Menu (Top Right) ***************************/
 
 /* Wrapper is fixed in upper-right corner, over the canvas */
@@ -684,12 +693,106 @@ h2.label {
 .color-btn[data-color="green"] { background: rgb(0,255,100); }
 .color-btn[data-color="black"] { background: rgb(0,0,0); }
 
+/* ---------------- Tag Manager (Edit Timeline > Tags) ---------------- */
 
-/********************************* Canvas *********************************/
-
-.canvas { 
-  display: block;
-  width: 100vw; 
-  height: 100vw; 
-  touch-action: none; 
+.tagmgr__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
 }
+
+.tagmgr__hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.tagmgr__tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tagmgr__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tagmgr__row:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.tagmgr__row.is-selected {
+  background: rgba(106,166,255,0.14);
+  outline: 1px solid rgba(106,166,255,0.25);
+}
+
+.tagmgr__label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagmgr__input {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--fg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font: inherit;
+}
+
+/* Row actions live on the right side of a tag row */
+.tagmgr__actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+/* Show actions on hover OR when selected */
+.tagmgr__row:hover .tagmgr__actions,
+.tagmgr__row.is-selected .tagmgr__actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tagmgr__iconbtn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 2px 6px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tagmgr__iconbtn:hover {
+  color: var(--fg);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+}
+
+.tagmgr__iconbtn--danger:hover {
+  color: #ff6b6b;
+  border-color: rgba(255,107,107,0.35);
+  background: rgba(255,107,107,0.08);
+}
+
+/* Optional: footer spacing for +Tag */
+.tagmgr__footer {
+  margin-top: 10px;
+}
+

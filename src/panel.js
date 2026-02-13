@@ -5,6 +5,7 @@ import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initiali
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
+import { initTagsUI, renderTagsUI } from './tags.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -390,6 +391,7 @@ function setSidebarTimeline(tl) {
   // edit timeline panel
   editTimelineTitle.value = tl.title ?? '';
   editTimelineDetails.value = tl.details ?? '';
+  renderTagsUI(tl);
   updateSaveButton?.();
 }
 
@@ -520,3 +522,4 @@ function updateColorButtons() {
 }
 
 
+initTagsUI();

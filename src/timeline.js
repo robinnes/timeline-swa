@@ -27,7 +27,7 @@ export function initializeEvent(e) {
   const style = spec.style;
   
   // Assign/establish unique ID
-  if (e.eventID === undefined) e.eventID = crypto.randomUUID();
+  if (e.eventID === undefined) e.eventID = Util.uuid();
 
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label, e.thumbnail);

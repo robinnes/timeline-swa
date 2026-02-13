@@ -37,6 +37,10 @@ export async function isLocalEnv() {
   return isLocal;
 }
 
+export function uuid() {
+  return crypto.randomUUID();
+}
+
 // **********************************************************************************************************************
 
 import {DRAW} from './constants.js';

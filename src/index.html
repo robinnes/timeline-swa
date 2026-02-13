@@ -163,11 +163,21 @@
                     <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>
                   </section>
                 </div>
-                <div id="subpanel-edit-timeline-tags" class="subpanel" hidden inert>
-                  <section class="sidebar__section">
-                    <!-- tags UI goes here -->
-                  </section>
-                </div>
+<div id="subpanel-edit-timeline-tags" class="subpanel" hidden inert>
+  <section class="sidebar__section">
+    <div class="tagmgr">
+
+      <div class="tagmgr__hint" id="tagmgr-hint">
+        <!-- Tags are defined at the timeline level. Select a tag to rename, indent/outdent, reorder, or delete.-->
+      </div>
+      <ul class="tagmgr__tree" id="tag-tree" role="tree" aria-label="Timeline tags"></ul>
+      <div class="tagmgr__footer">
+        <button class="action-btn action-btn-small" id="tag-add">+ Tag</button>
+      </div>
+
+    </div>
+  </section>
+</div>
               </div>
               <div class="panel__footer">
                 <button id="timeline-save" class="action-btn" aria-label="Save changes" disabled>Save changes</button>
