@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw} from './canvas.js';
+import {appState, draw, followLink} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
 import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -13,8 +13,11 @@ const sidebarClose = document.getElementById('sidebar-close');
 
 const tabButtons = Array.from(document.querySelectorAll('.panel__tabs .tab-btn'));
 const panels = Array.from(document.querySelectorAll('.panel'));
-
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
+
+const displayTextAreas = document.querySelectorAll('.display-textarea');
+//const panelViewTimeline = document.getElementById('panel-view-timeline');
+//const panelViewEvent = document.getElementById('panel-view-event');
 
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
@@ -325,6 +328,39 @@ export function openTimelineForView(tl) {
   if (!sidebar.classList.contains('open')) openSidebar();
 }
 
+for (const txt of displayTextAreas) {
+  txt.addEventListener('click', (e) => {
+    console.log('click');
+    const a = e.target.closest("a");
+    if (!a) return;
+    if (a.hasAttribute("tl")) {
+      e.preventDefault();
+      const file = a.getAttribute('tl') + '.json';
+      followLink(file);
+    }
+  });
+}
+/*
+panelViewTimeline.addEventListener('click', (e) => {
+  const a = e.target.closest("a");
+  if (!a) return;
+  if (a.hasAttribute("tl")) {
+    e.preventDefault();
+    const file = a.getAttribute('tl') + '.json';
+    followLink(file);
+  }
+});
+
+panelViewEvent.addEventListener('click', (e) => {
+  const a = e.target.closest("a");
+  if (!a) return;
+  if (a.hasAttribute("tl")) {
+    e.preventDefault();
+    const file = a.getAttribute('tl') + '.json';
+    followLink(file);
+  }
+});
+*/
 
 /* ------------------- Populate fields for selection -------------------- */
 

@@ -38,11 +38,11 @@
                   <div class="date" id="event-date"></div>
                   <div class="thumblabel__section">
                     <img class="thumbnail-img" id="event-thumb-view-img" alt="View event thumbnail"/>
-                    <h2 class="label" id="event-label"></h2>
+                    <h2 class="label display-textarea" id="event-label"></h2>
                   </div>
                 </section>
                 <section class="sidebar__section">
-                  <div class="details" id="event-details"></div>
+                  <div class="details display-textarea" id="event-details"></div>
                 </section>
               </div>
             </div>
@@ -120,16 +120,16 @@
                   </section>
                 </div>
                 <!-- Tags subpanel -->
-<div id="subpanel-edit-event-tags" class="subpanel" hidden inert>
-  <section class="sidebar__section">
-    <div class="tagpick">
-      <div class="tagpick__hint" id="tagpick-hint" hidden>
-        No tags have been defined for this timeline yet.
-      </div>
-      <ul class="tagpick__tree" id="event-tag-tree" role="group" aria-label="Event tags"></ul>
-    </div>
-  </section>
-</div>
+                <div id="subpanel-edit-event-tags" class="subpanel" hidden inert>
+                  <section class="sidebar__section">
+                    <div class="tagpick">
+                      <div class="tagpick__hint" id="tagpick-hint" hidden>
+                        No tags have been defined for this timeline yet.
+                      </div>
+                      <ul class="tagpick__tree" id="event-tag-tree" role="group" aria-label="Event tags"></ul>
+                    </div>
+                  </section>
+                </div>
               </div>
               <div class="panel__footer">
                 <div class="panel__footer--left">
@@ -141,10 +141,10 @@
             <div id="panel-view-timeline" class="panel" hidden inert>
               <div class="panel__content">
                 <section class="sidebar__section">
-                  <h2 class="label" id="timeline-title"></h2>
+                  <h2 class="label display-textarea" id="timeline-title"></h2>
                 </section>
                 <section class="sidebar__section">
-                  <div class="details" id="timeline-details"></div>
+                  <div class="details display-textarea" id="timeline-details"></div>
                 </section>
               </div>
               <div class="panel__footer" id="view-timeline-footer">
@@ -159,7 +159,7 @@
               <div class="panel__content">
                 <div class="subpanel__tabs">
                   <button class="subtab-btn is-active" data-target="subpanel-edit-timeline-main" role="subtab" aria-selected="true">Main</button>
-                  <button class="subtab-btn" data-target="subpanel-edit-timeline-tags" role="subtab" aria-selected="false">Tags</button>
+                  <button class="subtab-btn"           data-target="subpanel-edit-timeline-tags" role="subtab" aria-selected="false">Tags</button>
                 </div>
                 <!-- Main subpanel -->
                 <div id="subpanel-edit-timeline-main" class="subpanel">

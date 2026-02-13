@@ -465,6 +465,13 @@ aside.sidebar {
 
 /********************************* Labels and text boxes *********************************/
 
+.control-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 h2.label {
   margin: 8px 0 2px;
   font-size: 18px;
@@ -472,19 +479,33 @@ h2.label {
   letter-spacing: .2px;
   font-weight: 650;
 }
-.label p { margin: 0 0 10px; }
+/*.label p { margin: 0 0 10px; }
 .label p:last-child { margin-bottom: 0; }
 .label h3 { font-size: 14px; margin: 12px 0 6px; }
 .label ul { margin: 8px 0 8px 18px; }
 .label a { color: var(--accent); text-decoration: none; }
 .label a:hover { text-decoration: underline; }
-
-.control-label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--muted);
-  font-size: 13px;
+*/
+.details {   /* details display */
+  padding: 14px 0;
+  flex: 1 1 auto; /* fill remaining vertical space */
+  min-height: 0; /* allow internal scrolling */
+  overflow: auto;
 }
+/*.details p { margin: 0 0 10px; }
+.details p:last-child { margin-bottom: 0; }
+.details h3 { font-size: 14px; margin: 12px 0 6px; }
+.details ul { margin: 8px 0 8px 18px; }
+.details a { color: var(--accent); text-decoration: none; }
+.details a:hover { text-decoration: underline; }
+*/
+
+.display-textarea p { margin: 0 0 10px; }
+.display-textarea p:last-child { margin-bottom: 0; }
+.display-textarea h3 { font-size: 14px; margin: 12px 0 6px; }
+.display-textarea ul { margin: 8px 0 8px 18px; }
+.display-textarea a { color: var(--accent); text-decoration: none; }
+.display-textarea a:hover { text-decoration: underline; }
 
 .edit-input,  /* edit-input simulates an editable field but is read-only (edit event date)  */
 .edit-textarea {
@@ -549,18 +570,7 @@ h2.label {
   white-space: nowrap;
 }
 
-.details {   /* details display */
-  padding: 14px 0;
-  flex: 1 1 auto; /* fill remaining vertical space */
-  min-height: 0; /* allow internal scrolling */
-  overflow: auto;
-}
-.details p { margin: 0 0 10px; }
-.details p:last-child { margin-bottom: 0; }
-.details h3 { font-size: 14px; margin: 12px 0 6px; }
-.details ul { margin: 8px 0 8px 18px; }
-.details a { color: var(--accent); text-decoration: none; }
-.details a:hover { text-decoration: underline; }
+
 
 
 /********************************* Significance selecitons *********************************/

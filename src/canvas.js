@@ -154,6 +154,8 @@ export function setPointerCursor() {
   else canvas.style.cursor = 'default';
 }
 
+/* ------------------- Navigation events -------------------- */
+
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -385,7 +387,7 @@ export function zoomToTimeline(tl) {
   positionTimelines(true);
 }
 
-async function followLink(file) {
+export async function followLink(file) {
   // check if timeline is already there
   const existingTL = timelines.find(t =>
     t.timelineID.file === file);
@@ -461,18 +463,15 @@ function addNewEvent(tl) {
   openEventForEdit(event);
 }
 
-document.addEventListener("click", (e) => {
+/*document.addEventListener("click", (e) => {
   const a = e.target.closest("a");
   if (!a) return;
-
-  // Internal links:
-  //if (a.hasAttribute("data-internal-link")) {
   if (a.hasAttribute("tl")) {
     e.preventDefault();
     const file = a.getAttribute('tl') + '.json';
     followLink(file);
   }
-});
+});*/
 
 export function draw(reposition){
   if (reposition) positionLabels();
