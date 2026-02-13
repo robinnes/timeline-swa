@@ -14,8 +14,11 @@ function timelineString(tl) {
     details: tl.details,
     dateFrom: tl.dateFrom,
     dateTo: tl.dateTo,
-    events: tl.events.map(({eventID, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail}) => ({
-                            eventID, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail
+    tags: tl.tags.map(({id, label, parentId, order}) => ({
+                        id, label, parentId, order
+    })),
+    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail}) => ({
+                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail
     }))
   };
   return JSON.stringify(txt, null, 2);
@@ -27,7 +30,7 @@ export function initializeEvent(e) {
   const style = spec.style;
   
   // Assign/establish unique ID
-  if (e.eventID === undefined) e.eventID = Util.uuid();
+  if (e.id === undefined) e.id = Util.uuid();
 
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label, e.thumbnail);
