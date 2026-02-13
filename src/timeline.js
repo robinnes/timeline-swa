@@ -17,8 +17,8 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail}) => ({
-                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail
+    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds}) => ({
+                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds: tagIds ?? []
     }))
   };
   return JSON.stringify(txt, null, 2);
@@ -31,6 +31,9 @@ export function initializeEvent(e) {
   
   // Assign/establish unique ID
   if (e.id === undefined) e.id = Util.uuid();
+
+  // Initialize tags selection (for older timelines)
+  if (!Array.isArray(e.tagIds)) e.tagIds = [];
 
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label, e.thumbnail);

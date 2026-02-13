@@ -120,8 +120,16 @@
                   </section>
                 </div>
                 <!-- Tags subpanel -->
-                <div id="subpanel-edit-event-tags"class="subpanel" hidden inert>
-                </div>
+<div id="subpanel-edit-event-tags" class="subpanel" hidden inert>
+  <section class="sidebar__section">
+    <div class="tagpick">
+      <div class="tagpick__hint" id="tagpick-hint" hidden>
+        No tags have been defined for this timeline yet.
+      </div>
+      <ul class="tagpick__tree" id="event-tag-tree" role="group" aria-label="Event tags"></ul>
+    </div>
+  </section>
+</div>
               </div>
               <div class="panel__footer">
                 <div class="panel__footer--left">
@@ -153,6 +161,7 @@
                   <button class="subtab-btn is-active" data-target="subpanel-edit-timeline-main" role="subtab" aria-selected="true">Main</button>
                   <button class="subtab-btn" data-target="subpanel-edit-timeline-tags" role="subtab" aria-selected="false">Tags</button>
                 </div>
+                <!-- Main subpanel -->
                 <div id="subpanel-edit-timeline-main" class="subpanel">
                   <section class="sidebar__section">
                     <label for="edit-timeline-title" class="control-label">Title</label>
@@ -163,21 +172,20 @@
                     <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>
                   </section>
                 </div>
-<div id="subpanel-edit-timeline-tags" class="subpanel" hidden inert>
-  <section class="sidebar__section">
-    <div class="tagmgr">
-
-      <div class="tagmgr__hint" id="tagmgr-hint">
-        <!-- Tags are defined at the timeline level. Select a tag to rename, indent/outdent, reorder, or delete.-->
-      </div>
-      <ul class="tagmgr__tree" id="tag-tree" role="tree" aria-label="Timeline tags"></ul>
-      <div class="tagmgr__footer">
-        <button class="action-btn action-btn-small" id="tag-add">+ Tag</button>
-      </div>
-
-    </div>
-  </section>
-</div>
+                <!-- Tags subpanel -->
+                <div id="subpanel-edit-timeline-tags" class="subpanel" hidden inert>
+                  <section class="sidebar__section">
+                    <div class="tagmgr">
+                      <div class="tagmgr__hint" id="tagmgr-hint">
+                        <!-- Tags are defined at the timeline level. Select a tag to rename, indent/outdent, reorder, or delete.-->
+                      </div>
+                      <ul class="tagmgr__tree" id="tag-tree" role="tree" aria-label="Timeline tags"></ul>
+                      <div class="tagmgr__footer">
+                        <button class="action-btn action-btn-small" id="tag-add">+ Tag</button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
               </div>
               <div class="panel__footer">
                 <button id="timeline-save" class="action-btn" aria-label="Save changes" disabled>Save changes</button>

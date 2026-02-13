@@ -2,9 +2,13 @@ import * as Util from './util.js';
 import { appState } from './canvas.js';
 import { updateSaveButton } from './panel.js';
 
-
 let treeEl = null;
 let selectedTagId = null;
+
+let pickerEl = null;
+let pickerHintEl = null;
+
+/* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
 
 export function initTagsUI() {
   treeEl = document.getElementById('tag-tree');
@@ -346,4 +350,100 @@ function moveSelected(delta) {
 function moveTag(tagId, delta) {
   selectedTagId = tagId;
   moveSelected(delta);
+}
+
+
+/* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
+
+export function initTagPickerUI() {
+  pickerEl = document.getElementById('event-tag-tree');
+  pickerHintEl = document.getElementById('tagpick-hint');
+  if (!pickerEl) return;
+
+  // Toggle tag on checkbox change
+  pickerEl.addEventListener('change', (e) => {
+    const cb = e.target.closest('input[type="checkbox"][data-tag-id]');
+    if (!cb) return;
+
+    const tagId = cb.dataset.tagId;
+    const event = appState.selected.event;
+    const tl = appState.selected.timeline;
+    if (!event || !tl) return;
+
+    if (!event.tagIds) event.tagIds = [];
+
+    if (cb.checked) {
+      if (!event.tagIds.includes(tagId)) event.tagIds.push(tagId);
+    } else {
+      const idx = event.tagIds.indexOf(tagId);
+      if (idx >= 0) event.tagIds.splice(idx, 1);
+    }
+
+    // mark dirty + enable save
+    tl.dirty = true;
+    updateSaveButton?.();
+  });
+}
+
+export function renderTagPickerUI(tl, event) {
+  if (!pickerEl) return;
+
+  // no timeline or no tags -> show hint
+  const tags = tl?.tags ?? [];
+  const hasTags = tags.length > 0;
+
+  if (pickerHintEl) pickerHintEl.hidden = hasTags;
+  pickerEl.innerHTML = '';
+
+  if (!hasTags || !event) return;
+
+  if (!event.tagIds) event.tagIds = [];
+
+  // Build parent -> children map
+  const byParent = new Map();
+  for (const t of tags) {
+    const key = t.parentId ?? null;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(t);
+  }
+  for (const arr of byParent.values()) {
+    arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+
+  // Render roots
+  const root = byParent.get(null) ?? [];
+  for (const t of root) {
+    pickerEl.appendChild(renderPickerNode(t, byParent, 0, event));
+  }
+}
+
+function renderPickerNode(tag, byParent, depth, event) {
+  const li = document.createElement('li');
+  li.style.paddingLeft = `${depth * 16}px`;
+
+  const row = document.createElement('label');
+  row.className = 'tagpick__row';
+
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.dataset.tagId = tag.id;
+  cb.checked = !!event.tagIds?.includes(tag.id);
+
+  const text = document.createElement('div');
+  text.className = 'tagpick__label';
+  text.textContent = tag.label || '(untitled)';
+
+  row.appendChild(cb);
+  row.appendChild(text);
+  li.appendChild(row);
+
+  const kids = byParent.get(tag.id) ?? [];
+  if (kids.length) {
+    const ul = document.createElement('ul');
+    ul.className = 'tagpick__tree';
+    for (const c of kids) ul.appendChild(renderPickerNode(c, byParent, depth + 1, event));
+    li.appendChild(ul);
+  }
+
+  return li;
 }

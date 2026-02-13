@@ -5,7 +5,8 @@ import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initiali
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
-import { initTagsUI, renderTagsUI } from './tags.js';
+import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tags.js';
+
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -369,6 +370,8 @@ export function setSidebarEvent(e) {
     }
   }
 
+  renderTagPickerUI(appState.selected.timeline, e);
+
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
@@ -523,3 +526,5 @@ function updateColorButtons() {
 
 
 initTagsUI();
+initTagPickerUI();
+
