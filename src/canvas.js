@@ -58,6 +58,61 @@ export const appState = {
 export const timelines = [];
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
+/* ------------------- Functions -------------------- */
+
+export function resize(){
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.floor(window.innerWidth);
+  const h = Math.floor(window.innerHeight);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+  draw(true);
+}
+window.addEventListener('resize', resize);
+
+export function setPointerCursor() {
+  // change pointer is appropriate
+  const idx = appState.highlighted.idx;
+  const linkIdx = appState.highlighted.linkIdx;
+
+  if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
+  else if (idx === -1) canvas.style.cursor = 'default'
+  else if (linkIdx > -1) canvas.style.cursor = 'pointer'
+  else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
+  else if (screenElements[idx].type === 'handle') canvas.style.cursor = 'ew-resize'
+  else canvas.style.cursor = 'default';
+}
+
+export function draw(reposition){
+  if (reposition) positionLabels();
+
+  ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
+  screenElements.length = 0;  // reset list of screen elements
+  appState.highlighted.idx = -1;
+  appState.highlighted.linkIdx = -1;
+  drawTicks();
+  drawEvents();
+  //Util.debugVars();
+}
+
+export async function initialLoad() {
+  // open public timeline indicated param "tl" if present
+  const params = new URLSearchParams(window.location.search);
+  const tlParam = params.get("tl");
+  if (!tlParam) return;
+
+  const file = tlParam + ".json";
+  const tl = await loadTimeline(file);
+  positionTimelines(false);
+  centerOnTimeline(tl);
+  draw(true);
+}
+
+/* ------------------- Momentum handling -------------------- */
+
 export function tick(now) {
   requestAnimationFrame(tick);
 
@@ -93,11 +148,11 @@ function zoom(dt) {
 
   // if timelines are repositioned, move those, too
   for (const tl of timelines) {
-    if (tl.newYPos) {
-      const dCeiling = tl.newCeiling - tl.ceiling;
-      const dYPos = tl.newYPos - tl.yPos;
-      tl.ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
-      tl.yPos += dYPos * dt * TIME.ZOOM_SPEED;
+    if (tl._newYPos) {
+      const dCeiling = tl._newCeiling - tl._ceiling;
+      const dYPos = tl._newYPos - tl._yPos;
+      tl._ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
+      tl._yPos += dYPos * dt * TIME.ZOOM_SPEED;
     }
   }
 
@@ -106,55 +161,17 @@ function zoom(dt) {
     appState.zoom.isZooming = false;
     // reset zoom variables for the timelines
     for (const tl of timelines) {
-      if (tl.newYPos) {
-        tl.ceiling = tl.newCeiling; tl.yPos = tl.newYPos;
-        tl.newCeiling = null; tl.newYPos = null;
+      if (tl._newYPos) {
+        tl._ceiling = tl._newCeiling; tl._yPos = tl._newYPos;
+        tl._newCeiling = null; tl._newYPos = null;
       }
     }
   }
   draw(true);
 }
 
-function mouseZoom(x, factor) {
-  const tAtMouse = Util.pxToTime(x);
-  const newMsPerPx = appState.msPerPx * factor;
 
-  // clamp zoom between min and max thresholds
-  appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
-
-  // keep the date under the mouse fixed
-  appState.offsetMs = tAtMouse - TIME.EPOCH - x * appState.msPerPx;
-
-  draw(true);
-};
-
-export function resize(){
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  const w = Math.floor(window.innerWidth);
-  const h = Math.floor(window.innerHeight);
-  canvas.style.width = w + 'px';
-  canvas.style.height = h + 'px';
-  canvas.width = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
-  draw(true);
-}
-window.addEventListener('resize', resize);
-
-export function setPointerCursor() {
-  // change pointer is appropriate
-  const idx = appState.highlighted.idx;
-  const linkIdx = appState.highlighted.linkIdx;
-
-  if (appState.drag.isDragging) canvas.style.cursor = 'ew-resize'
-  else if (idx === -1) canvas.style.cursor = 'default'
-  else if (linkIdx > -1) canvas.style.cursor = 'pointer'
-  else if (screenElements[idx].type === 'button') canvas.style.cursor = 'pointer'
-  else if (screenElements[idx].type === 'handle') canvas.style.cursor = 'ew-resize'
-  else canvas.style.cursor = 'default';
-}
-
-/* ------------------- Navigation events -------------------- */
+/* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
@@ -335,12 +352,12 @@ canvas.addEventListener('click', function (e) {
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
       appState.selected.event = appState.highlighted.event;
       appState.selected.timeline = appState.selected.event.timeline;
-      if (appState.selected.timeline.mode === "edit") openEventForEdit(appState.selected.event) 
+      if (appState.selected.timeline._mode === "edit") openEventForEdit(appState.selected.event) 
       else openEventForView(appState.selected.event);
       draw(false);
   } else if (elem.type === 'timeline') {
     appState.selected.timeline = elem.timeline;
-    if (appState.selected.timeline.mode === "edit") openTimelineForEdit(appState.selected.timeline)
+    if (appState.selected.timeline._mode === "edit") openTimelineForEdit(appState.selected.timeline)
     else openTimelineForView(appState.selected.timeline);
 
   } else if (elem.type === 'button') {
@@ -348,6 +365,22 @@ canvas.addEventListener('click', function (e) {
     else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
   }
 });
+
+
+/* ------------------- General navigation -------------------- */
+
+function mouseZoom(x, factor) {
+  const tAtMouse = Util.pxToTime(x);
+  const newMsPerPx = appState.msPerPx * factor;
+
+  // clamp zoom between min and max thresholds
+  appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
+
+  // keep the date under the mouse fixed
+  appState.offsetMs = tAtMouse - TIME.EPOCH - x * appState.msPerPx;
+
+  draw(true);
+};
 
 function zoomToTick(t, t2) {
   // determine where to zoom/pan
@@ -361,15 +394,18 @@ function zoomToTick(t, t2) {
   appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:newOffsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:newMsPerPx};
 }
 
+
+/* ------------------- Timeline navigation -------------------- */
+
 function positionForTimeline(tl)
 {
   // return offsetMs and msPerPx to fit timeline tl
-  if (!tl.dateFrom || !tl.dateTo)
+  if (!tl._dateFrom || !tl._dateTo)
     return {offsetMs:appState.offsetMs, msPerPx:appState.msPerPx};
 
   const w = window.innerWidth;
-  const tFrom = Date.parse(tl.dateFrom);
-  const tTo = Date.parse(tl.dateTo);
+  const tFrom = Date.parse(tl._dateFrom);
+  const tTo = Date.parse(tl._dateTo);
   const width = tTo - tFrom;
 
   return {offsetMs:(tFrom - (width / 10)) - TIME.EPOCH, msPerPx:width / (w / 1.2)};
@@ -387,10 +423,10 @@ export function zoomToTimeline(tl) {
   positionTimelines(true);
 }
 
-export async function followLink(file) {
+async function linkToFile(file) {
   // check if timeline is already there
   const existingTL = timelines.find(t =>
-    t.timelineID.file === file);
+    t._timelineID.file === file);
 
   if (existingTL) {
     zoomToTimeline(existingTL);
@@ -398,37 +434,38 @@ export async function followLink(file) {
     // load and zoom to timelineID; begin positioned at clicked timeline
     const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
     const idx = timelines.indexOf(tl);
-    const yPos = tl.yPos
-    const ceiling = tl.ceiling;
+    const yPos = tl._yPos
+    const ceiling = tl._ceiling;
     const newTL = await loadTimeline(file, idx+1); // insert it above the clicked one
-    newTL.yPos = yPos;
-    newTL.ceiling = ceiling;
+    newTL._yPos = yPos;
+    newTL._ceiling = ceiling;
     zoomToTimeline(newTL);
   }
 }
 
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  // Polyfill roundRect if needed
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    if (typeof r === 'number') r = {tl:r, tr:r, br:r, bl:r};
-    else r = Object.assign({tl:0,tr:0,br:0,bl:0}, r);
-    this.beginPath();
-    this.moveTo(x + r.tl, y);
-    this.lineTo(x + w - r.tr, y);
-    this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
-    this.lineTo(x + w, y + h - r.br);
-    this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
-    this.lineTo(x + r.bl, y + h);
-    this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
-    this.lineTo(x, y + r.tl);
-    this.quadraticCurveTo(x, y, x + r.tl, y);
-    this.closePath();
-    return this;
-  };
+function linkToTag(tl, tag) {
+  console.log(tl.title, tag);
 }
 
+export async function followLink(tl, a) {
+  
+  if (a.hasAttribute("tl")) {
+    const file = a.getAttribute("tl") + ".json";
+    linkToFile(file);
+    return;
+  }
+
+  if (a.hasAttribute("tag")) {
+    const tag = a.getAttribute("tag");
+    linkToTag(tl, tag);
+  }
+}
+
+
+/* ------------------- Canvas button handling -------------------- */
+
 async function closeBtnClick(tl) {
-  if (tl.dirty) {
+  if (tl._dirty) {
     const ok = await showModalDialog({message:'Close timeline without saving?'});
     if (!ok) return;
   }
@@ -457,43 +494,30 @@ function addNewEvent(tl) {
   appState.selected.event = event;
   appState.selected.timeline = tl;
   tl.events.push(event);
-  tl.dirty = true;
+  tl._dirty = true;
   updateSaveButton();
   draw(true);
   openEventForEdit(event);
 }
 
-/*document.addEventListener("click", (e) => {
-  const a = e.target.closest("a");
-  if (!a) return;
-  if (a.hasAttribute("tl")) {
-    e.preventDefault();
-    const file = a.getAttribute('tl') + '.json';
-    followLink(file);
-  }
-});*/
-
-export function draw(reposition){
-  if (reposition) positionLabels();
-
-  ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
-  screenElements.length = 0;  // reset list of screen elements
-  appState.highlighted.idx = -1;
-  appState.highlighted.linkIdx = -1;
-  drawTicks();
-  drawEvents();
-  //Util.debugVars();
+/*
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  // Polyfill roundRect if needed
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = {tl:r, tr:r, br:r, bl:r};
+    else r = Object.assign({tl:0,tr:0,br:0,bl:0}, r);
+    this.beginPath();
+    this.moveTo(x + r.tl, y);
+    this.lineTo(x + w - r.tr, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+    this.lineTo(x + w, y + h - r.br);
+    this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+    this.lineTo(x + r.bl, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+    this.lineTo(x, y + r.tl);
+    this.quadraticCurveTo(x, y, x + r.tl, y);
+    this.closePath();
+    return this;
+  };
 }
-
-export async function initialLoad() {
-  // open public timeline indicated param "tl" if present
-  const params = new URLSearchParams(window.location.search);
-  const tlParam = params.get("tl");
-  if (!tlParam) return;
-
-  const file = tlParam + ".json";
-  const tl = await loadTimeline(file);
-  positionTimelines(false);
-  centerOnTimeline(tl);
-  draw(true);
-}
+*/

@@ -7,7 +7,6 @@ import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tags.js';
 
-
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
 
@@ -16,8 +15,6 @@ const panels = Array.from(document.querySelectorAll('.panel'));
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
 
 const displayTextAreas = document.querySelectorAll('.display-textarea');
-//const panelViewTimeline = document.getElementById('panel-view-timeline');
-//const panelViewEvent = document.getElementById('panel-view-event');
 
 const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
@@ -68,8 +65,8 @@ for (const btn of tabButtons) {
     if (!target) return;
     // map logical tab to the appropriate panel depending on whether we're editing a timeline
     let panelId = null;
-    if (target === 'timeline') panelId = ((appState.selected.timeline.mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
-    else if (target === 'event') panelId = ((appState.selected.timeline.mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
+    if (target === 'timeline') panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
+    else if (target === 'event') panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
     if (panelId) showPanel(panelId);    
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openSidebar();
@@ -117,7 +114,7 @@ function updateTabStates() {
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  appState.selected.timeline.mode = 'edit';
+  appState.selected.timeline._mode = 'edit';
   openTimelineForEdit(appState.selected.timeline);
   draw();
 });
@@ -130,24 +127,24 @@ timelineCancelBtn.addEventListener('click', (e) => {
 async function cancelTimelineEdit() {
   const tl = appState.selected.timeline;
 
-  if (!tl.timelineID.file) {
+  if (!tl._timelineID.file) {
     const ok = await showModalDialog({message:'Abandon changes to timeline?'});
     if (!ok) return;
 
     closeTimeline(tl);
     closeSidebar();
-  } else if (tl.dirty) {
+  } else if (tl._dirty) {
     const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
     if (!ok) return;
 
     reloadTimeline(tl).then(() => {
-      tl.mode = 'view';
+      tl._mode = 'view';
       setSidebarTimeline(appState.selected.timeline);
       openTimelineForView(appState.selected.timeline);
       draw(true);
     });
   } else {
-    tl.mode = 'view';
+    tl._mode = 'view';
     openTimelineForView(tl); // cancel without reloading
     draw();
   }
@@ -156,7 +153,7 @@ async function cancelTimelineEdit() {
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
   const tl = appState.selected.timeline;
-  if (!tl.timelineID.file) {
+  if (!tl._timelineID.file) {
     // new timeline... open dialog
     openSaveAsTimelineDialog('');
   } else {
@@ -169,8 +166,13 @@ timelineSaveBtn.addEventListener('click', (e) => {
 export function updateSaveButton() {
   // Enable the Save button when selected timeline is dirty
   if (!appState.selected.timeline) return;
-  const shouldDisable = (appState.selected.timeline.mode === 'view' || !appState.selected.timeline.dirty);
+  const shouldDisable = (appState.selected.timeline._mode === 'view' || !appState.selected.timeline._dirty);
   timelineSaveBtn.disabled = shouldDisable;
+}
+
+export function markDirty(tl) {
+  tl._dirty = true;
+  updateSaveButton?.();
 }
 
 eventDeleteBtn.addEventListener('click', (e) => {
@@ -180,7 +182,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
   const idx = events.indexOf(appState.selected.event);
   events.splice(idx, 1);
   appState.selected.event = null;
-  tl.dirty = true;
+  tl._dirty = true;
   draw(true);
   openTimelineForEdit(tl);
 });
@@ -253,7 +255,7 @@ editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
   const event = appState.selected.event;
   event.label = s;
-  appState.selected.timeline.dirty = true;
+  appState.selected.timeline._dirty = true;
   updateSaveButton?.();
   initializeEvent(event);  // appearance of bubble label may change
   positionLabels();
@@ -264,7 +266,7 @@ editEventDetails.addEventListener('input', (e) => {
   const v = e.target.value;
   const event = appState.selected.event;
   event.details = v;
-  appState.selected.timeline.dirty = true;
+  appState.selected.timeline._dirty = true;
   updateSaveButton?.();
 });
 
@@ -294,7 +296,7 @@ editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   const tl = appState.selected.timeline;
   tl.title = s;
-  tl.dirty = true;
+  tl._dirty = true;
   initializeTitle(tl);  // update titleWidth for drawing
   updateSaveButton?.();
   draw();
@@ -304,7 +306,7 @@ editTimelineDetails.addEventListener('input', (e) => {
   const v = e.target.value;
   const tl = appState.selected.timeline;
   tl.details = v;
-  tl.dirty = true;
+  tl._dirty = true;
   updateSaveButton?.();
 });
 
@@ -328,39 +330,21 @@ export function openTimelineForView(tl) {
   if (!sidebar.classList.contains('open')) openSidebar();
 }
 
+// hyperlink clicks within label and details
 for (const txt of displayTextAreas) {
   txt.addEventListener('click', (e) => {
-    console.log('click');
+    
     const a = e.target.closest("a");
     if (!a) return;
-    if (a.hasAttribute("tl")) {
+    //if (a.hasAttribute("tl")) {
       e.preventDefault();
-      const file = a.getAttribute('tl') + '.json';
-      followLink(file);
-    }
+    //  const file = a.getAttribute('tl') + '.json';
+    //  followLink(file);
+followLink(appState.selected.timeline, a);
+    //}
   });
 }
-/*
-panelViewTimeline.addEventListener('click', (e) => {
-  const a = e.target.closest("a");
-  if (!a) return;
-  if (a.hasAttribute("tl")) {
-    e.preventDefault();
-    const file = a.getAttribute('tl') + '.json';
-    followLink(file);
-  }
-});
 
-panelViewEvent.addEventListener('click', (e) => {
-  const a = e.target.closest("a");
-  if (!a) return;
-  if (a.hasAttribute("tl")) {
-    e.preventDefault();
-    const file = a.getAttribute('tl') + '.json';
-    followLink(file);
-  }
-});
-*/
 
 /* ------------------- Populate fields for selection -------------------- */
 
@@ -422,7 +406,7 @@ function setSidebarTimeline(tl) {
   else $("timeline-details").innerText = tl.details ?? '';
 
   // no 'Edit' button for public timelines
-  if (tl.timelineID.scope === "public") 
+  if (tl._timelineID.scope === "public") 
     viewTimelineFooter.setAttribute("hidden", "");
   else 
     viewTimelineFooter.removeAttribute("hidden");
@@ -447,7 +431,7 @@ for (const r of significanceButtons) {
     event.significance = v;
     initializeEvent(event);
     // mark timeline dirty when event changed
-    if (tl.mode === 'edit') tl.dirty = true;
+    if (tl._mode === 'edit') tl.dirty = true;
     updateSaveButton();
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color

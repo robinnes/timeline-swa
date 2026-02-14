@@ -12,8 +12,6 @@ function timelineString(tl) {
   const txt = {
     title: tl.title,
     details: tl.details,
-    dateFrom: tl.dateFrom,
-    dateTo: tl.dateTo,
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
@@ -32,18 +30,18 @@ export function initializeEvent(e) {
   // Assign/establish unique ID
   if (e.id === undefined) e.id = Util.uuid();
 
-  // Initialize tags selection (for older timelines)
+  // Initialize tags selection
   if (!Array.isArray(e.tagIds)) e.tagIds = [];
 
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label, e.thumbnail);
-  e.labelSingle = parsed.singleRow;
-  e.labelWidth = parsed.singleWidth;
-  e.parsedLabel = parsed.multiRow;
-  e.parsedWidth = parsed.multiWidth;
-  e.parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
-  if (e.thumbnail && e.parsedRows < DRAW.THUMB_LABEL_ROWS) e.parsedRows = DRAW.THUMB_LABEL_ROWS;
-  e.yOffset = null;
+  e._labelSingle = parsed.singleRow;
+  e._labelWidth = parsed.singleWidth;
+  e._parsedLabel = parsed.multiRow;
+  e._parsedWidth = parsed.multiWidth;
+  e._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
+  if (e.thumbnail && e._parsedRows < DRAW.THUMB_LABEL_ROWS) e._parsedRows = DRAW.THUMB_LABEL_ROWS;
+  e._yOffset = null;
 
   if (style === 'line') {
     if (!e.dateFrom) e.dateFrom = e.date;
@@ -61,11 +59,11 @@ export function initializeEvent(e) {
     if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
     if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
 
-    e.tFrom = Date.parse(e.dateFrom) + (12 * h);
-    e.tTo = Date.parse(e.dateTo) + (12 * h);
-    e.fLeft = Date.parse(e.fadeLeft) + (12 * h);
-    e.fRight = Date.parse(e.fadeRight) + (12 * h);
-    e.dateTime = (e.fRight + e.fLeft) / 2;
+    e._tFrom = Date.parse(e.dateFrom) + (12 * h);
+    e._tTo = Date.parse(e.dateTo) + (12 * h);
+    e._fLeft = Date.parse(e.fadeLeft) + (12 * h);
+    e._fRight = Date.parse(e.fadeRight) + (12 * h);
+    e._dateTime = (e.fRight + e.fLeft) / 2;
     
   } else {
     if (!e.date) e.date = e.dateFrom; // nothing fance like finding middle of line vars...
@@ -73,19 +71,19 @@ export function initializeEvent(e) {
     e.color = "white";
     
     //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-    e.dateTime = d + (12 * h);
-    e.tFrom = e.dateTime - (4 * h);
-    e.tTo = e.dateTime + (4 * h);
-    e.fLeft = e.tFrom + (3 * h);
-    e.fRight = e.tTo - (3 * h);
+    e._dateTime = d + (12 * h);
+    e._tFrom = e._dateTime - (4 * h);
+    e._tTo = e._dateTime + (4 * h);
+    e._fLeft = e._tFrom + (3 * h);
+    e._fRight = e._tTo - (3 * h);
   }
-  e.x = Util.timeToPx(e.dateTime);  // used only to position labels in relation to each other
+  e._x = Util.timeToPx(e._dateTime);  // used only to position labels in relation to each other
 };
 
 export function initializeTitle(tl) {
   const ctx = canvas.getContext('2d');
   ctx.font = TIME.TITLE_FONT;
-  tl.labelWidth = ctx.measureText(tl.title).width;
+  tl._labelWidth = ctx.measureText(tl.title).width;
 }
 
 function initializeTimeline(tl) {
@@ -93,7 +91,7 @@ function initializeTimeline(tl) {
   var maxDate;
 
   initializeTitle(tl);
-  tl.dirty = false;
+  tl._dirty = false;
   
   //tl.events.forEach(initializeEvent);
   for (const event of tl.events) {
@@ -107,8 +105,8 @@ function initializeTimeline(tl) {
     if (!minDate || dateFrom < minDate) minDate = dateFrom;
     if (!maxDate || dateTo > maxDate) maxDate = dateTo;
   }
-  tl.dateFrom = minDate;
-  tl.dateTo = maxDate;
+  tl._dateFrom = minDate;
+  tl._dateTo = maxDate;
 }
 
 export async function loadTimeline(file, idx=0) {
@@ -119,9 +117,9 @@ export async function loadTimeline(file, idx=0) {
   // load timelineID into timelines array
   const tl = await getTimeline(scope, file);
   const timelineID = {scope:scope, file:file};
-  tl.timelineID = timelineID;
+  tl._timelineID = timelineID;
   initializeTimeline(tl);
-  tl.mode = 'view';
+  tl._mode = 'view';
   timelines.splice(idx, 0, tl);
   return tl;
 }
@@ -129,12 +127,12 @@ export async function loadTimeline(file, idx=0) {
 export async function reloadTimeline(tl) {
   // reload from storage
   const idx = timelines.indexOf(tl);
-  const timelineID = tl.timelineID;
-  const yPos = tl.yPos, ceiling = tl.ceiling;
+  const timelineID = tl._timelineID;
+  const yPos = tl._yPos, ceiling = tl._ceiling;
   timelines[idx] = null;
   const reloaded = await getTimeline(timelineID.scope, timelineID.file);
   initializeTimeline(reloaded);
-  reloaded.yPos = yPos; reloaded.ceiling = ceiling;
+  reloaded._yPos = yPos; reloaded._ceiling = ceiling;
   timelines[idx] = reloaded;
   if (appState.selected.timeline === tl) appState.selected.timeline = reloaded;
 }
@@ -146,9 +144,9 @@ export function addNewTimeline(title) {
     title:title, 
     details:null, 
     events:[],
-    labelWidth:null,
-    mode:'edit',
-    dirty:true,
+    _labelWidth:null,
+    _mode:'edit',
+    _dirty:true,
     timelineID:{scope:"private", file:null}
   };
 
@@ -164,8 +162,8 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("private", tl.timelineID.file, text);
-    tl.dirty = false;
+    await saveTimelineToStorage("private", tl._timelineID.file, text);
+    tl._dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
     console.error('Save failed:', err.message);
@@ -178,8 +176,8 @@ export async function publishTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("public", tl.timelineID.file, text);
-    tl.dirty = false;
+    await saveTimelineToStorage("public", tl._timelineID.file, text);
+    tl._dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
     console.error('Publish failed:', err.message);

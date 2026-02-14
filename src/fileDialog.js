@@ -256,7 +256,7 @@ async function handleOpenTimelineConfirm() {
 
     // check if timeline is already there
     const existingTL = timelines.find(t =>
-      JSON.stringify(t.timelineID) === JSON.stringify(timelineID));
+      JSON.stringify(t._timelineID) === JSON.stringify(timelineID));
 
     if (existingTL) {
       // reload timeline that's already displayed
@@ -283,7 +283,7 @@ async function handleOpenTimelineConfirm() {
     }
 
     const timelineID = { scope:"private", file: filename };
-    appState.selected.timeline.timelineID = timelineID;
+    appState.selected.timeline._timelineID = timelineID;
     saveTimeline(appState.selected.timeline).then(() => {
       updateSaveButton();
     });

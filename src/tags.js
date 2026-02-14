@@ -1,6 +1,6 @@
 import * as Util from './util.js';
-import { appState } from './canvas.js';
-import { updateSaveButton } from './panel.js';
+import {appState} from './canvas.js';
+import {markDirty} from './panel.js';
 
 let treeEl = null;
 let selectedTagId = null;
@@ -165,11 +165,6 @@ function applySelectionUI() {
 
 function currentTimeline() {
   return appState.selected.timeline;
-}
-
-function markDirty(tl) {
-  tl.dirty = true;
-  updateSaveButton?.();
 }
 
 function nextOrderAmongSiblings(tl, parentId) {
@@ -379,9 +374,7 @@ export function initTagPickerUI() {
       if (idx >= 0) event.tagIds.splice(idx, 1);
     }
 
-    // mark dirty + enable save
-    tl.dirty = true;
-    updateSaveButton?.();
+    markDirty(tl);
   });
 }
 

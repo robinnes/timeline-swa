@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeEvent} from './timeline.js';
-import {updateSaveButton} from './panel.js';
+import {updateSaveButton, markDirty} from './panel.js';
 import {positionLabels, formatEventDates} from './render.js';
 
 export function startDragging() {
@@ -16,7 +16,7 @@ export function startDragging() {
       dateTo: e.dateTo,
       fadeLeft: e.fadeLeft,
       fadeRight: e.fadeRight,
-      dirty: appState.selected.timeline.dirty
+      dirty: appState.selected.timeline._dirty
     }
   };
 };
@@ -35,7 +35,7 @@ export function stopDragging(revert = false) {
     e.dateTo = d.start.dateTo;
     e.fadeLeft = d.start.fadeLeft;
     e.fadeRight = d.start.fadeRight;
-    appState.selected.timeline.dirty = d.dirty;
+    appState.selected.timeline._dirty = d.dirty;
     updateSaveButton();
     initializeEvent(e);
     document.getElementById('event-date-display').value = formatEventDates(e);
@@ -56,8 +56,7 @@ export function drag(e) {
   se[attr] = d; // initializeEvent will handle limits
   initializeEvent(se);
   document.getElementById('event-date-display').value = formatEventDates(se);
-  appState.selected.timeline.dirty = true;
-  updateSaveButton();
+  markDirty(appState.selected.timeline);
   positionLabels();
   draw();
 }
