@@ -1,7 +1,7 @@
 import * as Util from './util.js';
-import {appState, draw, followLink} from './canvas.js';
+import {appState, draw, followHyperlink} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
-import {reloadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle, closeTimeline} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
@@ -127,20 +127,22 @@ timelineCancelBtn.addEventListener('click', (e) => {
 async function cancelTimelineEdit() {
   const tl = appState.selected.timeline;
 
-  if (!tl._timelineID.file) {
+  if (!tl._file) {
     const ok = await showModalDialog({message:'Abandon changes to timeline?'});
     if (!ok) return;
 
-    closeTimeline(tl);
+    closeTimeline(tl._key)
     closeSidebar();
   } else if (tl._dirty) {
     const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
     if (!ok) return;
 
-    reloadTimeline(tl).then(() => {
-      tl._mode = 'view';
-      setSidebarTimeline(appState.selected.timeline);
-      openTimelineForView(appState.selected.timeline);
+    // reload timeline from storage
+    loadTimeline(tl._file).then((newTL) => {
+      // update UI to new timeline object
+      appState.selected.timeline = newTL;
+      setSidebarTimeline(newTL);
+      openTimelineForView(newTL);
       draw(true);
     });
   } else {
@@ -153,7 +155,7 @@ async function cancelTimelineEdit() {
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
   const tl = appState.selected.timeline;
-  if (!tl._timelineID.file) {
+  if (!tl._file) {
     // new timeline... open dialog
     openSaveAsTimelineDialog('');
   } else {
@@ -182,7 +184,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
   const idx = events.indexOf(appState.selected.event);
   events.splice(idx, 1);
   appState.selected.event = null;
-  tl._dirty = true;
+  markDirty(tl);
   draw(true);
   openTimelineForEdit(tl);
 });
@@ -255,8 +257,7 @@ editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
   const event = appState.selected.event;
   event.label = s;
-  appState.selected.timeline._dirty = true;
-  updateSaveButton?.();
+  markDirty(appState.selected.timeline);
   initializeEvent(event);  // appearance of bubble label may change
   positionLabels();
   draw();
@@ -266,8 +267,7 @@ editEventDetails.addEventListener('input', (e) => {
   const v = e.target.value;
   const event = appState.selected.event;
   event.details = v;
-  appState.selected.timeline._dirty = true;
-  updateSaveButton?.();
+  markDirty(appState.selected.timeline);
 });
 
 selectThumbnailBtn.addEventListener('click', (e) => {
@@ -296,9 +296,8 @@ editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   const tl = appState.selected.timeline;
   tl.title = s;
-  tl._dirty = true;
   initializeTitle(tl);  // update titleWidth for drawing
-  updateSaveButton?.();
+  markDirty(tl);
   draw();
 });
 
@@ -306,8 +305,7 @@ editTimelineDetails.addEventListener('input', (e) => {
   const v = e.target.value;
   const tl = appState.selected.timeline;
   tl.details = v;
-  tl._dirty = true;
-  updateSaveButton?.();
+  markDirty(tl);
 });
 
 
@@ -333,15 +331,10 @@ export function openTimelineForView(tl) {
 // hyperlink clicks within label and details
 for (const txt of displayTextAreas) {
   txt.addEventListener('click', (e) => {
-    
     const a = e.target.closest("a");
     if (!a) return;
-    //if (a.hasAttribute("tl")) {
-      e.preventDefault();
-    //  const file = a.getAttribute('tl') + '.json';
-    //  followLink(file);
-followLink(appState.selected.timeline, a);
-    //}
+    e.preventDefault();
+    followHyperlink(appState.selected.view, a);
   });
 }
 
@@ -406,7 +399,7 @@ function setSidebarTimeline(tl) {
   else $("timeline-details").innerText = tl.details ?? '';
 
   // no 'Edit' button for public timelines
-  if (tl._timelineID.scope === "public") 
+  if (tl._scope === "public") 
     viewTimelineFooter.setAttribute("hidden", "");
   else 
     viewTimelineFooter.removeAttribute("hidden");

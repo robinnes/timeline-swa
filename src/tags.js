@@ -8,6 +8,13 @@ let selectedTagId = null;
 let pickerEl = null;
 let pickerHintEl = null;
 
+/* -------------------------- Utilities -------------------------- */
+export function labelForTagID(timeline, tagID) {
+  const tags = timeline.tags.filter(t => t.id === tagID);
+  return(tags[0]?.label);
+}
+
+
 /* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
 
 export function initTagsUI() {

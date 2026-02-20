@@ -1,13 +1,14 @@
 import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
-import {positionTimelines, positionLabels, drawEvents, isMouseOver, zoomSpec} from './render.js';
+import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
+import {labelForTagID} from './tags.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -18,15 +19,16 @@ export const appState = {
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
-    event: null,
-    timeline: null,
+    eventPos: null,
+    view: null,
+    //timeline: null,
     linkIdx: -1
   },
   selected: {
     event: null,
-    timeline: null
+    timeline: null,
+    view: null
   },
-  //editingTimeline: null,
   drag: {  // dragging handles to change event dates
     isDragging: false,
     attribute: null,
@@ -52,10 +54,12 @@ export const appState = {
   },
   authentication: {
     userId: null
-  }
+  },
+  views:[]
 }
 
 export const timelines = [];
+export const timelineCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
 /* ------------------- Functions -------------------- */
@@ -105,10 +109,27 @@ export async function initialLoad() {
   if (!tlParam) return;
 
   const file = tlParam + ".json";
+  openTimeline(file, false);
+  /*
   const tl = await loadTimeline(file);
+  const tlIdx = JSON.stringify({
+    id: tl.id,
+    scope: tl._storage.scope
+  });
+  // add to views
+  const view = {
+    timelineIdx: tlIdx,
+    label: tl.title,
+    labelWidth: tl._labelWidth,
+    dateFrom: tl._dateFrom,
+    dateTo: tl._dateTo
+  }
+  appState.views.splice(0, 0, view);
+
   positionTimelines(false);
-  centerOnTimeline(tl);
+  centerOnView(view);
   draw(true);
+  */
 }
 
 /* ------------------- Momentum handling -------------------- */
@@ -147,12 +168,12 @@ function zoom(dt) {
   appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
   // if timelines are repositioned, move those, too
-  for (const tl of timelines) {
-    if (tl._newYPos) {
-      const dCeiling = tl._newCeiling - tl._ceiling;
-      const dYPos = tl._newYPos - tl._yPos;
-      tl._ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
-      tl._yPos += dYPos * dt * TIME.ZOOM_SPEED;
+  for (const vw of appState.views) {
+    if (vw.newYPos) {
+      const dCeiling = vw.newCeiling - vw.ceiling;
+      const dYPos = vw.newYPos - vw.yPos;
+      vw.ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
+      vw.yPos += dYPos * dt * TIME.ZOOM_SPEED;
     }
   }
 
@@ -160,10 +181,10 @@ function zoom(dt) {
   if (Math.abs(dOffset) < appState.msPerPx || appState.msPerPx === TIME.MIN_MS_PER_PX) {
     appState.zoom.isZooming = false;
     // reset zoom variables for the timelines
-    for (const tl of timelines) {
-      if (tl._newYPos) {
-        tl._ceiling = tl._newCeiling; tl._yPos = tl._newYPos;
-        tl._newCeiling = null; tl._newYPos = null;
+    for (const vw of appState.views) {
+      if (vw.newYPos) {
+        vw.ceiling = vw.newCeiling; vw.yPos = vw.newYPos;
+        vw.newCeiling = null; vw.newYPos = null;
       }
     }
   }
@@ -172,6 +193,61 @@ function zoom(dt) {
 
 
 /* ------------------- Mouse and keyboard events -------------------- */
+
+canvas.addEventListener('click', function (e) {
+  
+  if (appState.pan.ignoreClick) return;
+  
+  if (document.querySelector('.app-menu').classList.contains('is-open'))
+    closeAppMenu();
+
+  if (appState.highlighted.linkIdx > -1) {
+    // hyperlink clicked
+    const link = screenElements[appState.highlighted.linkIdx].subType;  // format:"attr=value"
+    const vw = screenElements[appState.highlighted.idx]?.view;
+    if (!vw) return;  // TODO: it's possible to hover a hyperlink but not the label (below) - there would be no vw - need to get view on link screenElements
+    // construct an HTML object
+    const [attr, value] = link.split("=", 2);
+    const a = document.createElement("a");
+    a.setAttribute(attr, value);
+    followHyperlink(vw, a);
+    return;
+  }
+
+  if (appState.highlighted.idx === -1) {
+    // clicked in open space; if side panel is open then close it
+    if (sidebar.classList.contains('open')) closeSidebar();
+    return;
+  }
+
+  const elem = screenElements[appState.highlighted.idx];
+  if (elem.type === 'tick') {
+    // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
+    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
+    appState.fixedPanMode = tickSpec.get(m);
+    zoomToTick(elem.t);
+
+    // if clicked on the highlighted bubble/line/label then open it in the side panel
+  } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
+      appState.selected.event = elem.eventPos.event; // appState.highlighted.eventPos.event;
+      appState.selected.timeline = appState.selected.event.timeline;
+      appState.selected.view = elem.view;
+      if (appState.selected.timeline._mode === "edit") openEventForEdit(appState.selected.event) 
+      else openEventForView(appState.selected.event);
+      draw(false);
+  } else if (elem.type === 'view') {
+    const vw = appState.views[elem.view];
+    const tl = timelineCache.get(vw.tlKey)
+    appState.selected.view = vw;
+    appState.selected.timeline = tl;
+    if (tl._mode === "edit") openTimelineForEdit(tl)
+    else openTimelineForView(tl);
+
+  } else if (elem.type === 'button') {
+    if (elem.subType === 'close-timeline') closeView(elem.view); 
+    else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
+  }
+});
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
@@ -321,51 +397,6 @@ document.addEventListener('keydown', (ev) => {
   //ev.preventDefault();
 });
 
-canvas.addEventListener('click', function (e) {
-  
-  if (appState.pan.ignoreClick) return;
-  
-  if (document.querySelector('.app-menu').classList.contains('is-open'))
-    closeAppMenu();
-
-  if (appState.highlighted.linkIdx > -1) {
-    // hyperlink clicked
-    const link = screenElements[appState.highlighted.linkIdx].subType;
-    followLink(link + ".json");
-    return;
-  }
-
-  if (appState.highlighted.idx === -1) {
-    // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) closeSidebar();
-    return;
-  }
-
-  const elem = screenElements[appState.highlighted.idx];
-  if (elem.type === 'tick') {
-    // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
-    appState.fixedPanMode = tickSpec.get(m);
-    zoomToTick(elem.t);
-
-    // if clicked on the highlighted bubble/line/label then open it in the side panel
-  } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-      appState.selected.event = appState.highlighted.event;
-      appState.selected.timeline = appState.selected.event.timeline;
-      if (appState.selected.timeline._mode === "edit") openEventForEdit(appState.selected.event) 
-      else openEventForView(appState.selected.event);
-      draw(false);
-  } else if (elem.type === 'timeline') {
-    appState.selected.timeline = elem.timeline;
-    if (appState.selected.timeline._mode === "edit") openTimelineForEdit(appState.selected.timeline)
-    else openTimelineForView(appState.selected.timeline);
-
-  } else if (elem.type === 'button') {
-    if (elem.subType === 'close-timeline') closeBtnClick(elem.timeline); 
-    else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
-  }
-});
-
 
 /* ------------------- General navigation -------------------- */
 
@@ -395,81 +426,154 @@ function zoomToTick(t, t2) {
 }
 
 
-/* ------------------- Timeline navigation -------------------- */
+/* ------------------- View/Timeline management -------------------- */
 
-function positionForTimeline(tl)
+function getViewForFile(file) {
+  // (for now) if file does not include a slash ("/") then it's private, otherwise public
+  //const scope = file.includes('/') ? 'public' : 'private';
+  const found = appState.views.find(vw => vw.file === file /*&& vw.scope === scope*/);
+  return(found);
+}
+
+function positionForView(vw)
 {
   // return offsetMs and msPerPx to fit timeline tl
-  if (!tl._dateFrom || !tl._dateTo)
+  if (!vw.tFrom || !vw.tTo)
     return {offsetMs:appState.offsetMs, msPerPx:appState.msPerPx};
 
   const w = window.innerWidth;
-  const tFrom = Date.parse(tl._dateFrom);
-  const tTo = Date.parse(tl._dateTo);
+  const tFrom = vw.tFrom;
+  const tTo = vw.tTo;
   const width = tTo - tFrom;
 
   return {offsetMs:(tFrom - (width / 10)) - TIME.EPOCH, msPerPx:width / (w / 1.2)};
 }
 
-function centerOnTimeline(tl) {
-  const p = positionForTimeline(tl);
+function centerOnView(view) {
+  const p = positionForView(view);
   appState.offsetMs = p.offsetMs;
   appState.msPerPx = p.msPerPx;
+  draw(true);
 }
 
-export function zoomToTimeline(tl) {
-  const p = positionForTimeline(tl);
+export function zoomToView(view) {
+  const p = positionForView(view);
   appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
-  positionTimelines(true);
+  positionViews(true);
 }
 
 async function linkToFile(file) {
   // check if timeline is already there
-  const existingTL = timelines.find(t =>
-    t._timelineID.file === file);
-
-  if (existingTL) {
-    zoomToTimeline(existingTL);
-  } else {
-    // load and zoom to timelineID; begin positioned at clicked timeline
-    const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
-    const idx = timelines.indexOf(tl);
-    const yPos = tl._yPos
-    const ceiling = tl._ceiling;
-    const newTL = await loadTimeline(file, idx+1); // insert it above the clicked one
-    newTL._yPos = yPos;
-    newTL._ceiling = ceiling;
-    zoomToTimeline(newTL);
+  let existingVw = getViewForFile(file);
+  if (existingVw) {
+    zoomToView(existingVw);
+    return;
   }
+  openTimeline(file, true, 0);
 }
 
-function linkToTag(tl, tag) {
-  console.log(tl.title, tag);
+function linkToTag(origVw, tagID) {
+  const origIdx = appState.views.indexOf(origVw);
+  const tl = timelineCache.get(origVw.tlKey);
+  const tagLabel = labelForTagID(tl, tagID);
+  const newVw = structuredClone(origVw);  // copy originating view
+  newVw.tagFilter = tagID;
+  newVw.label = `${tagLabel}`;
+  filterEventsForView(newVw);  // establish min/max dates
+
+  appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
+  positionViews(false);
+  zoomToView(newVw);
 }
 
-export async function followLink(tl, a) {
-  
+export async function followHyperlink(origVw, a) {
+  // Proper HTML hyperlink...
   if (a.hasAttribute("tl")) {
     const file = a.getAttribute("tl") + ".json";
     linkToFile(file);
+    // extra credit: open panel to target timeline (view or edit as applicable)
     return;
   }
-
   if (a.hasAttribute("tag")) {
     const tag = a.getAttribute("tag");
-    linkToTag(tl, tag);
+    linkToTag(origVw, tag);
+    return;
+  }
+}
+
+export async function openTimeline(file, zoom, sourceView) {
+  let existingVw = getViewForFile(file);
+  if (existingVw) {
+    // timeline is already present
+    const tlKey = existingVw.tlKey;
+    const existingTL = timelineCache.get(tlKey);
+    // check before reloading timeling that's being edited
+    if (existingTL._dirty) {
+      const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
+      if (!ok) return;  // consider returning a false here and not closing fileDialog
+    }
+    // delete present timeline and all views pointing to it, then reload
+    timelineCache.delete(tlKey);
+    while (existingVw) {
+      const idx = appState.views.indexOf(existingVw);
+      appState.views.splice(idx, 1);
+      existingVw = getViewForFile(file);
+    }
+  }
+  const tl = await loadTimeline(file);  // retrieve timeline from storage
+  const view = {
+    tlKey: tl._key,
+    file: tl._file,
+    scope: tl._scope,
+    label: null, //tl.title,
+    labelWidth: null, // tl._labelWidth,
+    tFrom: null,
+    tTo: null,
+    tagFilter: null,
+    eventPos: []
+  }
+  filterEventsForView(view);  // establish min/max dates for view
+
+  // identify currently selected or clicked view, if any
+  //const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
+  //const idx = appState.views.indexOf(appState.selected.view);
+  
+  if (!sourceView) appState.views.push(view);
+  else appState.views.splice(sourceView, 0, view);  // insert above currently selected view
+  positionViews(false);
+
+  if (!zoom) {
+    centerOnView(view);
+  } else {
+    zoomToView(view);
   }
 }
 
 
 /* ------------------- Canvas button handling -------------------- */
 
-async function closeBtnClick(tl) {
-  if (tl._dirty) {
-    const ok = await showModalDialog({message:'Close timeline without saving?'});
-    if (!ok) return;
+async function closeView(viewIdx) {
+  // determine whether there are other views on the same timeline
+  const tlKey = appState.views[viewIdx].tlKey;
+  const otherVw = appState.views.find(vw => appState.views.indexOf(vw) != viewIdx && vw.tlKey === tlKey);
+  if (!otherVw) {
+    // it's the only one; check if it has unsaved changes
+    const tl = timelineCache.get(tlKey);
+    if (tl._dirty) {
+      const ok = await showModalDialog({message:'Close timeline without saving changes?'});
+      if (!ok) return;
+    }
+    // delete it from cache
+    closeTimeline(tlKey);
   }
-  closeTimeline(tl);
+  // Remove view from the array
+  appState.views.splice(viewIdx, 1);
+  if (appState.views.length === 0)
+    draw(false) 
+  else {
+    const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
+    zoomToView(vwBelow);
+  }
 }
 
 function addNewEvent(tl) {

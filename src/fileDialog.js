@@ -1,8 +1,8 @@
 import * as Util from './util.js';
-import {loadTimeline, reloadTimeline, saveTimeline} from './timeline.js';
+import {loadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
-import {appState, timelines, zoomToTimeline} from './canvas.js';
-import {positionTimelines} from './render.js';
+import {appState, timelines, zoomToView, openTimeline} from './canvas.js';
+import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
 
@@ -251,24 +251,8 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    const scope = getActiveFileScope();
-    const timelineID = {scope:scope, file:openDialogSelectedName};
+    await openTimeline(openDialogSelectedName, true);
 
-    // check if timeline is already there
-    const existingTL = timelines.find(t =>
-      JSON.stringify(t._timelineID) === JSON.stringify(timelineID));
-
-    if (existingTL) {
-      // reload timeline that's already displayed
-      await reloadTimeline(existingTL);
-      positionTimelines(true);
-      zoomToTimeline(existingTL);
-    } else {
-      // load and zoom to timelineID
-      const tl = await loadTimeline(openDialogSelectedName, timelines.length); // insert it above the clicked one
-      positionTimelines(false);
-      zoomToTimeline(tl);
-    }
     closeModal(openTimelineModal);
 
   } else if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {

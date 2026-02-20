@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, timelines, draw, zoomToTimeline} from './canvas.js';
-import {zoomSpec, positionTimelines} from './render.js';
+import {appState, timelines, timelineCache, draw, zoomToView} from './canvas.js';
+import {zoomSpec, positionViews} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 
@@ -10,6 +10,7 @@ function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
   const txt = {
+    id: tl.id,
     title: tl.title,
     details: tl.details,
     tags: tl.tags.map(({id, label, parentId, order}) => ({
@@ -27,7 +28,7 @@ export function initializeEvent(e) {
   const spec = zoomSpec(e.significance);
   const style = spec.style;
   
-  // Assign/establish unique ID
+  // Assign unique ID if not present
   if (e.id === undefined) e.id = Util.uuid();
 
   // Initialize tags selection
@@ -41,7 +42,7 @@ export function initializeEvent(e) {
   e._parsedWidth = parsed.multiWidth;
   e._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (e.thumbnail && e._parsedRows < DRAW.THUMB_LABEL_ROWS) e._parsedRows = DRAW.THUMB_LABEL_ROWS;
-  e._yOffset = null;
+  //e._yOffset = null;
 
   if (style === 'line') {
     if (!e.dateFrom) e.dateFrom = e.date;
@@ -63,7 +64,7 @@ export function initializeEvent(e) {
     e._tTo = Date.parse(e.dateTo) + (12 * h);
     e._fLeft = Date.parse(e.fadeLeft) + (12 * h);
     e._fRight = Date.parse(e.fadeRight) + (12 * h);
-    e._dateTime = (e.fRight + e.fLeft) / 2;
+    e._dateTime = (e._fRight + e._fLeft) / 2;
     
   } else {
     if (!e.date) e.date = e.dateFrom; // nothing fance like finding middle of line vars...
@@ -77,7 +78,7 @@ export function initializeEvent(e) {
     e._fLeft = e._tFrom + (3 * h);
     e._fRight = e._tTo - (3 * h);
   }
-  e._x = Util.timeToPx(e._dateTime);  // used only to position labels in relation to each other
+  //e._x = Util.timeToPx(e._dateTime);  // used only to position labels in relation to each other
 };
 
 export function initializeTitle(tl) {
@@ -89,6 +90,9 @@ export function initializeTitle(tl) {
 function initializeTimeline(tl) {
   var minDate;
   var maxDate;
+
+  // Assign/establish unique ID
+  if (tl.id === undefined) tl.id = Util.uuid();
 
   initializeTitle(tl);
   tl._dirty = false;
@@ -109,45 +113,40 @@ function initializeTimeline(tl) {
   tl._dateTo = maxDate;
 }
 
-export async function loadTimeline(file, idx=0) {
+export async function loadTimeline(file) {
 
   // if file does not include a slash ("/") then it's private, otherwise public
   const scope = file.includes('/') ? 'public' : 'private';
 
-  // load timelineID into timelines array
+  // load requested timeline into timeline cache
   const tl = await getTimeline(scope, file);
-  const timelineID = {scope:scope, file:file};
-  tl._timelineID = timelineID;
   initializeTimeline(tl);
+  const tlKey = JSON.stringify({
+    id: tl.id,
+    scope: scope
+  });
+  tl._key = tlKey;
+  tl._file = file,
+  tl._scope = scope,
   tl._mode = 'view';
-  timelines.splice(idx, 0, tl);
-  return tl;
-}
+  timelineCache.set(tlKey, tl);
 
-export async function reloadTimeline(tl) {
-  // reload from storage
-  const idx = timelines.indexOf(tl);
-  const timelineID = tl._timelineID;
-  const yPos = tl._yPos, ceiling = tl._ceiling;
-  timelines[idx] = null;
-  const reloaded = await getTimeline(timelineID.scope, timelineID.file);
-  initializeTimeline(reloaded);
-  reloaded._yPos = yPos; reloaded._ceiling = ceiling;
-  timelines[idx] = reloaded;
-  if (appState.selected.timeline === tl) appState.selected.timeline = reloaded;
+  return tl;
 }
 
 export function addNewTimeline(title) {
   // append new timeline to the array
   
   const newTL = {
+    id:Util.uuid(),
     title:title, 
     details:null, 
+    tags:[],
     events:[],
     _labelWidth:null,
     _mode:'edit',
     _dirty:true,
-    timelineID:{scope:"private", file:null}
+    _storage:{scope:"private", file:null}
   };
 
   initializeTitle(newTL);
@@ -162,7 +161,7 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("private", tl._timelineID.file, text);
+    await saveTimelineToStorage("private", tl._storage.file, text);
     tl._dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
@@ -176,7 +175,7 @@ export async function publishTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("public", tl._timelineID.file, text);
+    await saveTimelineToStorage("public", tl._storage.file, text);
     tl._dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
@@ -185,13 +184,37 @@ export async function publishTimeline(tl)
   Util.hideGlobalBusyCursor();
 }
 
-export function closeTimeline(tl) {
-  const idx = timelines.indexOf(tl);
-  timelines.splice(idx, 1);
-  if (timelines.length === 0)
+/*
+export async function closeTimeline(viewIdx) {
+
+  // Determine whether this is the only view for this timeline
+  const timelineID = appState.views[viewIdx].timelineID;
+  const otherVw = appState.views.find(vw =>
+    appState.views.indexOf(vw) != viewIdx &&
+    vw.timelineID === timelineID);
+    
+  if (!otherVw) {
+    // This is the only one - if dirty then prompt
+    const tl = timelineCache.get(timelineID);
+    if (tl._dirty) {
+      const ok = await showModalDialog({message:'Close timeline without saving?'});
+      if (!ok) return;
+    }
+    // Delete timeline from memory
+    timelineCache.delete(timelineID);
+  }
+
+  // Remove view from the array
+  appState.views.splice(viewIdx, 1);
+  if (appState.views.length === 0)
     draw(false) 
   else {
-    const tlBelow = timelines[Math.max(idx-1, 0)]; // refocus on timeline below the deleted one
-    zoomToTimeline(tlBelow);
+    const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
+    zoomToTimeline(vwBelow);
   }
+}
+*/
+
+export function closeTimeline(tlKey) {
+  timelineCache.delete(tlKey);
 }
