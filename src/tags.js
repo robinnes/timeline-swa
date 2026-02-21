@@ -1,18 +1,13 @@
 import * as Util from './util.js';
 import {appState} from './canvas.js';
 import {markDirty} from './panel.js';
+import {initializeTag} from './timeline.js';
 
 let treeEl = null;
 let selectedTagId = null;
 
 let pickerEl = null;
 let pickerHintEl = null;
-
-/* -------------------------- Utilities -------------------------- */
-export function labelForTagID(timeline, tagID) {
-  const tags = timeline.tags.filter(t => t.id === tagID);
-  return(tags[0]?.label);
-}
 
 
 /* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
@@ -228,6 +223,7 @@ function beginRename(tagId) {
 
   const commit = () => {
     tag.label = input.value.trim() || 'Untitled';
+    initializeTag(tag);  // update labelWidth for display on the canvas
     markDirty(tl);
     renderTagsUI(tl);
     selectTag(tagId);

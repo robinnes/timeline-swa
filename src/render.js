@@ -1,37 +1,10 @@
 import * as Util from './util.js';
 import {DRAW, TICK} from './constants.js';
-import {appState, timelines, timelineCache, screenElements, setPointerCursor, ctx} from './canvas.js';
-import {draw} from "./canvas.js";
+import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw} from './canvas.js';
 
 const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement
 
-export function isMouseOver(left, right, top, bottom) {
-  return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
-}
-
-const colorRGB = new Map([
-  ["black",  { r:0,   g:0,   b:0   }],
-  ["white",  { r:255, g:255, b:255 }],
-  ["blue",   { r:0,   g:100, b:255 }],
-  ["purple", { r:100, g:0,   b:255 }],
-  ["red",    { r:255, g:0,   b:100 }],
-  ["orange", { r:255, g:100, b:100 }],
-  ["yellow", { r:255, g:255, b:100 }],
-  ["green",  { r:0,   g:255, b:100 }]
-]);
-
-function colorTrunc(rgb) {
-  return rgb.r + "," + rgb.g + "," + rgb.b; 
-}
-
-function colorMix(rgb1, rgb2) {
-  const m = 
-    { r:Math.round((rgb1.r + rgb2.r)/2),
-      g:Math.round((rgb1.g + rgb2.g)/2),
-      b:Math.round((rgb1.b + rgb2.b)/2)
-    };
-  return m;
-}
+/***************************** Utilities *****************************/
 
 export function zoomSpec(sig){
   const sizeAdj = 3;
@@ -61,6 +34,10 @@ export function zoomSpec(sig){
   };
 }
 
+export function isMouseOver(left, right, top, bottom) {
+  return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
+}
+
 export function formatEventDates(e) {
   const spec = zoomSpec(e.significance);
 
@@ -71,244 +48,35 @@ export function formatEventDates(e) {
   return `${from ?? "?"} - ${to ?? "?"}`;
 }
 
-function registerEvents(vw) {
-  const tl = timelineCache.get(vw.tlKey);
 
-  // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
-  const rangeLeft = 0 - DRAW.MAX_LABEL_WIDTH / 2;
-  const rangeRight = window.innerWidth + DRAW.MAX_LABEL_WIDTH / 2;
-  const y = vw.yPos;
+/***************************** Colors *****************************/
 
-  // iterate through events, highest significance first to check the lowest ones for mouseover last
-  for (let sig = DRAW.MAX_SIGNIFICANCE; sig > 0; sig--) {
-    const spec = zoomSpec(sig);
-    const height = spec.size;
-    
-    // process each event (determined to be visible) of this significance
-    //tl.events.filter(e => e.significance === sig && e._yOffset !== null).forEach(e => {
-    vw.eventPos.filter(ep => ep.event.significance === sig && ep.yOffset !== null).forEach(ep => {
-      const e = ep.event;
-      const x = Util.timeToPx(e._dateTime);
-      let left = Math.round(Util.timeToPx(e._tFrom));
-      let right = Math.round(Util.timeToPx(e._tTo));
-      let top = Math.round(y - height / 2);
-      let bottom = Math.round(y + height / 2);
+const colorRGB = new Map([
+  ["black",  { r:0,   g:0,   b:0   }],
+  ["white",  { r:255, g:255, b:255 }],
+  ["blue",   { r:0,   g:100, b:255 }],
+  ["purple", { r:100, g:0,   b:255 }],
+  ["red",    { r:255, g:0,   b:100 }],
+  ["orange", { r:255, g:100, b:100 }],
+  ["yellow", { r:255, g:255, b:100 }],
+  ["green",  { r:0,   g:255, b:100 }]
+]);
 
-      if ((right < rangeLeft) || (left > rangeRight)) return;  // off-screen (horizontally)
-      
-      // accommodate very small dots by expanding hit area
-      if (!spec.fadeNear) { 
-        left = Math.min(left, Math.round(x - DRAW.DOT_HOVER_PAD));
-        right = Math.max(right, Math.round(x + DRAW.DOT_HOVER_PAD));
-        top = Math.min(top, Math.round(y - DRAW.DOT_HOVER_PAD));
-        bottom = Math.max(bottom, Math.round(y + DRAW.DOT_HOVER_PAD));
-      }
-
-      // register line/dot as a screen element that can be interacted with
-      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'line', eventPos:ep, view:vw});
-    
-      // check for mouseover
-      if (isMouseOver(left, right, top, bottom)) {
-        appState.highlighted.idx = screenElements.length - 1;
-        appState.highlighted.eventPos = ep;
-      }
-
-      // process the label, if applicable
-      const p = getLabelPosition(ep, y);
-      if (p) {
-        // register label as a screen element that can be interacted with
-        screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:p.type, eventPos:ep, view:vw});
-
-        // check for mouseover
-        if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
-          appState.highlighted.idx = screenElements.length - 1;
-          appState.highlighted.eventPos = ep;
-        }
-      }
-
-    });
-  }
+function colorTrunc(rgb) {
+  return rgb.r + "," + rgb.g + "," + rgb.b; 
 }
 
-function getLabelPosition(ep, y) {
-  // return coordinates of label for eventPos ep
-  const e = ep.event;
-  const x = Util.timeToPx(e._dateTime);
-
-  if (ep.yOffset > 0) {
-    // bubble above y
-    const width = Math.ceil(e._parsedWidth) + DRAW.EDGE_GAP*2;
-    const height = Math.ceil(e._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
-    const left = Math.round(x - width/2);
-    const right = left + width;
-    const top = Math.round(y - DRAW.LABEL_STEM_HEIGHT - ep.yOffset);
-    const bottom = top + height;
-    return {type:'bubble', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height};
-
-  } else if (ep.yOffset === -1) {
-    // label below y
-    const spec = zoomSpec(e.significance);
-    const thickness = spec.size;
-    let xFrom = Math.round(Util.timeToPx(e._tFrom));
-    let xTo = Math.round(Util.timeToPx(e._tTo));
-    const w = window.innerWidth;
-    const top = Math.round(y + thickness/2);
-    const width = e._labelWidth;
-    const height = DRAW.LABEL_LINE_HEIGHT;
-
-    let left = Math.round(x - (width/2));
-    if (left < (xFrom + DRAW.EDGE_GAP)) left = xFrom + DRAW.EDGE_GAP;
-    if ((left + width) > (xTo - DRAW.EDGE_GAP)) left = xTo - width - DRAW.EDGE_GAP;
-  
-    // keep on the screen as much as possible
-    if (left < DRAW.EDGE_GAP) {
-      left = DRAW.EDGE_GAP;
-      if ((left + width + DRAW.EDGE_GAP) > xTo) left = xTo - DRAW.EDGE_GAP - width;
-    }
-    if ((left + width + DRAW.EDGE_GAP) > w) {
-      left = w - DRAW.EDGE_GAP - width;
-      if (left < xFrom + DRAW.EDGE_GAP) left = xFrom + DRAW.EDGE_GAP;
-    }
-  
-    const right = left + width;
-    const bottom = top + height;
-
-    return {type:'label', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height};
-  }
-  return null;
+function colorMix(rgb1, rgb2) {
+  const m = 
+    { r:Math.round((rgb1.r + rgb2.r)/2),
+      g:Math.round((rgb1.g + rgb2.g)/2),
+      b:Math.round((rgb1.b + rgb2.b)/2)
+    };
+  return m;
 }
 
-function drawEventLine(ep, highlight) {
 
-  const e = ep.event;
-  const spec = zoomSpec(e.significance);
-  const height = spec.size;
-  const fade = spec.fade;
-  const x = Util.timeToPx(e._dateTime);
-  const y = ep.yPos;
-  const left = Math.round(Util.timeToPx(e._tFrom));
-  const right = Math.round(Util.timeToPx(e._tTo));
-  const width = right - left;
-  const xFadeLeft = Math.round(Util.timeToPx(e._fLeft));
-  const xFadeRight = Math.round(Util.timeToPx(e._fRight));
-  const top = Math.round(y - height / 2);
-  const bottom = Math.round(y + height / 2);
-
-  const c = e.color ?? "white";
-  const cl = e.colorLeft ?? "black";
-  const cr = e.colorRight ?? "black";
-  const color = colorTrunc(colorRGB.get(c));
-  // if edge color is black, use (middle) color and apply fade effect below
-  const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
-  const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
-  
-  ctx.save();
-  if (width >= 6 || spec.style === 'line') {
-    const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
-    const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
-     
-    if (spec.style === 'line') {
-      const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
-      const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
-      const gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
-      const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
-
-      const grad = ctx.createLinearGradient(left, y, right, y);
-      if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
-        grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
-        grad.addColorStop(gradRight, `rgba(${color},${fade})`);
-        if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
-        ctx.fillStyle = grad;
-    } else ctx.fillStyle = `rgba(${color}, ${fade})`;
-
-    if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
-
-    ctx.beginPath();
-    ctx.moveTo(xFadeLeft, top);
-    if (curveRight) {
-      ctx.lineTo(xFadeRight, top);
-      ctx.quadraticCurveTo(right, top, right, y);
-      ctx.quadraticCurveTo(right, bottom, xFadeRight, bottom);
-    } else {
-      ctx.lineTo(right, top);
-      ctx.lineTo(right, bottom);
-    }
-    if (curveLeft) {
-      ctx.lineTo(xFadeLeft, bottom);
-      ctx.quadraticCurveTo(left, bottom, left, y);
-      ctx.quadraticCurveTo(left, top, xFadeLeft, top);
-    } else {
-      ctx.lineTo(left, bottom);
-      ctx.lineTo(left, top);
-      ctx.lineTo(xFadeLeft, top);
-    }
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // dot - display dot while the line appears too narrow to smooth transition
-  if ((xFadeRight - xFadeLeft) < height && spec.style === 'dot') {
-    ctx.fillStyle = `rgba(${color}, ${fade})`;
-    ctx.beginPath();
-    ctx.arc(x, y, (height/2), 0, Math.PI*2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawLabelHover(e, x, y) {
-  // display label right where the event is drawn
-  const width = Math.ceil(e._parsedWidth) + DRAW.EDGE_GAP*2;
-  const height = Math.ceil(e._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
-  const left = Math.round(x - width/2);
-  const top = Math.round(y - height/2);
-
-  drawLabelBubble(e, left, width, top, height, true);
-}
-
-function drawLabelText(label, x, y, fade) {
-  ctx.font = DRAW.LABEL_FONT;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  let hoverLink = null;
-
-  // iterate through text blocks, establish screenElements for simulated hyperlinks
-  label.forEach(b => {
-    if (b.link) {
-      const left = x + b.left;
-      const right = left + b.width;
-      const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
-      const bottom = top + DRAW.LABEL_LINE_HEIGHT;
-
-      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'link', subType:b.link});
-      if (isMouseOver(left, right, top, bottom)) {
-        appState.highlighted.linkIdx = screenElements.length - 1;
-        hoverLink = b.link;
-      }
-    }
-  });
-
-  // iterate again and render each text block
-  label.forEach(b => {
-    const left = x + b.left;
-    const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
-    
-    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${fade})` : 'rgba(106,166,255,1)';
-    ctx.fillText(b.text, left, top);
-
-    // underline any hyperlink blocks with matching link target
-    if (hoverLink != null && b.link === hoverLink) {
-      const right = left + b.width;
-      const bottom = top + DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP - 0.5;
-      ctx.strokeStyle = 'rgba(106,166,255,1)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(left, bottom);
-      ctx.lineTo(right, bottom);
-      ctx.stroke();
-    }
-  });
-}
+/**************************************** Thumbnails *****************************************/
 
 function roundedRectPath(x, y, w, h, r) {
   ctx.beginPath();
@@ -345,128 +113,44 @@ function drawLabelThumb(e, left, top) {
   ctx.restore();
 }
 
-function drawLabelBubble(e, left, width, top, height, highlight) {
-  // label box
+
+/***************************** Edit button and date handles *****************************/
+
+function drawAddEventButton(vw) {
+  const vwIdx = appState.views.indexOf(vw);
   ctx.save();
-  ctx.fillStyle = 'rgb(40,40,40)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-  ctx.lineWidth = 1;
+  ctx.font = DRAW.TITLE_FONT;
+  const btnText = "Add event";
+  const textWidth = ctx.measureText(btnText).width;
+  const distance = 50;
+  const width = 120;
+  const height = 30;
+  const left = (window.innerWidth / 2) - (width / 2);
+  const right = (window.innerWidth / 2) + (width / 2)
+  const top = vw.yPos + distance;
+  const bottom = top + height;
+  let highlight = false;
+
+  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'button', subType:'add-event', view:vwIdx});
+  if (isMouseOver(left, right, top, bottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    highlight = true;
+  }
+
+  // label box
+  ctx.fillStyle = 'rgb(106,166,255)';
+  ctx.lineWidth = 0;
   ctx.beginPath();
-  ctx.roundRect(left, top, width, height, 8);
-  if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW; ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
+  ctx.roundRect(left, top, width, height, 6);
+  if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
   ctx.fill();
   ctx.stroke();
 
-  drawLabelText(e._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
-  if (e.thumbnail) drawLabelThumb(e, left, top);
-  ctx.restore();
-}
-
-function drawLabelAbove(ep, highlight) {
-  const e = ep.event;
-  const y = ep.yPos;
-  const p = getLabelPosition(ep, y);
-  const spec = zoomSpec(e.significance);
-  const lineTop = y - (spec.size/2);
-
-  // stem: from top of the event line/dot to bottom of label box
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(p.x, lineTop);
-  ctx.lineTo(p.x, p.bottom);
-  ctx.stroke();
-  ctx.restore();
-
-  drawLabelBubble(e, p.left, p.width, p.top, p.height, highlight);
-}
-
-function drawLabelBelow(ep, highlight) {
-  const e = ep.event;
-  const y = ep.yPos;
-  const p = getLabelPosition(ep, y);
-  const spec = zoomSpec(e.significance);
-  let zoomFade = spec.fade;
-
-  if (highlight) zoomFade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
-
-  ctx.save();
-  drawLabelText(e._labelSingle, p.left + DRAW.EDGE_GAP, p.top + DRAW.EDGE_GAP, zoomFade);
-  ctx.restore();
-}
-
-function positionTimelineLabel(vw) {
-  const labelWidth = vw.labelWidth ?? timelineCache.get(vw.tlKey)._labelWidth;
-  const top = vw.yPos - DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP;
-  const bottom = vw.yPos;
-  const left = 0;
-  const right = Math.round(labelWidth + DRAW.EDGE_GAP*2);
-  const height = DRAW.LABEL_LINE_HEIGHT + DRAW.EDGE_GAP;
-
-  return {left:left, right:right, top:top, bottom:bottom,
-    btnLeft:right, btnRight:right+height, btnTop:top, btnBottom:bottom};
-};
-
-function registerTimelineLabel(vw) {
-  const vwIdx = appState.views.indexOf(vw);
-  const p = positionTimelineLabel(vw);
-
-  // register label as a screen element and check mouseover
-  screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:'view', view:vwIdx});
-  if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
-    appState.highlighted.idx = screenElements.length - 1;
-    appState.highlighted.view = vw;
-  }
-  screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', subType:'close-timeline', view:vwIdx});
-  if (isMouseOver(p.btnLeft, p.btnRight, p.btnTop, p.btnBottom)) {
-    appState.highlighted.idx = screenElements.length - 1;
-    appState.highlighted.view = vw;
-  }
-}
-
-function drawTimelineLabel(vw, highlight) {
-  const label = vw.label ?? timelineCache.get(vw.tlKey).title;
-  const p = positionTimelineLabel(vw);
-  const width = p.right - p.left;
-  const height = p.bottom - p.top;
-  const brightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
-  const btnSize = p.btnBottom - p.btnTop;
-  const btnRadius = btnSize / 4;
-
-  ctx.save();
-  ctx.fillStyle = window.getComputedStyle(document.body).backgroundColor;
-  let grad = ctx.createLinearGradient(0, p.top, 0, p.bottom);
-  grad.addColorStop(0.0, 'rgba(0,0,0,0)');
-  grad.addColorStop(0.5, 'rgba(0,0,0,1)');
-  grad.addColorStop(1.0, 'rgba(0,0,0,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(p.left, p.top, width, height);
-
-  ctx.font = DRAW.TITLE_FONT;
-  ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+  // label text
+  ctx.fillStyle = 'rgb(15, 18, 32)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(label, DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
-
-  // close button
-  if (highlight) {
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.beginPath();
-    ctx.roundRect(p.btnLeft, p.btnTop, btnSize, btnSize, btnRadius);
-    ctx.fill();
-
-    // "X" symbol centered inside
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(p.btnLeft + 4, p.btnTop + 4);
-    ctx.lineTo(p.btnLeft + btnSize - 4, p.btnTop + btnSize - 4);
-    ctx.moveTo(p.btnLeft + btnSize - 4, p.btnTop + 4);
-    ctx.lineTo(p.btnLeft + 4, p.btnTop + btnSize - 4);
-    ctx.stroke();
-  }
+  ctx.fillText(btnText, (left + (width - textWidth) / 2), top + 8);
   ctx.restore();
 }
 
@@ -575,42 +259,389 @@ function drawDateHandles(event) {
   ctx.restore();
 }
 
-function drawAddEventButton(vw) {
-  const vwIdx = appState.views.indexOf(vw);
-  ctx.save();
-  ctx.font = DRAW.TITLE_FONT;
-  const btnText = "Add event";
-  const textWidth = ctx.measureText(btnText).width;
-  const distance = 50;
-  const width = 120;
-  const height = 30;
-  const left = (window.innerWidth / 2) - (width / 2);
-  const right = (window.innerWidth / 2) + (width / 2)
-  const top = vw.yPos + distance;
-  const bottom = top + height;
-  let highlight = false;
 
-  screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'button', subType:'add-event', view:vwIdx});
-  if (isMouseOver(left, right, top, bottom)) {
-    appState.highlighted.idx = screenElements.length - 1;
-    highlight = true;
+/***************************** Timeline labels *****************************/
+
+function labelForVw(vw) {
+  // the timeline's title or if view is filtered by a tag, the tag's label
+  const tl = timelineCache.get(vw.tlKey);
+  if (!vw.tagFilter) {
+    return({label:tl.title, labelWidth:tl._labelWidth});
   }
+  const tags = tl.tags.filter(t => t.id === vw.tagFilter);
+  return({label:tags[0]?.label, labelWidth:tags[0]?._labelWidth});
+}
 
+function positionTimelineLabel(vw) {
+  const labelWidth = labelForVw(vw).labelWidth;
+  const top = vw.yPos - DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP;
+  const bottom = vw.yPos;
+  const left = 0;
+  const right = Math.round(labelWidth + DRAW.EDGE_GAP*2);
+  const height = DRAW.LABEL_LINE_HEIGHT + DRAW.EDGE_GAP;
+
+  return {left:left, right:right, top:top, bottom:bottom,
+    btnLeft:right, btnRight:right+height, btnTop:top, btnBottom:bottom};
+};
+
+function registerTimelineLabel(vw) {
+  const vwIdx = appState.views.indexOf(vw);
+  const p = positionTimelineLabel(vw);
+
+  // register label as a screen element and check mouseover
+  screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:'view', view:vwIdx});
+  if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    appState.highlighted.view = vw;
+  }
+  screenElements.push({left:p.btnLeft, right:p.btnRight, top:p.btnTop, bottom:p.btnBottom, type:'button', subType:'close-timeline', view:vwIdx});
+  if (isMouseOver(p.btnLeft, p.btnRight, p.btnTop, p.btnBottom)) {
+    appState.highlighted.idx = screenElements.length - 1;
+    appState.highlighted.view = vw;
+  }
+}
+
+function drawTimelineLabel(vw, highlight) {
+  const label = labelForVw(vw).label;
+  const p = positionTimelineLabel(vw);
+  const width = p.right - p.left;
+  const height = p.bottom - p.top;
+  const brightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const btnSize = p.btnBottom - p.btnTop;
+  const btnRadius = btnSize / 4;
+
+  ctx.save();
+  ctx.fillStyle = window.getComputedStyle(document.body).backgroundColor;
+  let grad = ctx.createLinearGradient(0, p.top, 0, p.bottom);
+  grad.addColorStop(0.0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.5, 'rgba(0,0,0,1)');
+  grad.addColorStop(1.0, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(p.left, p.top, width, height);
+
+  ctx.font = DRAW.TITLE_FONT;
+  ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(label, DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
+
+  // close button
+  if (highlight) {
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.roundRect(p.btnLeft, p.btnTop, btnSize, btnSize, btnRadius);
+    ctx.fill();
+
+    // "X" symbol centered inside
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(p.btnLeft + 4, p.btnTop + 4);
+    ctx.lineTo(p.btnLeft + btnSize - 4, p.btnTop + btnSize - 4);
+    ctx.moveTo(p.btnLeft + btnSize - 4, p.btnTop + 4);
+    ctx.lineTo(p.btnLeft + 4, p.btnTop + btnSize - 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+
+/***************************** Event bubbles and labels *****************************/
+
+function drawLabelText(label, x, y, fade) {
+  ctx.font = DRAW.LABEL_FONT;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  let hoverLink = null;
+
+  // iterate through text blocks, establish screenElements for simulated hyperlinks
+  label.forEach(b => {
+    if (b.link) {
+      const left = x + b.left;
+      const right = left + b.width;
+      const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
+      const bottom = top + DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP - 0.5;
+
+      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'link', subType:b.link});
+      if (isMouseOver(left, right, top, bottom)) {
+        appState.highlighted.linkIdx = screenElements.length - 1;
+        hoverLink = b.link;
+      }
+    }
+  });
+
+  // iterate again and render each text block
+  label.forEach(b => {
+    const left = x + b.left;
+    const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
+    
+    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${fade})` : 'rgba(106,166,255,1)';
+    ctx.fillText(b.text, left, top);
+
+    // underline any hyperlink blocks with matching link target
+    if (hoverLink != null && b.link === hoverLink) {
+      const right = left + b.width;
+      const bottom = top + DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP - 0.5;
+      ctx.strokeStyle = 'rgba(106,166,255,1)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+    }
+  });
+}
+
+function drawLabelBubble(e, left, width, top, height, highlight) {
   // label box
-  ctx.fillStyle = 'rgb(106,166,255)';
-  ctx.lineWidth = 0;
+  ctx.save();
+  ctx.fillStyle = 'rgb(40,40,40)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(left, top, width, height, 6);
-  if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
+  ctx.roundRect(left, top, width, height, 8);
+  if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW; ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
   ctx.fill();
   ctx.stroke();
 
-  // label text
-  ctx.fillStyle = 'rgb(15, 18, 32)';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText(btnText, (left + (width - textWidth) / 2), top + 8);
+  drawLabelText(e._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
+  if (e.thumbnail) drawLabelThumb(e, left, top);
   ctx.restore();
+}
+
+function drawLabelHover(e, x, y) {
+  // display label right where the event is drawn
+  const width = Math.ceil(e._parsedWidth) + DRAW.EDGE_GAP*2;
+  const height = Math.ceil(e._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+  const left = Math.round(x - width/2);
+  const top = Math.round(y - height/2);
+
+  drawLabelBubble(e, left, width, top, height, true);
+}
+
+function getLabelPosition(ep, y) {
+  // return coordinates of label for eventPos ep
+  const e = ep.event;
+  const x = Util.timeToPx(e._dateTime);
+
+  if (ep.yOffset > 0) {
+    // bubble above y
+    const width = Math.ceil(e._parsedWidth) + DRAW.EDGE_GAP*2;
+    const height = Math.ceil(e._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+    const left = Math.round(x - width/2);
+    const right = left + width;
+    const top = Math.round(y - DRAW.LABEL_STEM_HEIGHT - ep.yOffset);
+    const bottom = top + height;
+    return {type:'bubble', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height};
+
+  } else if (ep.yOffset === -1) {
+    // label below y
+    const spec = zoomSpec(e.significance);
+    const thickness = spec.size;
+    let xFrom = Math.round(Util.timeToPx(e._tFrom));
+    let xTo = Math.round(Util.timeToPx(e._tTo));
+    const w = window.innerWidth;
+    const top = Math.round(y + thickness/2);
+    const width = e._labelWidth;
+    const height = DRAW.LABEL_LINE_HEIGHT;
+
+    let left = Math.round(x - (width/2));
+    if (left < (xFrom + DRAW.EDGE_GAP)) left = xFrom + DRAW.EDGE_GAP;
+    if ((left + width) > (xTo - DRAW.EDGE_GAP)) left = xTo - width - DRAW.EDGE_GAP;
+  
+    // keep on the screen as much as possible
+    if (left < DRAW.EDGE_GAP) {
+      left = DRAW.EDGE_GAP;
+      if ((left + width + DRAW.EDGE_GAP) > xTo) left = xTo - DRAW.EDGE_GAP - width;
+    }
+    if ((left + width + DRAW.EDGE_GAP) > w) {
+      left = w - DRAW.EDGE_GAP - width;
+      if (left < xFrom + DRAW.EDGE_GAP) left = xFrom + DRAW.EDGE_GAP;
+    }
+  
+    const right = left + width;
+    const bottom = top + height;
+
+    return {type:'label', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height};
+  }
+  return null;
+}
+
+function drawLabelAbove(ep, highlight) {
+  const e = ep.event;
+  const y = ep.yPos;
+  const p = getLabelPosition(ep, y);
+  const spec = zoomSpec(e.significance);
+  const lineTop = y - (spec.size/2);
+
+  // stem: from top of the event line/dot to bottom of label box
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(p.x, lineTop);
+  ctx.lineTo(p.x, p.bottom);
+  ctx.stroke();
+  ctx.restore();
+
+  drawLabelBubble(e, p.left, p.width, p.top, p.height, highlight);
+}
+
+function drawLabelBelow(ep, highlight) {
+  const e = ep.event;
+  const y = ep.yPos;
+  const p = getLabelPosition(ep, y);
+  const spec = zoomSpec(e.significance);
+  let zoomFade = spec.fade;
+
+  if (highlight) zoomFade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
+
+  ctx.save();
+  drawLabelText(e._labelSingle, p.left + DRAW.EDGE_GAP, p.top + DRAW.EDGE_GAP, zoomFade);
+  ctx.restore();
+}
+
+
+/***************************** Event lines *****************************/
+
+function drawEventLine(ep, highlight) {
+
+  const e = ep.event;
+  const spec = zoomSpec(e.significance);
+  const height = spec.size;
+  const fade = spec.fade;
+  const x = Util.timeToPx(e._dateTime);
+  const y = ep.yPos;
+  const left = Math.round(Util.timeToPx(e._tFrom));
+  const right = Math.round(Util.timeToPx(e._tTo));
+  const width = right - left;
+  const xFadeLeft = Math.round(Util.timeToPx(e._fLeft));
+  const xFadeRight = Math.round(Util.timeToPx(e._fRight));
+  const top = Math.round(y - height / 2);
+  const bottom = Math.round(y + height / 2);
+
+  const c = e.color ?? "white";
+  const cl = e.colorLeft ?? "black";
+  const cr = e.colorRight ?? "black";
+  const color = colorTrunc(colorRGB.get(c));
+  // if edge color is black, use (middle) color and apply fade effect below
+  const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
+  const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
+  
+  ctx.save();
+  if (width >= 6 || spec.style === 'line') {
+    const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
+    const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
+     
+    if (spec.style === 'line') {
+      const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
+      const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
+      const gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
+      const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
+
+      const grad = ctx.createLinearGradient(left, y, right, y);
+      if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
+        grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
+        grad.addColorStop(gradRight, `rgba(${color},${fade})`);
+        if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
+        ctx.fillStyle = grad;
+    } else ctx.fillStyle = `rgba(${color}, ${fade})`;
+
+    if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
+
+    ctx.beginPath();
+    ctx.moveTo(xFadeLeft, top);
+    if (curveRight) {
+      ctx.lineTo(xFadeRight, top);
+      ctx.quadraticCurveTo(right, top, right, y);
+      ctx.quadraticCurveTo(right, bottom, xFadeRight, bottom);
+    } else {
+      ctx.lineTo(right, top);
+      ctx.lineTo(right, bottom);
+    }
+    if (curveLeft) {
+      ctx.lineTo(xFadeLeft, bottom);
+      ctx.quadraticCurveTo(left, bottom, left, y);
+      ctx.quadraticCurveTo(left, top, xFadeLeft, top);
+    } else {
+      ctx.lineTo(left, bottom);
+      ctx.lineTo(left, top);
+      ctx.lineTo(xFadeLeft, top);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // dot - display dot while the line appears too narrow to smooth transition
+  if ((xFadeRight - xFadeLeft) < height && spec.style === 'dot') {
+    ctx.fillStyle = `rgba(${color}, ${fade})`;
+    ctx.beginPath();
+    ctx.arc(x, y, (height/2), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+
+/***************************** Master functions *****************************/
+
+function registerEvents(vw) {
+  //const tl = timelineCache.get(vw.tlKey);
+
+  // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
+  const rangeLeft = 0 - DRAW.MAX_LABEL_WIDTH / 2;
+  const rangeRight = window.innerWidth + DRAW.MAX_LABEL_WIDTH / 2;
+  const y = vw.yPos;
+
+  // iterate through events, highest significance first to check the lowest ones for mouseover last
+  for (let sig = DRAW.MAX_SIGNIFICANCE; sig > 0; sig--) {
+    const spec = zoomSpec(sig);
+    const height = spec.size;
+    
+    // process each event (determined to be visible) of this significance
+    vw.eventPos.filter(ep => ep.event.significance === sig && ep.yOffset !== null).forEach(ep => {
+      const e = ep.event;
+      const x = Util.timeToPx(e._dateTime);
+      let left = Math.round(Util.timeToPx(e._tFrom));
+      let right = Math.round(Util.timeToPx(e._tTo));
+      let top = Math.round(y - height / 2);
+      let bottom = Math.round(y + height / 2);
+
+      if ((right < rangeLeft) || (left > rangeRight)) return;  // off-screen (horizontally)
+      
+      // accommodate very small dots by expanding hit area
+      if (!spec.fadeNear) { 
+        left = Math.min(left, Math.round(x - DRAW.DOT_HOVER_PAD));
+        right = Math.max(right, Math.round(x + DRAW.DOT_HOVER_PAD));
+        top = Math.min(top, Math.round(y - DRAW.DOT_HOVER_PAD));
+        bottom = Math.max(bottom, Math.round(y + DRAW.DOT_HOVER_PAD));
+      }
+
+      // register line/dot as a screen element that can be interacted with
+      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'line', eventPos:ep, view:vw});
+    
+      // check for mouseover
+      if (isMouseOver(left, right, top, bottom)) {
+        appState.highlighted.idx = screenElements.length - 1;
+        appState.highlighted.eventPos = ep;
+      }
+
+      // process the label, if applicable
+      const p = getLabelPosition(ep, y);
+      if (p) {
+        // register label as a screen element that can be interacted with
+        screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:p.type, eventPos:ep, view:vw});
+
+        // check for mouseover
+        if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+          appState.highlighted.idx = screenElements.length - 1;
+          appState.highlighted.eventPos = ep;
+        }
+      }
+
+    });
+  }
 }
 
 export function drawEvents() {
@@ -627,8 +658,8 @@ export function drawEvents() {
   screenElements.filter(se => se.type==='line' || se.type==='bubble' || se.type==='label').forEach(se => {
     const ep = se.eventPos;
     const e = ep.event;
-    const highlight = (ep===appState.highlighted.eventPos || (e===appState.selected.event /*&& vw===appState.selected.view*/));
-    if (se.type === 'line') drawEventLine(ep, highlight || e.timeline===appState.highlighted.timeline);
+    const highlight = (ep===appState.highlighted.eventPos || (e===appState.selected.event));
+    if (se.type === 'line') drawEventLine(ep, highlight || se.view===appState.highlighted.view);
     if (se.type === 'bubble') drawLabelAbove(ep, highlight);
     if (se.type === 'label') drawLabelBelow(ep, highlight);
   });
@@ -657,6 +688,9 @@ export function drawEvents() {
   // change pointer
   setPointerCursor();
 }
+
+
+/***************************** Positioning timelines and events *****************************/
 
 export function filterEventsForView(vw){
   // reset vw.eventPos array according to vw.tagFilters

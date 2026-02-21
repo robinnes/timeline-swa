@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, timelines, timelineCache, draw, zoomToView} from './canvas.js';
-import {zoomSpec, positionViews} from './render.js';
+import {timelines, timelineCache, draw} from './canvas.js';
+import {zoomSpec} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 
@@ -82,35 +82,45 @@ export function initializeEvent(e) {
 };
 
 export function initializeTitle(tl) {
+  // establish labelWidth
   const ctx = canvas.getContext('2d');
   ctx.font = TIME.TITLE_FONT;
   tl._labelWidth = ctx.measureText(tl.title).width;
 }
 
+export function initializeTag(tag) {
+  // establish labelWidth
+  const ctx = canvas.getContext('2d');
+  ctx.font = TIME.TITLE_FONT;
+  tag._labelWidth = ctx.measureText(tag.label).width;
+}
+
 function initializeTimeline(tl) {
-  var minDate;
-  var maxDate;
+//  var minDate;
+//  var maxDate;
 
   // Assign/establish unique ID
   if (tl.id === undefined) tl.id = Util.uuid();
 
   initializeTitle(tl);
+  tl.tags.forEach(initializeTag);
   tl._dirty = false;
   
   //tl.events.forEach(initializeEvent);
   for (const event of tl.events) {
     event.timeline = tl;
     initializeEvent(event);
-
+/*
     // establish min/max dates present in the timeline
     const spec = zoomSpec(event.significance);
     const dateFrom = (spec.style === 'dot') ? event.date : event.dateFrom;
     const dateTo = (spec.style === 'dot') ? event.date : event.dateTo;
     if (!minDate || dateFrom < minDate) minDate = dateFrom;
     if (!maxDate || dateTo > maxDate) maxDate = dateTo;
+*/
   }
-  tl._dateFrom = minDate;
-  tl._dateTo = maxDate;
+  //tl._dateFrom = minDate;
+  //tl._dateTo = maxDate;
 }
 
 export async function loadTimeline(file) {

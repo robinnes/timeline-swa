@@ -3,12 +3,11 @@ import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
-import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
+import {loadTimeline, closeTimeline, initializeEvent, initializeTag} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
-import {labelForTagID} from './tags.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -204,8 +203,8 @@ canvas.addEventListener('click', function (e) {
   if (appState.highlighted.linkIdx > -1) {
     // hyperlink clicked
     const link = screenElements[appState.highlighted.linkIdx].subType;  // format:"attr=value"
-    const vw = screenElements[appState.highlighted.idx]?.view;
-    if (!vw) return;  // TODO: it's possible to hover a hyperlink but not the label (below) - there would be no vw - need to get view on link screenElements
+    const vw = screenElements[appState.highlighted.idx]?.view;  // have to retrieve view from label beneath
+    if (!vw) return;
     // construct an HTML object
     const [attr, value] = link.split("=", 2);
     const a = document.createElement("a");
@@ -474,11 +473,8 @@ async function linkToFile(file) {
 
 function linkToTag(origVw, tagID) {
   const origIdx = appState.views.indexOf(origVw);
-  const tl = timelineCache.get(origVw.tlKey);
-  const tagLabel = labelForTagID(tl, tagID);
   const newVw = structuredClone(origVw);  // copy originating view
   newVw.tagFilter = tagID;
-  newVw.label = `${tagLabel}`;
   filterEventsForView(newVw);  // establish min/max dates
 
   appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
@@ -525,14 +521,12 @@ export async function openTimeline(file, zoom, sourceView) {
     tlKey: tl._key,
     file: tl._file,
     scope: tl._scope,
-    label: null, //tl.title,
-    labelWidth: null, // tl._labelWidth,
     tFrom: null,
     tTo: null,
     tagFilter: null,
     eventPos: []
   }
-  filterEventsForView(view);  // establish min/max dates for view
+  filterEventsForView(view);  // establish min/max dates for view (tFrom/tTo)
 
   // identify currently selected or clicked view, if any
   //const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
