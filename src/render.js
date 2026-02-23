@@ -154,8 +154,9 @@ function drawAddEventButton(vw) {
   ctx.restore();
 }
 
-function drawDateHandles(event) {
-  const y = event.timeline._yPos;
+function drawDateHandles(eventPos) {
+  const y = eventPos.yPos;
+  const event = eventPos.event;
   const color = 'rgba(200,200,200,1)';
   const lineWidth = 2;
   const majorHeight = 80;
@@ -664,26 +665,28 @@ export function drawEvents() {
     if (se.type === 'label') drawLabelBelow(ep, highlight);
   });
 
+  // iterate views...
   for (const vw of appState.views) {
     const tl = timelineCache.get(vw.tlKey);
-    drawTimelineLabel(vw, vw===appState.highlighted.view);
-    // draw 'Add event' button if editing timeline and not currently editing an event
-    if (tl._mode === 'edit' && !appState.selected.event) drawAddEventButton(vw);
+    drawTimelineLabel(vw, vw===appState.highlighted.view);  // view/timeline label
+    if (tl._mode==="edit") {
+      if (appState.selected.timeline===tl) {
+        const sel = vw.eventPos.find((ep) => ep.event===appState.selected.event);
+        if (sel) drawDateHandles(sel);  // date handles for selected event in edit mode
+      } else {
+        drawAddEventButton(vw)  // Add event button if edit mode (and no selection)
+      }
+    } else {
+      // if selected event displays to small for a label then show hover
+      const sel = vw.eventPos.find((ep) => ep.event===appState.selected.event);
+      if (sel?.yOffset===0)
+        drawLabelHover(sel.event, Util.timeToPx(sel.event._dateTime), sel.yPos);
+    }
   }
 
-  // draw date handles if editing timeline and currently editing an event
-  if (appState.selected.event) {
-    if (appState.selected.timeline._mode === 'edit') drawDateHandles(appState.selected.event);
-    //console.log("TODO: figure out which views to draw date handles on...")
-  }
-
-  // if highlighted or selected event has been identified but no label is displayed, draw it hovering
-  const f = (ep) => { if (ep) {if (ep.yOffset===0) drawLabelHover(ep.event, Util.timeToPx(ep.event._dateTime), ep.yPos)}};
-  f(appState.highlighted.eventPos);
-  if (appState.selected.event != appState.highlighted.eventPos?.event) {
-    //f(appState.selected.eventPos);  // TO DO
-    //console.log("TODO: figure out which view to draw selected bubble on")
-  }
+  // draw hover bubble over dot too small for above label
+  const h = appState.highlighted.eventPos;
+  if (h?.yOffset===0) drawLabelHover(h.event, Util.timeToPx(h.event._dateTime), h.yPos);
 
   // change pointer
   setPointerCursor();

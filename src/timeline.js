@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {TIME, DRAW} from './constants.js';
-import {timelines, timelineCache, draw} from './canvas.js';
-import {zoomSpec} from './render.js';
+import {appState, timelineCache, draw} from './canvas.js';
+import {zoomSpec, positionViews} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 
@@ -94,7 +94,7 @@ export function initializeTag(tag) {
   ctx.font = TIME.TITLE_FONT;
   tag._labelWidth = ctx.measureText(tag.label).width;
 }
-
+/*
 function initializeTimeline(tl) {
 //  var minDate;
 //  var maxDate;
@@ -103,35 +103,35 @@ function initializeTimeline(tl) {
   if (tl.id === undefined) tl.id = Util.uuid();
 
   initializeTitle(tl);
-  tl.tags.forEach(initializeTag);
+  if (tl.tags) tl.tags.forEach(initializeTag);
   tl._dirty = false;
   
   //tl.events.forEach(initializeEvent);
   for (const event of tl.events) {
     event.timeline = tl;
     initializeEvent(event);
-/*
+
     // establish min/max dates present in the timeline
     const spec = zoomSpec(event.significance);
     const dateFrom = (spec.style === 'dot') ? event.date : event.dateFrom;
     const dateTo = (spec.style === 'dot') ? event.date : event.dateTo;
     if (!minDate || dateFrom < minDate) minDate = dateFrom;
     if (!maxDate || dateTo > maxDate) maxDate = dateTo;
-*/
+
   }
   //tl._dateFrom = minDate;
   //tl._dateTo = maxDate;
 }
+*/
 
 export async function loadTimeline(file) {
 
   // if file does not include a slash ("/") then it's private, otherwise public
-  const scope = file.includes('/') ? 'public' : 'private';
+  const scope = file.includes('/') ? 'public' : 'private';  
+  const tl = await getTimeline(scope, file);  // retrieve from storage
 
-  // load requested timeline into timeline cache
-  const tl = await getTimeline(scope, file);
-  initializeTimeline(tl);
-  const tlKey = JSON.stringify({
+  if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
+  const tlKey = JSON.stringify({  // id/scope necessary to distinguish private/public copies of same tl
     id: tl.id,
     scope: scope
   });
@@ -139,30 +139,55 @@ export async function loadTimeline(file) {
   tl._file = file,
   tl._scope = scope,
   tl._mode = 'view';
+  initializeTitle(tl);
+  
+  for (const event of tl.events) {
+    event.timeline = tl;
+    initializeEvent(event);
+  }
+
   timelineCache.set(tlKey, tl);
 
   return tl;
 }
 
 export function addNewTimeline(title) {
-  // append new timeline to the array
-  
-  const newTL = {
-    id:Util.uuid(),
-    title:title, 
-    details:null, 
-    tags:[],
-    events:[],
-    _labelWidth:null,
-    _mode:'edit',
-    _dirty:true,
-    _storage:{scope:"private", file:null}
+  // create blank timeline...
+  const id = Util.uuid();
+  const scope = "private";
+  const tlKey = JSON.stringify({
+    id:id, 
+    scope:scope
+  });
+  const tl = {
+    id:          id,
+    title:       title, 
+    details:     null, 
+    events:      [],
+    tags:        [],
+    _key:        tlKey,
+    _file:       null,
+    _scope:      scope,
+    _labelWidth: null,
+    _mode:       'edit',
+    _dirty:      true
   };
+  initializeTitle(tl);
+  timelineCache.set(tlKey, tl);
 
-  initializeTitle(newTL);
-  timelines.push(newTL);
+  // create view for timeline...
+  const vw = {
+    tlKey:     tl._key,
+    file:      tl._file,
+    scope:     tl._scope,
+    tFrom:     null,
+    tTo:       null,
+    tagFilter: null,
+    eventPos:  []
+  }
+  appState.views.push(vw);
 
-  positionTimelines(false);
+  positionViews(false);
   draw(true);
 }
 

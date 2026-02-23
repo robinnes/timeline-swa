@@ -99,7 +99,7 @@ export async function getTimeline(scope, file) {
   try {
     // retrieve from Azure blob storage
     const tl = await loadTimelineFromStorage(scope, file);
-    tl._storage = storage;
+    //tl._storage = storage;
     Util.hideGlobalBusyCursor();
     return tl;
     
@@ -108,7 +108,7 @@ export async function getTimeline(scope, file) {
       // return local file if running locally
       const response = await fetch(`data/${file}`);  // only works when a local server is running
       const tl = await response.json();
-      tl._storage = storage;
+      //tl._storage = storage;
       await sleep(500);  // simulate database access
       Util.hideGlobalBusyCursor();
       return tl;

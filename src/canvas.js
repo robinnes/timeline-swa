@@ -109,26 +109,6 @@ export async function initialLoad() {
 
   const file = tlParam + ".json";
   openTimeline(file, false);
-  /*
-  const tl = await loadTimeline(file);
-  const tlIdx = JSON.stringify({
-    id: tl.id,
-    scope: tl._storage.scope
-  });
-  // add to views
-  const view = {
-    timelineIdx: tlIdx,
-    label: tl.title,
-    labelWidth: tl._labelWidth,
-    dateFrom: tl._dateFrom,
-    dateTo: tl._dateTo
-  }
-  appState.views.splice(0, 0, view);
-
-  positionTimelines(false);
-  centerOnView(view);
-  draw(true);
-  */
 }
 
 /* ------------------- Momentum handling -------------------- */
@@ -244,7 +224,7 @@ canvas.addEventListener('click', function (e) {
 
   } else if (elem.type === 'button') {
     if (elem.subType === 'close-timeline') closeView(elem.view); 
-    else if (elem.subType === 'add-event') addNewEvent(elem.timeline);
+    else if (elem.subType === 'add-event') addNewEvent(elem.view);
   }
 });
 
@@ -570,8 +550,8 @@ async function closeView(viewIdx) {
   }
 }
 
-function addNewEvent(tl) {
-  // Todo: set significance according to zoom level
+function addNewEvent(viewIdx) {
+  const tl = timelineCache.get(appState.views[viewIdx].tlKey);
   const t = Util.pxToTime(window.innerWidth / 2);
   const d = new Date(t).toISOString().split('T')[0];
   let sig = 3;
