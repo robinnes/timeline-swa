@@ -140,6 +140,8 @@ export async function loadTimeline(file) {
   tl._scope = scope,
   tl._mode = 'view';
   initializeTitle(tl);
+
+  if (tl.tags) tl.tags.forEach(initializeTag);
   
   for (const event of tl.events) {
     event.timeline = tl;
@@ -199,7 +201,6 @@ export async function saveTimeline(tl)
     await saveTimelineToStorage("private", tl._file, text);
     tl._dirty = false;
   } catch (err) {
-    //await sleep(1200);  // simulate database access
     console.error('Save failed:', err.message);
   }
   Util.hideGlobalBusyCursor();
