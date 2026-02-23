@@ -106,7 +106,7 @@ imageModal.addEventListener('click', (e) => {
 
         // Update the selected event
         e.thumbnail = dataUrl;
-        appState.selected.timeline.dirty = true;
+        appState.selected.timeline._dirty = true;
         
         // Update panel
         setSidebarEvent(e);
@@ -122,7 +122,7 @@ imageModal.addEventListener('click', (e) => {
 export function removeImageThumbnail() {
   const event = appState.selected.event;
   event.thumbnail = null;
-  event.timeline.dirty = true;
+  event.timeline._dirty = true;
   setSidebarEvent(event);
   initializeEvent(event);
   draw(true);
