@@ -196,7 +196,7 @@ export async function saveTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("private", tl._storage.file, text);
+    await saveTimelineToStorage("private", tl._file, text);
     tl._dirty = false;
   } catch (err) {
     //await sleep(1200);  // simulate database access
