@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, followHyperlink} from './canvas.js';
+import {appState, draw, followHyperlink, zoomToView} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -131,8 +131,23 @@ async function cancelTimelineEdit() {
     const ok = await showModalDialog({message:'Abandon changes to timeline?'});
     if (!ok) return;
 
-    closeTimeline(tl._key)
+    // close timeline
+    const tlKey = tl._key;
+    closeTimeline(tlKey);
+
+    // purge related view (there can be only one for an unsaved timeline)
+    const view = appState.views.find(vw => vw.tlKey === tlKey);
+    const viewIdx = appState.views.indexOf(view);
+    appState.views.splice(viewIdx, 1);
+    
+    if (appState.views.length === 0)
+      draw(false) 
+    else {
+      const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
+      zoomToView(vwBelow);
+    }
     closeSidebar();
+
   } else if (tl._dirty) {
     const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
     if (!ok) return;
