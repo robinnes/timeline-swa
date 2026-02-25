@@ -16,6 +16,18 @@ export function initTagsUI() {
   treeEl = document.getElementById('tag-tree');
   if (!treeEl) return;
 
+  // Click blank space in the Tags subpanel to clear selection
+  const tagsSubpanel = document.getElementById('subpanel-edit-timeline-tags');
+  tagsSubpanel?.addEventListener('click', (e) => {
+    // If the click was inside any tag row or its action buttons, do nothing
+    const clickedRow = e.target.closest('li[data-tag-id], .tagmgr__row, button[data-tag-action]');
+    if (clickedRow) return;
+
+    // Otherwise, blank area: clear selection
+    selectedTagId = null;
+    applySelectionUI();
+  });
+
   // Selection
   treeEl.addEventListener('click', (e) => {
     const li = e.target.closest('li[data-tag-id]');
@@ -62,7 +74,6 @@ export function initTagsUI() {
     if (!li) return;
     selectTag(li.dataset.tagId);
   });
-
 }
 
 export function renderTagsUI(tl) {

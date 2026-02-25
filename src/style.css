@@ -278,6 +278,15 @@ aside.sidebar {
   padding-bottom: 12px;
 }
 
+/* Any panel content that directly contains sidebar__section blocks */
+.panel__content,
+.subpanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+
 /* Panel header area */
 .panel__header {
   position: static;
@@ -318,6 +327,7 @@ aside.sidebar {
 /*************************** Subpanel tabs ***************************/
 .subpanel__tabs {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 8px;
   padding-bottom: 20px;
@@ -340,8 +350,7 @@ aside.sidebar {
   color: var(--fg);
   border-bottom-color: var(--accent);
 }
-.subpanel__tabs .subtab-btn:disabled { /*,
-.subpanel__tabs .subtab-btn.is-disabled { */
+.subpanel__tabs .subtab-btn:disabled {
   color: var(--muted);
   cursor: default;
   background: transparent;
@@ -445,6 +454,7 @@ aside.sidebar {
 .action-btn-close {
   padding: 0px 2px;
   border-radius: 2px;
+  font-size: 16px;
 }
 
 /********************************* Sidebar section *********************************/
@@ -454,12 +464,13 @@ aside.sidebar {
   padding-top: 14px;
 }
 
-/* Make the last section (which contains .details) expand to fill the sidebar */
-.sidebar__section:last-child {
+/* Let the last section fill remaining height */
+.panel__content > .sidebar__section:last-child,
+.subpanel > .sidebar__section:last-child {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* allow children to overflow correctly */
+  min-height: 0;
 }
 
 
@@ -497,6 +508,8 @@ h2.label {
 
 .edit-input,  /* edit-input simulates an editable field but is read-only (edit event date)  */
 .edit-textarea {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.04);
@@ -557,8 +570,6 @@ h2.label {
   gap: 8px;
   white-space: nowrap;
 }
-
-
 
 
 /********************************* Significance selecitons *********************************/
