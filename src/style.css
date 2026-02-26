@@ -286,7 +286,6 @@ aside.sidebar {
   min-height: 0;
 }
 
-
 /* Panel header area */
 .panel__header {
   position: static;
@@ -455,6 +454,7 @@ aside.sidebar {
   padding: 0px 2px;
   border-radius: 2px;
   font-size: 16px;
+  line-height: 13px;  /* approximately the width */
 }
 
 /********************************* Sidebar section *********************************/
@@ -505,6 +505,7 @@ h2.label {
 .display-textarea ul { margin: 8px 0 8px 18px; }
 .display-textarea a { color: var(--accent); text-decoration: none; }
 .display-textarea a:hover { text-decoration: underline; }
+.display-textarea .tagnavigate__tree {margin: 0;}  /* no margin for tag navigation tree */
 
 .edit-input,  /* edit-input simulates an editable field but is read-only (edit event date)  */
 .edit-textarea {
@@ -569,6 +570,15 @@ h2.label {
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+}
+
+
+/* ---------------- Tag navigator (View Timeline) ---------------- */
+
+.tagnavigate__tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 

@@ -5,7 +5,7 @@ import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEv
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
-import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tags.js';
+import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -63,11 +63,17 @@ for (const btn of tabButtons) {
     if (btn.disabled) return;
     const target = btn.dataset.target;
     if (!target) return;
+
     // map logical tab to the appropriate panel depending on whether we're editing a timeline
     let panelId = null;
-    if (target === 'timeline') panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
-    else if (target === 'event') panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
-    if (panelId) showPanel(panelId);    
+    if (target === 'timeline') {
+      panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
+    } else if (target === 'event') {
+      panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
+      if (appState.selected.event) setSidebarEvent(appState.selected.event);
+    }
+    if (panelId) showPanel(panelId);
+
     setActiveEditTab(target);
     if (!sidebar.classList.contains('open')) openSidebar();
     draw();
@@ -409,9 +415,14 @@ function setSidebarTimeline(tl) {
 
   // view timeline panel
   $("timeline-title").textContent = tl.title ?? '';
+
+  // details
   const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
   if (isHtml) $("timeline-details").innerHTML = tl.details;
   else $("timeline-details").innerText = tl.details ?? '';
+
+  // tag navigation
+  renderTagNavigation(tl);
 
   // no 'Edit' button for public timelines
   if (tl._scope === "public") 
@@ -438,9 +449,7 @@ for (const r of significanceButtons) {
     if (!event) return;
     event.significance = v;
     initializeEvent(event);
-    // mark timeline dirty when event changed
-    if (tl._mode === 'edit') tl.dirty = true;
-    updateSaveButton();
+    if (tl._mode === 'edit') markDirty(tl);  // mark timeline dirty when event changed
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color
     draw(true);  // may need to reposition labels
@@ -504,16 +513,12 @@ for (const btn of colorButtons) {
     switch (target) {
       case 'left':
         event.colorLeft = newColor;
-        break;
       case 'right':
         event.colorRight = newColor;
-        break;
       default: // 'main'
         event.color = newColor;
     }
-    
-    event.timeline.dirty = true;
-    updateSaveButton();
+    markDirty(event.timeline);
     updateColorButtons();
     draw();
   });

@@ -10,6 +10,28 @@ let pickerEl = null;
 let pickerHintEl = null;
 
 
+/* -------------------------- Utilities -------------------------- */
+
+function ensureTags(tl) {
+  if (!tl.tags) tl.tags = []; // attach to appState.selected.timeline
+}
+
+function iconBtn(text, action, title, danger = false) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'tagmgr__iconbtn' + (danger ? ' tagmgr__iconbtn--danger' : '');
+  b.dataset.tagAction = action;
+  b.title = title;
+  b.setAttribute('aria-label', title);
+  b.textContent = text;
+  return b;
+}
+
+function currentTimeline() {
+  return appState.selected.timeline;
+}
+
+
 /* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
 
 export function initTagsUI() {
@@ -106,17 +128,6 @@ export function renderTagsUI(tl) {
   if (selectedTagId) applySelectionUI();
 }
 
-function iconBtn(text, action, title, danger = false) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'tagmgr__iconbtn' + (danger ? ' tagmgr__iconbtn--danger' : '');
-  b.dataset.tagAction = action;
-  b.title = title;
-  b.setAttribute('aria-label', title);
-  b.textContent = text;
-  return b;
-}
-
 function renderNode(tag, byParent, depth) {
   const li = document.createElement('li');
   li.dataset.tagId = tag.id;
@@ -159,10 +170,6 @@ function renderNode(tag, byParent, depth) {
   return li;
 }
 
-function ensureTags(tl) {
-  if (!tl.tags) tl.tags = []; // attach to appState.selected.timeline
-}
-
 function selectTag(id) {
   selectedTagId = id;
   applySelectionUI();
@@ -174,10 +181,6 @@ function applySelectionUI() {
   }
   const li = treeEl.querySelector(`li[data-tag-id="${CSS.escape(selectedTagId)}"]`);
   li?.querySelector('.tagmgr__row')?.classList.add('is-selected');
-}
-
-function currentTimeline() {
-  return appState.selected.timeline;
 }
 
 function nextOrderAmongSiblings(tl, parentId) {
@@ -362,7 +365,7 @@ function moveTag(tagId, delta) {
 }
 
 
-/* -------------------------- Define tags (Timeline Edit panel) -------------------------- */
+/* -------------------------- Select tags (Event Edit Tags subpanel) -------------------------- */
 
 export function initTagPickerUI() {
   pickerEl = document.getElementById('event-tag-tree');
@@ -452,5 +455,51 @@ function renderPickerNode(tag, byParent, depth, event) {
     li.appendChild(ul);
   }
 
+  return li;
+}
+
+
+/* -------------------------- Tag navigation panel -------------------------- */
+
+export function renderTagNavigation(tl) {
+  const tags = tl.tags ?? [];
+  const navigateEl = document.getElementById('timeline-navigate-tags');
+  navigateEl.innerHTML = '';
+
+  // Build parent -> children map
+  const byParent = new Map();
+  for (const t of tags) {
+    const key = t.parentId ?? null;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(t);
+  }
+  for (const arr of byParent.values()) {
+    arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+
+  // Render roots
+  const root = byParent.get(null) ?? [];
+  for (const t of root) {
+    navigateEl.appendChild(renderNavigateNode(t, byParent, 0));
+  }
+}
+
+function renderNavigateNode(tag, byParent, depth) {
+  const li = document.createElement("li");
+  li.style.paddingLeft = `${depth * 16}px`;
+
+  const a = document.createElement("a");
+  a.href = "#";
+  a.setAttribute("tag", tag.id);
+  a.innerHTML = tag.label;
+  li.appendChild(a);
+
+  const kids = byParent.get(tag.id) ?? [];
+  if (kids.length) {
+    const ul = document.createElement("ul");
+    ul.className = "tagnavigate__tree";
+    for (const c of kids) ul.appendChild(renderNavigateNode(c, byParent, depth + 1));
+    li.appendChild(ul);
+  }
   return li;
 }
