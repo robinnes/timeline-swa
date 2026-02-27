@@ -705,7 +705,7 @@ export function filterEventsForView(vw){
   vw.eventPos = [];
   events.forEach(e => {
     // check event's tag assignments (allow all if !tagFilter)
-    if (!tagFilter || e.tagIds.includes(tagFilter)) {
+    if ((!tagFilter && e.include) || e.tagIds.includes(tagFilter)) {
       vw.eventPos.push({
         event:   e,
         yPos: vw.yPos,      // for convenience

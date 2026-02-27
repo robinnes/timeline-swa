@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState} from './canvas.js';
+import {appState, draw} from './canvas.js';
 import {markDirty} from './panel.js';
 import {initializeTag} from './timeline.js';
 
@@ -384,14 +384,20 @@ export function initTagPickerUI() {
 
     if (!event.tagIds) event.tagIds = [];
 
-    if (cb.checked) {
-      if (!event.tagIds.includes(tagId)) event.tagIds.push(tagId);
+    // the "include" checkbox controls event.include, not tags
+    if (tagId==="include") {
+      event.include = cb.checked;
     } else {
-      const idx = event.tagIds.indexOf(tagId);
-      if (idx >= 0) event.tagIds.splice(idx, 1);
+      // add/remove event.tagIds
+      if (cb.checked) {
+        if (!event.tagIds.includes(tagId)) event.tagIds.push(tagId);
+      } else {
+        const idx = event.tagIds.indexOf(tagId);
+        if (idx >= 0) event.tagIds.splice(idx, 1);
+      }
     }
-
     markDirty(tl);
+    draw(true);
   });
 }
 
@@ -419,6 +425,9 @@ export function renderTagPickerUI(tl, event) {
   for (const arr of byParent.values()) {
     arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
+
+  // Begin with 'Include in Base Timeline' checkbox
+  pickerEl.appendChild(renderIncludeNode(event));
 
   // Render roots
   const root = byParent.get(null) ?? [];
@@ -454,7 +463,25 @@ function renderPickerNode(tag, byParent, depth, event) {
     for (const c of kids) ul.appendChild(renderPickerNode(c, byParent, depth + 1, event));
     li.appendChild(ul);
   }
+  return li;
+}
 
+function renderIncludeNode(event) {
+  // hard-code 'Include in base timeline' node (event.include)
+  const li = document.createElement('li');
+  li.style.paddingLeft = "0px";
+  const row = document.createElement('label');
+  row.className = 'tagpick__row';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.dataset.tagId = "include";
+  cb.checked = event.include;
+  const text = document.createElement('div');
+  text.className = 'tagpick__label';
+  text.textContent = "Include in base timeline";
+  row.appendChild(cb);
+  row.appendChild(text);
+  li.appendChild(row);
   return li;
 }
 

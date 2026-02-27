@@ -16,8 +16,8 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds}) => ({
-                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds: tagIds ?? []
+    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
+                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
     }))
   };
   return JSON.stringify(txt, null, 2);
@@ -34,6 +34,9 @@ export function initializeEvent(e) {
   // Initialize tags selection
   if (!Array.isArray(e.tagIds)) e.tagIds = [];
 
+  // Check 'include' flag if not present or no tags are selected (force visibility)
+  if (e.include===undefined || e.tagIds.length===0) e.include = true;
+  
   // Establish properties for positioning labels
   const parsed = parseLabel(e.label, e.thumbnail);
   e._labelSingle = parsed.singleRow;
@@ -94,35 +97,6 @@ export function initializeTag(tag) {
   ctx.font = TIME.TITLE_FONT;
   tag._labelWidth = ctx.measureText(tag.label).width;
 }
-/*
-function initializeTimeline(tl) {
-//  var minDate;
-//  var maxDate;
-
-  // Assign/establish unique ID
-  if (tl.id === undefined) tl.id = Util.uuid();
-
-  initializeTitle(tl);
-  if (tl.tags) tl.tags.forEach(initializeTag);
-  tl._dirty = false;
-  
-  //tl.events.forEach(initializeEvent);
-  for (const event of tl.events) {
-    event.timeline = tl;
-    initializeEvent(event);
-
-    // establish min/max dates present in the timeline
-    const spec = zoomSpec(event.significance);
-    const dateFrom = (spec.style === 'dot') ? event.date : event.dateFrom;
-    const dateTo = (spec.style === 'dot') ? event.date : event.dateTo;
-    if (!minDate || dateFrom < minDate) minDate = dateFrom;
-    if (!maxDate || dateTo > maxDate) maxDate = dateTo;
-
-  }
-  //tl._dateFrom = minDate;
-  //tl._dateTo = maxDate;
-}
-*/
 
 export async function loadTimeline(file) {
 
@@ -219,37 +193,6 @@ export async function publishTimeline(tl)
   }
   Util.hideGlobalBusyCursor();
 }
-
-/*
-export async function closeTimeline(viewIdx) {
-
-  // Determine whether this is the only view for this timeline
-  const timelineID = appState.views[viewIdx].timelineID;
-  const otherVw = appState.views.find(vw =>
-    appState.views.indexOf(vw) != viewIdx &&
-    vw.timelineID === timelineID);
-    
-  if (!otherVw) {
-    // This is the only one - if dirty then prompt
-    const tl = timelineCache.get(timelineID);
-    if (tl._dirty) {
-      const ok = await showModalDialog({message:'Close timeline without saving?'});
-      if (!ok) return;
-    }
-    // Delete timeline from memory
-    timelineCache.delete(timelineID);
-  }
-
-  // Remove view from the array
-  appState.views.splice(viewIdx, 1);
-  if (appState.views.length === 0)
-    draw(false) 
-  else {
-    const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
-    zoomToTimeline(vwBelow);
-  }
-}
-*/
 
 export function closeTimeline(tlKey) {
   timelineCache.delete(tlKey);
