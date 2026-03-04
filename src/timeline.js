@@ -185,8 +185,7 @@ export async function publishTimeline(tl)
   Util.showGlobalBusyCursor();
   try {
     const text = timelineString(tl);
-    await saveTimelineToStorage("public", tl._storage.file, text);
-    tl._dirty = false;
+    await saveTimelineToStorage("public", tl._file, text);
   } catch (err) {
     //await sleep(1200);  // simulate database access
     console.error('Publish failed:', err.message);
