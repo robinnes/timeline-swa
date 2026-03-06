@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, followHyperlink, zoomToView} from './canvas.js';
+import {appState, draw, followHyperlink, zoomToView, timelineCache} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -34,6 +34,10 @@ const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
 const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
 
 /* ------------------- Sidebar -------------------- */
+
+export function sidebarIsOpen() {
+  return (sidebar.classList.contains('open'));
+}
 
 function openSidebar() {
   sidebar.classList.add('open');
@@ -121,7 +125,7 @@ function updateTabStates() {
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
   appState.selected.timeline._mode = 'edit';
-  openTimelineForEdit(appState.selected.timeline);
+  openSelectedView(false);
   draw();
 });
 
@@ -162,13 +166,12 @@ async function cancelTimelineEdit() {
     loadTimeline(tl._file).then((newTL) => {
       // update UI to new timeline object
       appState.selected.timeline = newTL;
-      setSidebarTimeline(newTL);
-      openTimelineForView(newTL);
+      openSelectedView(false);
       draw(true);
     });
   } else {
     tl._mode = 'view';
-    openTimelineForView(tl); // cancel without reloading
+    openSelectedView(false);
     draw();
   }
 }
@@ -207,7 +210,7 @@ eventDeleteBtn.addEventListener('click', (e) => {
   appState.selected.event = null;
   markDirty(tl);
   draw(true);
-  openTimelineForEdit(tl);
+  openSelectedView(false);
 });
 
 timelinePublishBtn.addEventListener('click', (e) => {
@@ -263,17 +266,6 @@ for (const tabsEl of subpanelTabs) {
 
 /* ------------------- Edit event panel -------------------- */
 
-export function openEventForEdit(e) {
-  setSidebarEvent(e);
-  setSidebarTimeline(e.timeline);
-
-  showPanel('panel-edit-event');
-  setActiveEditTab('event');
-  if (!sidebar.classList.contains('open')) openSidebar();
-  editEventLabel.focus();
-  draw();
-}
-
 editEventLabel.addEventListener('input', (e) => {
   const s = e.target.value;
   const event = appState.selected.event;
@@ -303,16 +295,6 @@ closeThumbnailBtn.addEventListener('click', (e) => {
 
 /* ------------------- Edit timeline panel -------------------- */
 
-export function openTimelineForEdit(tl) {
-  setSidebarTimeline(tl);
-
-  showPanel('panel-edit-timeline');
-  setActiveEditTab('timeline');
-  updateSaveButton();
-  if (!sidebar.classList.contains('open')) openSidebar();
-  editTimelineTitle.focus();
-}
-
 editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   const tl = appState.selected.timeline;
@@ -330,24 +312,7 @@ editTimelineDetails.addEventListener('input', (e) => {
 });
 
 
-/* ------------------- View panels -------------------- */
-
-export function openEventForView(e) {
-  setSidebarEvent(e);
-  setSidebarTimeline(e.timeline);
-
-  showPanel('panel-view-event');
-  setActiveEditTab('event');
-  if (!sidebar.classList.contains('open')) openSidebar();
-}
-
-export function openTimelineForView(tl) {
-  setSidebarTimeline(tl);
-
-  showPanel('panel-view-timeline');
-  setActiveEditTab('timeline');
-  if (!sidebar.classList.contains('open')) openSidebar();
-}
+/* ------------------- Hyperlinks -------------------- */
 
 // hyperlink clicks within label and details
 for (const txt of displayTextAreas) {
@@ -355,12 +320,45 @@ for (const txt of displayTextAreas) {
     const a = e.target.closest("a");
     if (!a) return;
     e.preventDefault();
-    followHyperlink(appState.selected.view, a);
+    followHyperlink(appState.selected.view, a, true);
+    setSidebarView(appState.selected.view);
   });
 }
 
+/* ------------------- Open view/event -------------------- */
 
-/* ------------------- Populate fields for selection -------------------- */
+export function openSelectedView(display) {
+  const vw = appState.selected.view;
+  const tl = timelineCache.get(vw.tlKey);
+  const editMode = (tl._mode==="edit");
+
+  setSidebarView(vw);
+
+  const panel = editMode ? "panel-edit-timeline" : "panel-view-timeline";
+  showPanel(panel);
+  setActiveEditTab('timeline');
+
+  if (display) openSidebar();
+
+  if (editMode) editTimelineTitle.focus();
+}
+
+export function openSelectedEvent(display) {
+  const vw = appState.selected.view;
+  const tl = timelineCache.get(vw.tlKey);
+  const editMode = (tl._mode==="edit");
+
+  setSidebarEvent(appState.selected.event);
+  setSidebarView(vw);
+
+  const panel = editMode ? "panel-edit-event" : "panel-view-event";
+  showPanel(panel);
+  setActiveEditTab('event');
+
+  if (display) openSidebar();
+
+  if (editMode) editEventLabel.focus();
+}
 
 export function setSidebarEvent(e) {
   // update sidebar (all panels) to selected event
@@ -409,20 +407,29 @@ export function setSidebarEvent(e) {
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
-function setSidebarTimeline(tl) {
-  // update sidebar (all panels) to timeline
+function setSidebarView(vw) {
+  // update sidebar (all panels) to vw
   const $ = (id) => document.getElementById(id);
+  const tl = timelineCache.get(vw.tlKey);
 
-  // view timeline panel
-  $("timeline-title").textContent = tl.title ?? '';
+  if (!vw.tagFilter) {
+    // title
+    $("timeline-title").textContent = tl.title ?? '';
+  
+    // details
+    const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
+    if (isHtml) $("timeline-details").innerHTML = tl.details;
+    else $("timeline-details").innerText = tl.details ?? '';
 
-  // details
-  const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
-  if (isHtml) $("timeline-details").innerHTML = tl.details;
-  else $("timeline-details").innerText = tl.details ?? '';
+  } else {
+    // if view is filtered to a tag, display only tag label for title (no details)
+    const tags = tl.tags.filter(t => t.id === vw.tagFilter);
+    $("timeline-title").textContent = tags[0]?.label;
+    $("timeline-details").innerText = "";
+  }
 
   // tag navigation
-  renderTagNavigation(tl);
+  renderTagNavigation(vw);
 
   // no 'Edit' button for public timelines
   if (tl._scope === "public") 

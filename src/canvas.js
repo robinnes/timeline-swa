@@ -2,8 +2,8 @@ import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
-import {openEventForView, openEventForEdit, openTimelineForView, openTimelineForEdit, closeSidebar, updateSaveButton} from './panel.js';
-import {loadTimeline, closeTimeline, initializeEvent, initializeTag} from './timeline.js';
+import {sidebarIsOpen, closeSidebar, updateSaveButton, openSelectedView, openSelectedEvent} from './panel.js';
+import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
@@ -20,7 +20,6 @@ export const appState = {
     idx: -1,  // index in screenElements of currently highlighted item
     eventPos: null,
     view: null,
-    //timeline: null,
     linkIdx: -1
   },
   selected: {
@@ -189,13 +188,13 @@ canvas.addEventListener('click', function (e) {
     const [attr, value] = link.split("=", 2);
     const a = document.createElement("a");
     a.setAttribute(attr, value);
-    followHyperlink(vw, a);
+    followHyperlink(vw, a, false);
     return;
   }
 
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
-    if (sidebar.classList.contains('open')) closeSidebar();
+    if (sidebarIsOpen()) closeSidebar();
     return;
   }
 
@@ -211,16 +210,14 @@ canvas.addEventListener('click', function (e) {
       appState.selected.event = elem.eventPos.event; // appState.highlighted.eventPos.event;
       appState.selected.timeline = appState.selected.event.timeline;
       appState.selected.view = elem.view;
-      if (appState.selected.timeline._mode === "edit") openEventForEdit(appState.selected.event) 
-      else openEventForView(appState.selected.event);
+      openSelectedEvent(true);
       draw(false);
   } else if (elem.type === 'view') {
     const vw = appState.views[elem.view];
     const tl = timelineCache.get(vw.tlKey)
     appState.selected.view = vw;
     appState.selected.timeline = tl;
-    if (tl._mode === "edit") openTimelineForEdit(tl)
-    else openTimelineForView(tl);
+    openSelectedView(true);
 
   } else if (elem.type === 'button') {
     if (elem.subType === 'close-timeline') closeView(elem.view); 
@@ -446,9 +443,10 @@ async function linkToFile(file) {
   let existingVw = getViewForFile(file);
   if (existingVw) {
     zoomToView(existingVw);
-    return;
+    return existingVw;
   }
-  openTimeline(file, true, 0);
+  const newView = openTimeline(file, true, 0);
+  return newView;
 }
 
 function linkToTag(origVw, tagID) {
@@ -456,7 +454,7 @@ function linkToTag(origVw, tagID) {
   const existingVw = appState.views.find((vw) => vw.tagFilter===tagID);
   if (existingVw) {
     zoomToView(existingVw);
-    return;
+    return existingVw;
   }
 
   const origIdx = appState.views.indexOf(origVw);
@@ -467,20 +465,27 @@ function linkToTag(origVw, tagID) {
   appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
   positionViews(false);
   zoomToView(newVw);
+
+  return newVw;
 }
 
-export async function followHyperlink(origVw, a) {
-  // Proper HTML hyperlink...
+export async function followHyperlink(origVw, a, forceDisplay) {
+  var view = null;
   if (a.hasAttribute("tl")) {
     const file = a.getAttribute("tl") + ".json";
-    linkToFile(file);
-    // extra credit: open panel to target timeline (view or edit as applicable)
-    return;
-  }
-  if (a.hasAttribute("tag")) {
+    view = await linkToFile(file);
+  } else if (a.hasAttribute("tag")) {
     const tag = a.getAttribute("tag");
-    linkToTag(origVw, tag);
-    return;
+    view = linkToTag(origVw, tag);
+  }
+  if (view) {
+    const tl = timelineCache.get(view.tlKey);
+    appState.selected.view = view;
+    appState.selected.timeline = tl;
+    appState.selected.event = null;
+  
+    const display = sidebarIsOpen() || forceDisplay;
+    openSelectedView(display);
   }
 }
 
@@ -490,7 +495,7 @@ export async function openTimeline(file, zoom, sourceView) {
     // timeline is already present
     const tlKey = existingVw.tlKey;
     const existingTL = timelineCache.get(tlKey);
-    // check before reloading timeling that's being edited
+    // check before reloading timeline that's being edited
     if (existingTL._dirty) {
       const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
       if (!ok) return;  // consider returning a false here and not closing fileDialog
@@ -515,10 +520,6 @@ export async function openTimeline(file, zoom, sourceView) {
   }
   filterEventsForView(view);  // establish min/max dates for view (tFrom/tTo)
 
-  // identify currently selected or clicked view, if any
-  //const tl = (!appState.selected.timeline) ? appState.highlighted.event.timeline : appState.selected.timeline;
-  //const idx = appState.views.indexOf(appState.selected.view);
-  
   if (!sourceView) appState.views.push(view);
   else appState.views.splice(sourceView, 0, view);  // insert above currently selected view
   positionViews(false);
@@ -528,6 +529,7 @@ export async function openTimeline(file, zoom, sourceView) {
   } else {
     zoomToView(view);
   }
+  return view;
 }
 
 

@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw} from './canvas.js';
+import {appState, draw, timelineCache} from './canvas.js';
 import {markDirty} from './panel.js';
 import {initializeTag} from './timeline.js';
 
@@ -488,7 +488,8 @@ function renderIncludeNode(event) {
 
 /* -------------------------- Tag navigation panel -------------------------- */
 
-export function renderTagNavigation(tl) {
+export function renderTagNavigation(vw) {
+  const tl = timelineCache.get(vw.tlKey);
   const tags = tl.tags ?? [];
   const navigateEl = document.getElementById('timeline-navigate-tags');
   navigateEl.innerHTML = '';
@@ -505,7 +506,7 @@ export function renderTagNavigation(tl) {
   }
 
   // Render roots
-  const root = byParent.get(null) ?? [];
+  const root = byParent.get(vw.tagFilter) ?? [];  // begin at the view's tag, if present
   for (const t of root) {
     navigateEl.appendChild(renderNavigateNode(t, byParent, 0));
   }
