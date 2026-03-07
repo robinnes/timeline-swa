@@ -226,9 +226,9 @@ function copyLink(tagId) {
   const tag = tl.tags.find(t => t.id === tagId);
   const label = tag.label;
 
+  // generate hyperlink to this tag
   const link = `<a href="#" tag="${tagId}">${label}</a>`;
   navigator.clipboard.writeText(link);
-  console.log(link);
 }
 
 function beginRename(tagId) {
