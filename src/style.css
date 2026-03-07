@@ -502,7 +502,7 @@ h2.label {
 .display-textarea p { margin: 0 0 10px; }
 .display-textarea p:last-child { margin-bottom: 0; }
 .display-textarea h3 { font-size: 14px; margin: 12px 0 6px; }
-.display-textarea ul { margin: 8px 0 8px 18px; }
+.display-textarea ul { margin: 8px 0 8px 0px; }
 .display-textarea a { color: var(--accent); text-decoration: none; }
 .display-textarea a:hover { text-decoration: underline; }
 .display-textarea .tagnavigate__tree {margin: 0;}  /* no margin for tag navigation tree */
@@ -787,9 +787,13 @@ h2.label {
   border: 1px solid rgba(255,255,255,0.10);
   color: var(--muted);
   border-radius: 6px;
-  padding: 2px 6px;
+  padding: 2px 4px;
   line-height: 1;
   cursor: pointer;
+}
+
+.tagmgr__iconbtn--narrow {
+  padding: 2px 2px;
 }
 
 .tagmgr__iconbtn:hover {

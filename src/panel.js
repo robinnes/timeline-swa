@@ -520,8 +520,10 @@ for (const btn of colorButtons) {
     switch (target) {
       case 'left':
         event.colorLeft = newColor;
+        break;
       case 'right':
         event.colorRight = newColor;
+        break;
       default: // 'main'
         event.color = newColor;
     }

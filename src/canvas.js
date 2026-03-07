@@ -584,7 +584,7 @@ function addNewEvent(viewIdx) {
   tl._dirty = true;
   updateSaveButton();
   draw(true);
-  openEventForEdit(event);
+  openSelectedEvent(true);
 }
 
 /*

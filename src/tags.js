@@ -16,10 +16,12 @@ function ensureTags(tl) {
   if (!tl.tags) tl.tags = []; // attach to appState.selected.timeline
 }
 
-function iconBtn(text, action, title, danger = false) {
+function iconBtn(text, action, title, danger=false, narrow=false) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'tagmgr__iconbtn' + (danger ? ' tagmgr__iconbtn--danger' : '');
+  b.className = 'tagmgr__iconbtn' + 
+    (danger ? ' tagmgr__iconbtn--danger' : '') +
+    (narrow ? ' tagmgr__iconbtn--narrow' : '');
   b.dataset.tagAction = action;
   b.title = title;
   b.setAttribute('aria-label', title);
@@ -82,7 +84,8 @@ export function initTagsUI() {
         selectTag(tagId);
 
         const action = actionBtn.dataset.tagAction;
-        if (action === 'child') addChild(tagId);
+        //if (action === 'child') addChild(tagId);
+        if (action === 'link') copyLink(tagId);
         if (action === 'up') moveTag(tagId, -1);
         if (action === 'down') moveTag(tagId, +1);
         if (action === 'indent') indentTag(tagId);
@@ -158,11 +161,12 @@ function renderNode(tag, byParent, depth) {
   const actions = document.createElement('div');
   actions.className = 'tagmgr__actions';
 
-  actions.appendChild(iconBtn('+', 'child', 'Add child'));
+  //actions.appendChild(iconBtn('+', 'child', 'Add child'));
+  actions.appendChild(iconBtn('🔗︎', 'link', 'Copy link'));
   actions.appendChild(iconBtn('↑', 'up', 'Move up'));
   actions.appendChild(iconBtn('↓', 'down', 'Move down'));
-  actions.appendChild(iconBtn('←', 'outdent', 'Outdent'));
-  actions.appendChild(iconBtn('→', 'indent', 'Indent'));
+  actions.appendChild(iconBtn('←', 'outdent', 'Outdent', false, true));
+  actions.appendChild(iconBtn('→', 'indent', 'Indent', false, true));
   actions.appendChild(iconBtn('🗑', 'delete', 'Delete', true));
 
   row.appendChild(actions);
@@ -189,6 +193,7 @@ function nextOrderAmongSiblings(tl, parentId) {
   return max + 10;
 }
 
+/*
 function addTag({ asChild }) {
   const tl = currentTimeline();
   if (!tl) return;
@@ -212,6 +217,18 @@ function addTag({ asChild }) {
 function addChild(parentId) {
   selectedTagId = parentId;
   addTag({ asChild: true });
+}
+*/
+
+function copyLink(tagId) {
+  selectedTagId = tagId;
+  const tl = currentTimeline();
+  const tag = tl.tags.find(t => t.id === tagId);
+  const label = tag.label;
+
+  const link = `<a href="#" tag="${tagId}">${label}</a>`;
+  navigator.clipboard.writeText(link);
+  console.log(link);
 }
 
 function beginRename(tagId) {
