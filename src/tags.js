@@ -193,7 +193,6 @@ function nextOrderAmongSiblings(tl, parentId) {
   return max + 10;
 }
 
-/*
 function addTag({ asChild }) {
   const tl = currentTimeline();
   if (!tl) return;
@@ -218,7 +217,6 @@ function addChild(parentId) {
   selectedTagId = parentId;
   addTag({ asChild: true });
 }
-*/
 
 function copyLink(tagId) {
   selectedTagId = tagId;
