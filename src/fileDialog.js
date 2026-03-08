@@ -266,8 +266,10 @@ async function handleOpenTimelineConfirm() {
       filename = `${filename}.json`;
     }
 
-    const timelineID = { scope:"private", file: filename };
-    appState.selected.timeline._timelineID = timelineID;
+    //const timelineID = { scope:"private", file: filename };
+    //appState.selected.timeline._timelineID = timelineID;
+    appState.selected.timeline._file = filename;
+    
     saveTimeline(appState.selected.timeline).then(() => {
       updateSaveButton();
     });
