@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {TIME, DRAW, TICK} from './constants.js';
-import {appState, ctx, screenElements} from './canvas.js';
+import {appState, ctx, screenElements, getCanvasViewport} from './canvas.js';
 import {isMouseOver} from './render.js';
 
 
@@ -109,14 +109,17 @@ function drawTick(text, left, width, fade, t, mode) {
 
 export function drawTicks() {
   const spec = getTickSpec();
-  const w = window.innerWidth, h = window.innerHeight;
-  const t0 = Util.pxToTime(0), t1 = Util.pxToTime(w);
+  const vp = getCanvasViewport();
+  const w = vp.width;
+  const h = vp.height;
+  const t0 = Util.pxToTime(vp.left);
+  const t1 = Util.pxToTime(vp.right);
   const tickWidth = spec.msPerTick / appState.msPerPx;
-  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';  // need this for measureText
+  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
   let t = spec.start(t0);
 
   // Corner label (display year or month+year in top-left if necessary)
-  let cornerLabelX = DRAW.EDGE_GAP;
+  let cornerLabelX = vp.left + DRAW.EDGE_GAP;
   let cornerLabelWidth = 0; 
   let pushing = false;
   let pushingT = 0;

@@ -27,7 +27,16 @@ html, body {
   grid-template-columns: var(--w) 1fr; /* sidebar + main area */
   height: 100%;
 }
-
+/*
+      .stage { 
+        width: 100vw; 
+        height: 100vh; 
+        margin-left: auto;
+        position: relative;
+        transition: width 0.3s ease;
+      }
+      .stage.shrink { width: calc(100vw - var(--sidebar-w)); }
+*/
 /********************************* Canvas *********************************/
 
 .canvas { 

@@ -2,7 +2,7 @@ import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
-import {sidebarIsOpen, closeSidebar, updateSaveButton, openSelectedView, openSelectedEvent} from './panel.js';
+import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {isTouchPanning} from './mobile.js';
@@ -61,6 +61,28 @@ export const timelineCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
 /* ------------------- Functions -------------------- */
+
+export function getCanvasViewport() {
+  // the effective area of the canvas will shrink when the side panel is opened
+  const sidebarEl = document.getElementById('sidebar');
+  const sidebarRight = sidebarEl
+    ? Math.max(0, sidebarEl.getBoundingClientRect().right)
+    : 0;
+
+  return {
+    left: sidebarRight,
+    top: 0,
+    width: window.innerWidth - sidebarRight,
+    height: window.innerHeight,
+    right: window.innerWidth,
+    bottom: window.innerHeight
+  };
+}
+
+export function getCanvasMidX() {
+  const vp = getCanvasViewport();
+  return vp.left + (vp.width / 2);
+}
 
 export function resize(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -319,7 +341,7 @@ canvas.addEventListener('wheel', (e)=>{
 canvas.addEventListener('keydown', function (e) {
 
   appState.zoom.isZooming = false; // stop any zooming in progress
-  const midX = window.innerWidth / 2;
+  const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
 
   if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
@@ -379,26 +401,31 @@ document.addEventListener('keydown', (ev) => {
 function mouseZoom(x, factor) {
   const tAtMouse = Util.pxToTime(x);
   const newMsPerPx = appState.msPerPx * factor;
+  const vp = getCanvasViewport();
 
   // clamp zoom between min and max thresholds
   appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
-  appState.offsetMs = tAtMouse - TIME.EPOCH - x * appState.msPerPx;
+  appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
 
   draw(true);
 };
 
 function zoomToTick(t, t2) {
-  // determine where to zoom/pan
-  const w = window.innerWidth;
-  const tNext = (t2 === undefined) ? appState.fixedPanMode.step(t, 1): t2;
+  const vp = getCanvasViewport();
+  const tNext = (t2 === undefined) ? appState.fixedPanMode.step(t, 1) : t2;
   const width = tNext - t;
-  const newOffsetMs = (t - (width / 10)) - TIME.EPOCH;  // just to the left of clicked label
-  const newMsPerPx = width / (w / 1.2);  // fit ~80% of next interval in window
+  const newOffsetMs = (t - (width / 10)) - TIME.EPOCH;
+  const newMsPerPx = width / (vp.width / 1.2);
 
-  // set in motion; picked up in tick()
-  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:newOffsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:newMsPerPx};
+  appState.zoom = {
+    isZooming: true,
+    origOffset: appState.offsetMs,
+    newOffset: newOffsetMs,
+    origMsPerPx: appState.msPerPx,
+    newMsPerPx: newMsPerPx
+  };
 }
 
 
@@ -411,18 +438,18 @@ function getViewForFile(file) {
   return(found);
 }
 
-function positionForView(vw)
-{
-  // return offsetMs and msPerPx to fit timeline tl
-  if (!vw.tFrom || !vw.tTo)
-    return {offsetMs:appState.offsetMs, msPerPx:appState.msPerPx};
+function positionForView(vw) {
+  if (!vw.tFrom || !vw.tTo) {
+    return { offsetMs: appState.offsetMs, msPerPx: appState.msPerPx };
+  }
 
-  const w = window.innerWidth;
-  const tFrom = vw.tFrom;
-  const tTo = vw.tTo;
-  const width = tTo - tFrom;
+  const vp = getCanvasViewport();
+  const width = vw.tTo - vw.tFrom;
 
-  return {offsetMs:(tFrom - (width / 10)) - TIME.EPOCH, msPerPx:width / (w / 1.2)};
+  return {
+    offsetMs: (vw.tFrom - (width / 10)) - TIME.EPOCH,
+    msPerPx: width / (vp.width / 1.2)
+  };
 }
 
 function centerOnView(view) {
@@ -537,7 +564,8 @@ export async function openTimeline(file, zoom, sourceView) {
 
 async function closeView(viewIdx) {
   // determine whether there are other views on the same timeline
-  const tlKey = appState.views[viewIdx].tlKey;
+  const view = appState.views[viewIdx];
+  const tlKey = view.tlKey;
   const otherVw = appState.views.find(vw => appState.views.indexOf(vw) != viewIdx && vw.tlKey === tlKey);
   if (!otherVw) {
     // it's the only one; check if it has unsaved changes
@@ -551,17 +579,23 @@ async function closeView(viewIdx) {
   }
   // Remove view from the array
   appState.views.splice(viewIdx, 1);
-  if (appState.views.length === 0)
-    draw(false) 
-  else {
+  if (appState.views.length === 0) {
+    closeSidebar();
+    draw(false);
+  } else {
     const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
+    if (appState.selected.view === view) {  // if selected view is the one closed...
+      appState.selected.view = vwBelow;
+      openSelectedView(false);
+    }
     zoomToView(vwBelow);
   }
 }
 
 function addNewEvent(viewIdx) {
-  const tl = timelineCache.get(appState.views[viewIdx].tlKey);
-  const t = Util.pxToTime(window.innerWidth / 2);
+  const vw = appState.views[viewIdx];
+  const tl = timelineCache.get(vw.tlKey);
+  const t = Util.pxToTime(getCanvasMidX());
   const d = new Date(t).toISOString().split('T')[0];
   let sig = 3;
   // smallest sig that will fully render
@@ -571,10 +605,14 @@ function addNewEvent(viewIdx) {
   }
 
   var event = {
-    significance:sig, 
-    label:'New event', 
-    date:d, 
-    timeline:tl
+    id: Util.uuid(),
+    significance: sig, 
+    label: "New event", 
+    date: d, 
+    color: "white",
+    details: null,
+    tagIds: vw.tagFilter ? [vw.tagFilter] : [],  // if clicked view is filtered, inherit the tag filter
+    include: (!vw.tagFilter)  // if clicked view is filtered, don't include event in base timeline
   };
 
   initializeEvent(event);
@@ -582,7 +620,6 @@ function addNewEvent(viewIdx) {
   appState.selected.timeline = tl;
   tl.events.push(event);
   tl._dirty = true;
-  updateSaveButton();
   draw(true);
   openSelectedEvent(true);
 }

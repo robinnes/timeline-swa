@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeEvent} from './timeline.js';
-import {updateSaveButton, markDirty} from './panel.js';
+import {markDirty} from './panel.js';
 import {positionLabels, formatEventDates} from './render.js';
 
 export function startDragging() {
@@ -35,8 +35,7 @@ export function stopDragging(revert = false) {
     e.dateTo = d.start.dateTo;
     e.fadeLeft = d.start.fadeLeft;
     e.fadeRight = d.start.fadeRight;
-    appState.selected.timeline._dirty = d.dirty;
-    updateSaveButton();
+    markDirty(appState.selected.timeline);
     initializeEvent(e);
     document.getElementById('event-date-display').value = formatEventDates(e);
     positionLabels();

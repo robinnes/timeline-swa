@@ -1,11 +1,12 @@
 import * as Util from './util.js';
-import {appState, draw, followHyperlink, zoomToView, timelineCache} from './canvas.js';
+import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
 import {formatEventDates, positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
+import { TIME } from './constants.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -35,27 +36,67 @@ const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
 
 /* ------------------- Sidebar -------------------- */
 
+let sidebarAnimRaf = null;
+
 export function sidebarIsOpen() {
   return (sidebar.classList.contains('open'));
 }
 
 function openSidebar() {
+  if (sidebarIsOpen()) return;
   sidebar.classList.add('open');
   sidebar.setAttribute('aria-hidden', 'false');
-  //stage.classList.add('shrink');
+  animateCanvasWithSidebar();
   sidebar.focus();
 }
 
 export function closeSidebar() {
+  if (!sidebarIsOpen()) return;
   sidebar.classList.remove('open');
   sidebar.setAttribute('aria-hidden', 'true');
-  //stage.classList.remove('shrink');
   appState.selected.event = null;
   appState.selected.timeline = null;
-  draw(false);
+  animateCanvasWithSidebar();
   canvas.focus();
 }
 sidebarClose.addEventListener('click', closeSidebar);
+
+function animateCanvasWithSidebar() {
+  if (sidebarAnimRaf) cancelAnimationFrame(sidebarAnimRaf);
+
+  // record date range visible when animation starts
+  const startVp = getCanvasViewport();
+  const anchorLeftTime = Util.pxToTime(startVp.left);
+  const anchorRightTime = Util.pxToTime(startVp.right);
+  const fixedVisibleSpan = anchorRightTime - anchorLeftTime;
+
+  const start = performance.now();
+  const duration = 300;
+
+  function step(now) {
+    const vp = getCanvasViewport();
+
+    // zoom factor (msPerPx) needs to "squish" as the panel opens
+    appState.offsetMs = anchorLeftTime - TIME.EPOCH;
+    appState.msPerPx = fixedVisibleSpan / vp.width;
+
+    draw(true);
+
+    if (now - start < duration) {
+      sidebarAnimRaf = requestAnimationFrame(step);
+    } else {
+      sidebarAnimRaf = null;
+
+      // final exact snap
+      const finalVp = getCanvasViewport();
+      appState.offsetMs = anchorLeftTime - TIME.EPOCH;
+      appState.msPerPx = fixedVisibleSpan / finalVp.width;
+      draw(true);
+    }
+  }
+
+  sidebarAnimRaf = requestAnimationFrame(step);
+}
 
 
 /* ------------------- Panel navigation -------------------- */

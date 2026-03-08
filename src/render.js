@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {DRAW, TICK} from './constants.js';
-import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw} from './canvas.js';
+import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw, getCanvasViewport} from './canvas.js';
 
 const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement
 
@@ -125,8 +125,9 @@ function drawAddEventButton(vw) {
   const distance = 50;
   const width = 120;
   const height = 30;
-  const left = (window.innerWidth / 2) - (width / 2);
-  const right = (window.innerWidth / 2) + (width / 2)
+  const vp = getCanvasViewport();
+  const left = vp.left + (vp.width / 2) - (width / 2);
+  const right = left + width;
   const top = vw.yPos + distance;
   const bottom = top + height;
   let highlight = false;
@@ -277,8 +278,8 @@ function positionTimelineLabel(vw) {
   const labelWidth = labelForVw(vw).labelWidth;
   const top = vw.yPos - DRAW.LABEL_LINE_HEIGHT - DRAW.EDGE_GAP;
   const bottom = vw.yPos;
-  const left = 0;
-  const right = Math.round(labelWidth + DRAW.EDGE_GAP*2);
+  const left = getCanvasViewport().left;
+  const right = Math.round(left + labelWidth + DRAW.EDGE_GAP*2);
   const height = DRAW.LABEL_LINE_HEIGHT + DRAW.EDGE_GAP;
 
   return {left:left, right:right, top:top, bottom:bottom,
@@ -324,7 +325,7 @@ function drawTimelineLabel(vw, highlight) {
   ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(label, DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
+  ctx.fillText(label, p.left + DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
 
   // close button
   if (highlight) {
@@ -425,6 +426,7 @@ function getLabelPosition(ep, y) {
   // return coordinates of label for eventPos ep
   const e = ep.event;
   const x = Util.timeToPx(e._dateTime);
+  const vp = getCanvasViewport();
 
   if (ep.yOffset > 0) {
     // bubble above y
@@ -452,8 +454,8 @@ function getLabelPosition(ep, y) {
     if ((left + width) > (xTo - DRAW.EDGE_GAP)) left = xTo - width - DRAW.EDGE_GAP;
   
     // keep on the screen as much as possible
-    if (left < DRAW.EDGE_GAP) {
-      left = DRAW.EDGE_GAP;
+    if (left < vp.left + DRAW.EDGE_GAP) {
+      left = vp.left + DRAW.EDGE_GAP;
       if ((left + width + DRAW.EDGE_GAP) > xTo) left = xTo - DRAW.EDGE_GAP - width;
     }
     if ((left + width + DRAW.EDGE_GAP) > w) {
@@ -591,8 +593,9 @@ function registerEvents(vw) {
   //const tl = timelineCache.get(vw.tlKey);
 
   // add each visible line/dot/label to the screenElements array and identify which the mouse is over (if any)
-  const rangeLeft = 0 - DRAW.MAX_LABEL_WIDTH / 2;
-  const rangeRight = window.innerWidth + DRAW.MAX_LABEL_WIDTH / 2;
+  const vp = getCanvasViewport();
+  const rangeLeft = vp.left - DRAW.MAX_LABEL_WIDTH / 2;
+  const rangeRight = vp.right + DRAW.MAX_LABEL_WIDTH / 2;
   const y = vw.yPos;
 
   // iterate through events, highest significance first to check the lowest ones for mouseover last
