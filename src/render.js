@@ -673,7 +673,7 @@ export function drawEvents() {
     const tl = timelineCache.get(vw.tlKey);
     drawTimelineLabel(vw, vw===appState.highlighted.view);  // view/timeline label
     if (tl._mode==="edit") {
-      if (appState.selected.event?.timeline===tl) {
+      if (appState.selected.event?._timeline===tl) {
         const sel = vw.eventPos.find((ep) => ep.event===appState.selected.event);
         if (sel) drawDateHandles(sel);  // date handles for selected event in edit mode
       } else {

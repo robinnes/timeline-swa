@@ -122,7 +122,7 @@ imageModal.addEventListener('click', (e) => {
 export function removeImageThumbnail() {
   const event = appState.selected.event;
   event.thumbnail = null;
-  event.timeline._dirty = true;
+  event._timeline._dirty = true;
   setSidebarEvent(event);
   initializeEvent(event);
   draw(true);

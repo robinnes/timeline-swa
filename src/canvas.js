@@ -230,7 +230,7 @@ canvas.addEventListener('click', function (e) {
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
       appState.selected.event = elem.eventPos.event; // appState.highlighted.eventPos.event;
-      appState.selected.timeline = appState.selected.event.timeline;
+      appState.selected.timeline = appState.selected.event._timeline;
       appState.selected.view = elem.view;
       openSelectedEvent(true);
       draw(false);
@@ -612,7 +612,8 @@ function addNewEvent(viewIdx) {
     color: "white",
     details: null,
     tagIds: vw.tagFilter ? [vw.tagFilter] : [],  // if clicked view is filtered, inherit the tag filter
-    include: (!vw.tagFilter)  // if clicked view is filtered, don't include event in base timeline
+    include: (!vw.tagFilter),  // if clicked view is filtered, don't include event in base timeline
+    _timeline: tl
   };
 
   initializeEvent(event);

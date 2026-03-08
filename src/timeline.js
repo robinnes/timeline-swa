@@ -118,7 +118,7 @@ export async function loadTimeline(file) {
   if (tl.tags) tl.tags.forEach(initializeTag);
   
   for (const event of tl.events) {
-    event.timeline = tl;
+    event._timeline = tl;
     initializeEvent(event);
   }
 

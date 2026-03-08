@@ -568,7 +568,7 @@ for (const btn of colorButtons) {
       default: // 'main'
         event.color = newColor;
     }
-    markDirty(event.timeline);
+    markDirty(event._timeline);
     updateColorButtons();
     draw();
   });
