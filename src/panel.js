@@ -192,12 +192,14 @@ async function cancelTimelineEdit() {
     appState.views.splice(viewIdx, 1);
     
     if (appState.views.length === 0)
-      draw(false) 
+      closeSidebar();
     else {
-      const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
-      zoomToView(vwBelow);
+      const vwBelow = appState.views[Math.max(viewIdx-1, 0)];
+      appState.selected.view = vwBelow;
+      appState.selected.event = null;
+      openSelectedView(false);
+      zoomToView(vwBelow);  // closing the sidebar would conflict with the zoom animation
     }
-    closeSidebar();
 
   } else if (tl._dirty) {
     const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
@@ -371,6 +373,7 @@ for (const txt of displayTextAreas) {
 export function openSelectedView(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
+  appState.selected.timeline = tl;
   const editMode = (tl._mode==="edit");
 
   setSidebarView(vw);

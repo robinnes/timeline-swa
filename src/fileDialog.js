@@ -265,11 +265,8 @@ async function handleOpenTimelineConfirm() {
     if (!filename.toLowerCase().endsWith('.json')) {
       filename = `${filename}.json`;
     }
-
-    //const timelineID = { scope:"private", file: filename };
-    //appState.selected.timeline._timelineID = timelineID;
     appState.selected.timeline._file = filename;
-    
+
     saveTimeline(appState.selected.timeline).then(() => {
       updateSaveButton();
     });

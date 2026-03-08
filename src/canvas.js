@@ -508,7 +508,6 @@ export async function followHyperlink(origVw, a, forceDisplay) {
   if (view) {
     const tl = timelineCache.get(view.tlKey);
     appState.selected.view = view;
-    appState.selected.timeline = tl;
     appState.selected.event = null;
   
     const display = sidebarIsOpen() || forceDisplay;
@@ -618,6 +617,7 @@ function addNewEvent(viewIdx) {
 
   initializeEvent(event);
   appState.selected.event = event;
+  appState.selected.view = vw;
   appState.selected.timeline = tl;
   tl.events.push(event);
   tl._dirty = true;
