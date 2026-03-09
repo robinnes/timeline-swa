@@ -1,5 +1,6 @@
 import * as Util from './util.js';
 import {appState, draw} from './canvas.js';
+import { TIME } from './constants.js';
 
 const active = new Map(); // pointerId -> {x,y}
 export let isTouchPanning = false;
@@ -12,6 +13,8 @@ let pinchStartMsPerPx = 0;
 let pinchMidX = 0;
 let pinchMidT = 0;
 
+/* ------------------- Common functions -------------------- */
+
 function distance(p1, p2){
   const dx = p1.x - p2.x, dy = p1.y - p2.y;
   return Math.hypot(dx, dy);
@@ -19,6 +22,9 @@ function distance(p1, p2){
 function midpoint(p1, p2){
   return { x: (p1.x + p2.x)/2, y: (p1.y + p2.y)/2 };
 }
+
+
+/* ------------------- Touch navigation -------------------- */
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'touch') return;
@@ -43,6 +49,7 @@ canvas.addEventListener('pointerdown', (e)=>{
   }
 }, { passive:true });
 
+
 canvas.addEventListener('pointermove', (e)=>{
   if (e.pointerType !== 'touch') return;
   if (active.has(e.pointerId)) e.preventDefault();
@@ -55,8 +62,9 @@ canvas.addEventListener('pointermove', (e)=>{
     const dist = distance(p1, p2);
     if (pinchStartDist > 0 && dist > 0) {
       const scale = pinchStartDist / dist; // >1 when pinching out
-      appState.msPerPx = Math.max(MIN_MS_PER_PX, Math.min(MAX_MS_PER_PX, pinchStartMsPerPx * scale));
-      appState.offsetMs = pinchMidT - EPOCH - pinchMidX * appState.msPerPx;
+      const vp = getCanvasViewport();
+      appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, pinchStartMsPerPx * scale));
+      appState.offsetMs = pinchMidT - TIME.EPOCH - ((pinchMidX - vp.left) * appState.msPerPx);
       //updatePositions();  // not sure what this was
       draw();
     }
@@ -70,6 +78,7 @@ canvas.addEventListener('pointermove', (e)=>{
     draw();
   }
 }, { passive:false });
+
 
 function endPointer(e){
   if (e.pointerType !== 'touch') return;
@@ -91,6 +100,7 @@ function endPointer(e){
     lastTouchX = only.x;
   }
 }
+
 
 canvas.addEventListener('pointerup', endPointer, { passive:true });
 canvas.addEventListener('pointercancel', endPointer, { passive:true });
