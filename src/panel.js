@@ -362,9 +362,10 @@ for (const txt of displayTextAreas) {
   txt.addEventListener('click', (e) => {
     const a = e.target.closest("a");
     if (!a) return;
-    e.preventDefault();
-    followHyperlink(appState.selected.view, a, true);
-    setSidebarView(appState.selected.view);
+    //e.preventDefault();  -- no, we need normal hyperlinks to work
+    if (followHyperlink(appState.selected.view, a, true)) {
+      setSidebarView(appState.selected.view);
+    };
   });
 }
 

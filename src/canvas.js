@@ -522,7 +522,9 @@ export async function followHyperlink(origVw, a, forceDisplay) {
   
     const display = sidebarIsOpen() || forceDisplay;
     openSelectedView(display);
+    return true;
   }
+  return false;
 }
 
 export async function openTimeline(file, zoom, sourceView) {

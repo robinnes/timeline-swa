@@ -13,7 +13,7 @@ let pinchStartMsPerPx = 0;
 let pinchMidX = 0;
 let pinchMidT = 0;
 
-/* ------------------- Common functions -------------------- */
+/* ------------------- Utility functions -------------------- */
 
 function distance(p1, p2){
   const dx = p1.x - p2.x, dy = p1.y - p2.y;
@@ -24,7 +24,7 @@ function midpoint(p1, p2){
 }
 
 
-/* ------------------- Touch navigation -------------------- */
+/* ------------------- Touch navigation: drag and pinch -------------------- */
 
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'touch') return;
@@ -65,8 +65,7 @@ canvas.addEventListener('pointermove', (e)=>{
       const vp = getCanvasViewport();
       appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, pinchStartMsPerPx * scale));
       appState.offsetMs = pinchMidT - TIME.EPOCH - ((pinchMidX - vp.left) * appState.msPerPx);
-      //updatePositions();  // not sure what this was
-      draw();
+      draw(true);
     }
   } else if (isTouchPanning && active.size === 1) {
     const only = [...active.values()][0];
@@ -74,8 +73,7 @@ canvas.addEventListener('pointermove', (e)=>{
     lastTouchX = only.x;
     appState.offsetMs -= dx * appState.msPerPx;
     appState.momentum.lastDragSpeed = dx * appState.msPerPx;  // for momentum
-    //updatePositions();
-    draw();
+    draw(false);
   }
 }, { passive:false });
 
@@ -100,7 +98,6 @@ function endPointer(e){
     lastTouchX = only.x;
   }
 }
-
 
 canvas.addEventListener('pointerup', endPointer, { passive:true });
 canvas.addEventListener('pointercancel', endPointer, { passive:true });
