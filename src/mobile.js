@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw} from './canvas.js';
+import {appState, draw, getCanvasViewport} from './canvas.js';
 import { TIME, DRAW } from './constants.js';
 
 const active = new Map(); // pointerId -> {x,y}
