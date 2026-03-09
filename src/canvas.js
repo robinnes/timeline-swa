@@ -132,6 +132,7 @@ export async function initialLoad() {
   openTimeline(file, false);
 }
 
+
 /* ------------------- Momentum handling -------------------- */
 
 export function tick(now) {
@@ -167,26 +168,33 @@ function zoom(dt) {
   appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
   appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
-  // if timelines are repositioned, move those, too
+  const hZoomComplete = (Math.abs(dOffset) < appState.msPerPx);  // still zooming (horizontally)
+  let vZoomComplete = true;
+
+  // if views are repositioned, move those, too
   for (const vw of appState.views) {
     if (vw.newYPos) {
       const dCeiling = vw.newCeiling - vw.ceiling;
       const dYPos = vw.newYPos - vw.yPos;
       vw.ceiling += dCeiling * dt * TIME.ZOOM_SPEED;
       vw.yPos += dYPos * dt * TIME.ZOOM_SPEED;
+
+      if (Math.abs(dYPos) > 1) vZoomComplete = false;  // still repositioning views (vertically
     }
   }
 
-  // stop when movement is smaller than a pixel
-  if (Math.abs(dOffset) < appState.msPerPx || appState.msPerPx === TIME.MIN_MS_PER_PX) {
-    appState.zoom.isZooming = false;
-    // reset zoom variables for the timelines
+  // stop when both horizontal and vertical zooming is done
+  if (hZoomComplete && vZoomComplete) {
+    // set all to their target settings for good measure
+    appState.msPerPx = appState.zoom.newMsPerPx;
+    appState.offsetMs = appState.zoom.newOffset;
     for (const vw of appState.views) {
       if (vw.newYPos) {
         vw.ceiling = vw.newCeiling; vw.yPos = vw.newYPos;
         vw.newCeiling = null; vw.newYPos = null;
       }
     }
+    appState.zoom.isZooming = false;
   }
   draw(true);
 }
@@ -490,7 +498,7 @@ function linkToTag(origVw, tagID) {
   filterEventsForView(newVw);  // establish min/max dates
 
   appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
-  positionViews(false);
+  //positionViews(false);
   zoomToView(newVw);
 
   return newVw;
