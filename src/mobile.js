@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {appState, draw} from './canvas.js';
-import { TIME } from './constants.js';
+import { TIME, DRAW } from './constants.js';
 
 const active = new Map(); // pointerId -> {x,y}
 export let isTouchPanning = false;
@@ -121,3 +121,51 @@ canvas.addEventListener('pointerdown', (e)=>{
   lastTapTime = now;
 }, { capture: true });
 */
+
+
+/* ------------------- Debug -------------------- */
+
+export function debugMobile() {
+  //if (!appState.selected.event) return;
+  
+  const ctx = canvas.getContext('2d');
+  //const sig = appState.selected.event.significance;
+  //const spec = zoomSpec(sig);
+  const leftLabel = window.innerWidth - 250;
+  const leftValue = window.innerWidth - 100;
+  let top = window.innerHeight - 95;
+
+  ctx.save();
+  ctx.font = DRAW.LABEL_FONT;
+  ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  
+  //if (highlightedEvent) {
+  //  const t = highlightedEvent.label;
+  //  ctx.fillText(t, window.innerWidth - 30, window.innerHeight - 95);
+  //}
+  /*
+  ctx.fillText("factor:", leftLabel, top);
+  ctx.fillText(Math.round(spec.factor*1000)/1000, leftValue, top);
+  top += 20;
+  ctx.fillText(`fade(${sig}):`, leftLabel, top);
+  ctx.fillText(Math.round((spec.fade)*1000)/1000, leftValue, top);
+  top += 20;
+  ctx.fillText(`size(${sig}):`, leftLabel, top);
+  ctx.fillText(Math.round((spec.size)*1000)/1000, leftValue, top);
+  */
+  ctx.fillText("isTouchPanning:", leftLabel, top);
+  ctx.fillText(isTouchPanning, leftValue, top);
+  top += 20;
+  ctx.fillText("pinching:", leftLabel, top);
+  ctx.fillText(pinching, leftValue, top);
+  top += 20;
+  ctx.fillText("active.size:", leftLabel, top);
+  ctx.fillText(active.size, leftValue, top);
+  top += 20;
+
+  ctx.restore();
+  
+};
+

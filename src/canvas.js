@@ -5,7 +5,7 @@ import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseO
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
-import {isTouchPanning} from './mobile.js';
+import {isTouchPanning, debugMobile} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 
@@ -121,6 +121,7 @@ export function draw(reposition){
   drawTicks();
   drawEvents();
   //Util.debugVars();
+  debugMobile();
 }
 
 export async function initialLoad() {
