@@ -93,6 +93,7 @@ export function resize(){
   canvas.width = Math.floor(w * dpr);
   canvas.height = Math.floor(h * dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+  positionViews(false);
   draw(true);
 }
 window.addEventListener('resize', resize);
