@@ -88,8 +88,8 @@ function animateCanvasWithSidebar() {
       sidebarAnimRaf = requestAnimationFrame(step);
     } else {
       sidebarAnimRaf = null;
-      appState.pan.ignoreClick = true;
-      
+      appState.pan.ignoreClick = false;
+
       // final exact snap
       const finalVp = getCanvasViewport();
       appState.offsetMs = anchorLeftTime - TIME.EPOCH;

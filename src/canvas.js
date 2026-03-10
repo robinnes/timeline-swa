@@ -256,7 +256,7 @@ canvas.addEventListener('click', function (e) {
     else if (elem.subType === 'add-event') addNewEvent(elem.view);
   }
 });
-
+/*
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -337,7 +337,7 @@ canvas.addEventListener('pointerup', (e)=>{
     return;
   }
 });
-
+*/
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
