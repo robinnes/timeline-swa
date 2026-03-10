@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, getCanvasViewport} from './canvas.js';
+import {appState, draw, getCanvasViewport, debugText} from './canvas.js';
 import {TIME, DRAW} from './constants.js';
 export const canvas = document.getElementById('canvas');
 
@@ -299,7 +299,7 @@ export function debugMobile(text="") {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  ctx.fillText(text, 40, window.innerHeight - 40);
+  ctx.fillText(debugText, 40, window.innerHeight - 40);
   /*
   ctx.fillText('isTouchPanning:', leftLabel, top);
   ctx.fillText(String(isTouchPanning), leftValue, top);
