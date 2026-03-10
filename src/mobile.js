@@ -1,6 +1,6 @@
 import * as Util from './util.js';
-import { appState, draw, getCanvasViewport } from './canvas.js';
-import { TIME, DRAW } from './constants.js';
+import {appState, draw, getCanvasViewport} from './canvas.js';
+import {TIME, DRAW} from './constants.js';
 export const canvas = document.getElementById('canvas');
 
 const active = new Map(); // pointerId -> touch state
@@ -260,11 +260,11 @@ function endPointer(e) {
     const x = p.x;
     const y = p.y;
 
-    if (isDoubleTapCandidate(x, y)) {
-      doDoubleTapZoom(x, y);
-    } else {
+//    if (isDoubleTapCandidate(x, y)) {
+//      doDoubleTapZoom(x, y);
+//    } else {
       queueSyntheticClick(x, y);
-    }
+//    }
   }
 }
 
@@ -281,7 +281,7 @@ export function debugMobile() {
   const leftLabel = window.innerWidth - 250;
   const leftValue = window.innerWidth - 100;
   let top = window.innerHeight - 115;
-
+/*
   ctx.save();
   ctx.font = DRAW.LABEL_FONT;
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
@@ -304,4 +304,5 @@ export function debugMobile() {
   ctx.fillText(String(!!pendingTapTimer), leftValue, top);
 
   ctx.restore();
+*/
 }
