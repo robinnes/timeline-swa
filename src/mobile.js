@@ -148,7 +148,7 @@ function finishPanMomentum() {
 /* ------------------- Touch handlers -------------------- */
 
 canvas.addEventListener('pointerdown', (e) => {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
 
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
@@ -177,7 +177,7 @@ canvas.addEventListener('pointerdown', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();
@@ -208,7 +208,7 @@ canvas.addEventListener('pointermove', (e) => {
 }, { passive: false });
 
 function endPointer(e) {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();

@@ -543,10 +543,8 @@ function drawEventLine(ep, highlight) {
       const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
       let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
       let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
-      //let gradRight = (width > 0) ? (right > left) ? 1 - ((right - xFadeRight) / width) : 1 : 1;
-//gradLeft = (xFadeLeft - left) / 0;
-//console.log('here');
-      // check validity of colorstop parameters
+
+      // check validity of gradiant parameters
       if (!gradLeft || gradLeft < 0) gradLeft = 0;
       if (!gradRight || gradRight > 1) gradRight = 1;
       if (gradLeft > gradRight) gradLeft = gradRight;

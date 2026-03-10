@@ -125,7 +125,7 @@ export function draw(reposition){
     draw.errorText = err.stack;
   }
   //Util.debugVars();
-  debugMobile(draw.errorText);  
+  //debugMobile(draw.errorText);  
 }
 
 export async function initialLoad() {
@@ -209,7 +209,7 @@ function zoom(dt) {
 /* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('click', function (e) {
-if (e.pointerType==="mouse") return;  // simulate touchscreen
+  //if (e.pointerType==="mouse") return;  // simulate touchscreen
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))
@@ -260,7 +260,7 @@ if (e.pointerType==="mouse") return;  // simulate touchscreen
     else if (elem.subType === 'add-event') addNewEvent(elem.view);
   }
 });
-/*
+
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -341,7 +341,7 @@ canvas.addEventListener('pointerup', (e)=>{
     return;
   }
 });
-*/
+
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
