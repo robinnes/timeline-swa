@@ -73,7 +73,7 @@ function animateCanvasWithSidebar() {
   const start = performance.now();
   const duration = 300;
 
-  appState.pan.ignoreClick = true;
+  appState.pan.ignoreClick = true;  // ignore clicks while animating
 
   function step(now) {
     const vp = getCanvasViewport();

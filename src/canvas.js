@@ -205,9 +205,9 @@ function zoom(dt) {
 /* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('click', function (e) {
-  
+if (e.pointerType==="mouse") return;  // simulate touchscreen
   if (appState.pan.ignoreClick) return;
-  
+
   if (document.querySelector('.app-menu').classList.contains('is-open'))
     closeAppMenu();
 
@@ -574,6 +574,7 @@ export async function openTimeline(file, zoom, sourceView) {
 /* ------------------- Canvas button handling -------------------- */
 
 async function closeView(viewIdx) {
+console.log({viewIdx});
   // determine whether there are other views on the same timeline
   const view = appState.views[viewIdx];
   const tlKey = view.tlKey;

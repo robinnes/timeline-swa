@@ -53,7 +53,7 @@ function setMousePosition(x, y) {
 function queueSyntheticClick(x, y) {
   if (pendingTapTimer) clearTimeout(pendingTapTimer);
 
-  //pendingTapTimer = window.setTimeout(() => {
+  pendingTapTimer = window.setTimeout(() => {
     setMousePosition(x, y);
     draw(false); // update highlight under the tap point first
     canvas.dispatchEvent(new MouseEvent('click', {
@@ -65,7 +65,7 @@ function queueSyntheticClick(x, y) {
 
     pendingTapTimer = null;
     lastTap = { x, y, t: performance.now() };
-  //}, DOUBLE_TAP_MS);
+  }, DOUBLE_TAP_MS);
 }
 
 function cancelQueuedTap() {
