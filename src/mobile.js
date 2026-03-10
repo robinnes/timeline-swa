@@ -56,7 +56,7 @@ function queueSyntheticClick(x, y) {
   pendingTapTimer = window.setTimeout(() => {
     setMousePosition(x, y);
     draw(false); // update highlight under the tap point first
-setMousePosition(null, null);
+setMousePosition(0, 0);
     canvas.dispatchEvent(new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
