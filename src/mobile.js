@@ -48,13 +48,15 @@ function setMousePosition(x, y) {
   appState.mouseY = y;
 }
 
+/* ------------------- Tap -------------------- */
+
 function queueSyntheticClick(x, y) {
   if (pendingTapTimer) clearTimeout(pendingTapTimer);
 
   pendingTapTimer = window.setTimeout(() => {
     setMousePosition(x, y);
     draw(false); // update highlight under the tap point first
-
+setMousePosition(null, null);
     canvas.dispatchEvent(new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
@@ -74,23 +76,13 @@ function cancelQueuedTap() {
   }
 }
 
-function zoomAtX(x, factor) {
-  const vp = getCanvasViewport();
-  const tAtX = Util.pxToTime(x);
-  const newMsPerPx = clampMsPerPx(appState.msPerPx * factor);
-
-  appState.msPerPx = newMsPerPx;
-  appState.offsetMs = tAtX - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
-
-  draw(true);
+function qualifiesAsTap(p) {
+  const dt = performance.now() - p.downTime;
+  const move = Math.hypot(p.x - p.startX, p.y - p.startY);
+  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !pinchEverOccurred;
 }
 
-function doDoubleTapZoom(x, y) {
-  cancelQueuedTap();
-  setMousePosition(x, y);
-  zoomAtX(x, DOUBLE_TAP_ZOOM_FACTOR);
-  lastTap = null;
-}
+/* ------------------- Pinch zoom -------------------- */
 
 function beginPinch() {
   const pts = [...active.values()];
@@ -126,6 +118,9 @@ function updatePinch() {
   draw(true);
 }
 
+
+/* ------------------- Pan -------------------- */
+
 function beginPan(pointer) {
   isTouchPanning = true;
   appState.pan.isPanning = false; // mouse-only flag
@@ -150,18 +145,6 @@ function finishPanMomentum() {
   appState.momentum.lastDragSpeed = 0;
 }
 
-function qualifiesAsTap(p) {
-  const dt = performance.now() - p.downTime;
-  const move = Math.hypot(p.x - p.startX, p.y - p.startY);
-  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !pinchEverOccurred;
-}
-
-function isDoubleTapCandidate(x, y) {
-  if (!lastTap) return false;
-  const dt = performance.now() - lastTap.t;
-  const d = Math.hypot(x - lastTap.x, y - lastTap.y);
-  return dt <= DOUBLE_TAP_MS && d <= DOUBLE_TAP_DIST;
-}
 
 /* ------------------- Touch handlers -------------------- */
 
@@ -273,6 +256,35 @@ canvas.addEventListener('pointercancel', endPointer, { passive: false });
 canvas.addEventListener('pointerleave', (e) => {
   if (active.has(e.pointerId)) endPointer(e);
 }, { passive: false });
+
+
+/* ------------------- Double-tap zoom -------------------- */
+
+function isDoubleTapCandidate(x, y) {
+  if (!lastTap) return false;
+  const dt = performance.now() - lastTap.t;
+  const d = Math.hypot(x - lastTap.x, y - lastTap.y);
+  return dt <= DOUBLE_TAP_MS && d <= DOUBLE_TAP_DIST;
+}
+
+function doDoubleTapZoom(x, y) {
+  cancelQueuedTap();
+  setMousePosition(x, y);
+  zoomAtX(x, DOUBLE_TAP_ZOOM_FACTOR);
+  lastTap = null;
+}
+
+function zoomAtX(x, factor) {
+  const vp = getCanvasViewport();
+  const tAtX = Util.pxToTime(x);
+  const newMsPerPx = clampMsPerPx(appState.msPerPx * factor);
+
+  appState.msPerPx = newMsPerPx;
+  appState.offsetMs = tAtX - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
+
+  draw(true);
+}
+
 
 /* ------------------- Debug -------------------- */
 
