@@ -112,16 +112,20 @@ export function setPointerCursor() {
 }
 
 export function draw(reposition){
-  if (reposition) positionLabels();
+  try {
+    if (reposition) positionLabels();
 
-  ctx.clearRect(0,0, window.innerWidth, window.innerHeight);
-  screenElements.length = 0;  // reset list of screen elements
-  appState.highlighted.idx = -1;
-  appState.highlighted.linkIdx = -1;
-  drawTicks();
-  drawEvents();
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    screenElements.length = 0;  // reset list of screen elements
+    appState.highlighted.idx = -1;
+    appState.highlighted.linkIdx = -1;
+    drawTicks();
+    drawEvents();
+  } catch (err) {
+    draw.errorText = err.stack;
+  }
   //Util.debugVars();
-  debugMobile();
+  debugMobile(draw.errorText);  
 }
 
 export async function initialLoad() {

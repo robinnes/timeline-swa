@@ -17,9 +17,9 @@ let pinchEverOccurred = false;
 // tap / double-tap
 const TAP_MAX_MS = 250;
 const TAP_MAX_MOVE = 10;
-const DOUBLE_TAP_MS = 300;
-const DOUBLE_TAP_DIST = 24;
-const DOUBLE_TAP_ZOOM_FACTOR = 0.5; // zoom in by 2x
+//const DOUBLE_TAP_MS = 300;
+//const DOUBLE_TAP_DIST = 24;
+//const DOUBLE_TAP_ZOOM_FACTOR = 0.5; // zoom in by 2x
 
 let pendingTapTimer = null;
 let lastTap = null;
@@ -53,7 +53,7 @@ function setMousePosition(x, y) {
 function queueSyntheticClick(x, y) {
   if (pendingTapTimer) clearTimeout(pendingTapTimer);
 
-  pendingTapTimer = window.setTimeout(() => {
+  //pendingTapTimer = window.setTimeout(() => {
     setMousePosition(x, y);
     draw(false); // update highlight under the tap point first
     canvas.dispatchEvent(new MouseEvent('click', {
@@ -65,7 +65,7 @@ function queueSyntheticClick(x, y) {
 
     pendingTapTimer = null;
     lastTap = { x, y, t: performance.now() };
-  }, DOUBLE_TAP_MS);
+  //}, DOUBLE_TAP_MS);
 }
 
 function cancelQueuedTap() {
@@ -258,7 +258,7 @@ canvas.addEventListener('pointerleave', (e) => {
 
 
 /* ------------------- Double-tap zoom -------------------- */
-
+/*
 function isDoubleTapCandidate(x, y) {
   if (!lastTap) return false;
   const dt = performance.now() - lastTap.t;
@@ -283,22 +283,24 @@ function zoomAtX(x, factor) {
 
   draw(true);
 }
-
+*/
 
 /* ------------------- Debug -------------------- */
 
-export function debugMobile() {
+export function debugMobile(text="") {
   const ctx = canvas.getContext('2d');
   const leftLabel = window.innerWidth - 250;
   const leftValue = window.innerWidth - 100;
   let top = window.innerHeight - 115;
-/*
+
   ctx.save();
   ctx.font = DRAW.LABEL_FONT;
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
+  ctx.fillText(text, 40, window.innerHeight - 40);
+  /*
   ctx.fillText('isTouchPanning:', leftLabel, top);
   ctx.fillText(String(isTouchPanning), leftValue, top);
   top += 20;
@@ -313,7 +315,6 @@ export function debugMobile() {
 
   ctx.fillText('pendingTap:', leftLabel, top);
   ctx.fillText(String(!!pendingTapTimer), leftValue, top);
-
-  ctx.restore();
 */
+  ctx.restore();
 }

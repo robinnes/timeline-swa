@@ -531,7 +531,7 @@ function drawEventLine(ep, highlight) {
   // if edge color is black, use (middle) color and apply fade effect below
   const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
-  
+colorLeft = "xxx";
   ctx.save();
   if (width >= 6 || spec.style === 'line') {
     const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
