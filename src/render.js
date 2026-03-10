@@ -541,8 +541,9 @@ function drawEventLine(ep, highlight) {
       const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
       const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
       const gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
-      const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
-
+      //const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
+      const gradRight = (width > 0) ? (right > left) ? 1 - ((right - xFadeRight) / width) : 1 : 1;
+      
       const grad = ctx.createLinearGradient(left, y, right, y);
       if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
         grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
