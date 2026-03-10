@@ -528,6 +528,7 @@ function drawEventLine(ep, highlight) {
   const cl = e.colorLeft ?? "black";
   const cr = e.colorRight ?? "black";
   const color = colorTrunc(colorRGB.get(c));
+  
   // if edge color is black, use (middle) color and apply fade effect below
   const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
@@ -540,10 +541,16 @@ function drawEventLine(ep, highlight) {
     if (spec.style === 'line') {
       const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
       const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
-      const gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
-      //const gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
-      const gradRight = (width > 0) ? (right > left) ? 1 - ((right - xFadeRight) / width) : 1 : 1;
-      
+      let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
+      let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
+      //let gradRight = (width > 0) ? (right > left) ? 1 - ((right - xFadeRight) / width) : 1 : 1;
+//gradLeft = (xFadeLeft - left) / 0;
+//console.log('here');
+      // check validity of colorstop parameters
+      if (!gradLeft || gradLeft < 0) gradLeft = 0;
+      if (!gradRight || gradRight > 1) gradRight = 1;
+      if (gradLeft > gradRight) gradLeft = gradRight;
+
       const grad = ctx.createLinearGradient(left, y, right, y);
       if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
         grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
