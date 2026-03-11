@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, getCanvasViewport, debugText} from './canvas.js';
+import {appState, draw, getCanvasViewport} from './canvas.js';
 import {TIME, DRAW} from './constants.js';
 export const canvas = document.getElementById('canvas');
 
@@ -23,6 +23,9 @@ const TAP_MAX_MOVE = 10;
 
 let pendingTapTimer = null;
 let lastTap = null;
+
+let debugText = "";
+
 
 /* ------------------- Helpers -------------------- */
 

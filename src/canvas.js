@@ -12,8 +12,6 @@ import {showModalDialog} from './confirmDialog.js';
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
 
-export var debugText = "";
-
 export const appState = {
   msPerPx: TIME.MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
   offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 30,  // date at left of the window; center near "now",
@@ -338,8 +336,7 @@ canvas.addEventListener('pointerup', (e)=>{
     const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
     appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
   
-
-debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+const debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
 console.log(debugText);
     appState.momentum.lastDragSpeed = 0;
 
