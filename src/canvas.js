@@ -125,7 +125,7 @@ export function draw(reposition){
     debugText = err.stack;
   }
   //Util.debugVars();
-  debugMobile(draw.errorText);  
+  debugMobile();  
 }
 
 export async function initialLoad() {
@@ -212,7 +212,7 @@ function zoom(dt) {
 /* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('click', function (e) {
-  //if (e.pointerType==="mouse") return;  // simulate touchscreen
+  if (e.pointerType==="mouse") return;  // simulate touchscreen
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))
@@ -263,7 +263,7 @@ canvas.addEventListener('click', function (e) {
     else if (elem.subType === 'add-event') addNewEvent(elem.view);
   }
 });
-
+/*
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -297,6 +297,7 @@ canvas.addEventListener('pointermove', (e)=>{
 
     // drag and momentum
     const dx = e.clientX - appState.momentum.lastX;
+
     appState.momentum.lastX = e.clientX;
     appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
     appState.momentum.lastDragSpeed = dx * appState.msPerPx;
@@ -348,7 +349,7 @@ console.log(debugText);
     return;
   }
 });
-
+*/
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();

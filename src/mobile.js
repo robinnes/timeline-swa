@@ -129,12 +129,13 @@ function beginPan(pointer) {
   appState.momentum.vOffsetMs = 0;
   appState.momentum.lastDragSpeed = 0;
   appState.momentum.lastX = pointer.x;
+debugText = "";
 }
 
 function updatePan(pointer) {
   const dx = pointer.x - pointer.prevX;
   if (dx === 0) return;
-
+debugText += dx + ", ";
   appState.offsetMs -= dx * appState.msPerPx;
   appState.momentum.lastDragSpeed = dx * appState.msPerPx;
   draw(false);
@@ -145,10 +146,8 @@ function finishPanMomentum() {
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000;
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
 
-//debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
-debugText = `lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
-debugMobile(debugText, true);
-
+debugText += ` lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+debugMobile(true);
   appState.momentum.lastDragSpeed = 0;
 }
 
@@ -156,7 +155,7 @@ debugMobile(debugText, true);
 /* ------------------- Touch handlers -------------------- */
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (e.pointerType !== 'touch') return;
+  //if (e.pointerType !== 'touch') return;
 
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
@@ -185,7 +184,7 @@ canvas.addEventListener('pointerdown', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'touch') return;
+  //if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();
@@ -216,7 +215,7 @@ canvas.addEventListener('pointermove', (e) => {
 }, { passive: false });
 
 function endPointer(e) {
-  if (e.pointerType !== 'touch') return;
+  //if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();
@@ -295,7 +294,7 @@ function zoomAtX(x, factor) {
 
 /* ------------------- Debug -------------------- */
 
-export function debugMobile(text="", rightAlign=false) {
+export function debugMobile(rightAlign=false) {
   const ctx = canvas.getContext('2d');
   const leftLabel = window.innerWidth - 250;
   const leftValue = window.innerWidth - 100;
@@ -307,7 +306,7 @@ export function debugMobile(text="", rightAlign=false) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  const left = rightAlign ? window.innerwidth - 250 : 40;
+  const left = rightAlign ? window.innerWidth - 250 : 40;
   ctx.fillText(debugText, left, window.innerHeight - 40);
   /*
   ctx.fillText('isTouchPanning:', leftLabel, top);
