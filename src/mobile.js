@@ -21,8 +21,8 @@ const TAP_MAX_MOVE = 10;
 //const DOUBLE_TAP_DIST = 24;
 //const DOUBLE_TAP_ZOOM_FACTOR = 0.5; // zoom in by 2x
 
-let pendingTapTimer = null;
-let lastTap = null;
+//let pendingTapTimer = null;
+//let lastTap = null;
 
 let debugText = "";
 
@@ -54,7 +54,7 @@ function setMousePosition(x, y) {
 /* ------------------- Tap -------------------- */
 
 function queueSyntheticClick(x, y) {
-  if (pendingTapTimer) clearTimeout(pendingTapTimer);
+  //if (pendingTapTimer) clearTimeout(pendingTapTimer);
 
   //pendingTapTimer = window.setTimeout(() => {
     setMousePosition(x, y);
@@ -66,18 +66,18 @@ function queueSyntheticClick(x, y) {
       clientY: y
     }));
 
-    pendingTapTimer = null;
-    lastTap = { x, y, t: performance.now() };
+  //  pendingTapTimer = null;
+  //  lastTap = { x, y, t: performance.now() };
   //}, DOUBLE_TAP_MS);
 }
-
+/*
 function cancelQueuedTap() {
   if (pendingTapTimer) {
     clearTimeout(pendingTapTimer);
     pendingTapTimer = null;
   }
 }
-
+*/
 function qualifiesAsTap(p) {
   const dt = performance.now() - p.downTime;
   const move = Math.hypot(p.x - p.startX, p.y - p.startY);
@@ -178,7 +178,7 @@ canvas.addEventListener('pointerdown', (e) => {
     pinchEverOccurred = false;
     beginPan(p);
   } else if (active.size === 2) {
-    cancelQueuedTap();
+    //cancelQueuedTap();
     beginPinch();
   }
 }, { passive: false });
