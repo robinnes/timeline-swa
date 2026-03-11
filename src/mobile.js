@@ -61,7 +61,7 @@ function queueSyntheticClick(x, y) {
 function qualifiesAsTap(p) {
   const dt = performance.now() - p.downTime;
   const move = Math.hypot(p.x - p.startX, p.y - p.startY);
-  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !pinchEverOccurred;
+  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !appState.touch.pinch.pinchEverOccurred;
 }
 
 /* ------------------- Pinch zoom -------------------- */
