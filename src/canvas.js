@@ -147,10 +147,11 @@ export function tick(now) {
   const dt = (now - appState.momentum.lastTick) / 1000;
   appState.momentum.lastTick = now;
 
-  if (appState.pan.isPanning || isTouchPanning) {
-    //appState.momentum.lastDragSpeed = 0;  is this messing touch pan momentum?
+  if (appState.pan.isPanning) {
+    appState.momentum.lastDragSpeed = 0; 
     return;
   }
+  if (isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch  <- todo: integrate into appState
 
   if (appState.zoom.isZooming) {
     zoom(dt); 
@@ -160,7 +161,7 @@ export function tick(now) {
   // carry on momentum, if there is velocity
   if (appState.momentum.vOffsetMs === 0) return;
 
-  const drag = Math.exp(-4.0 * dt);  // apply drag
+  const drag = Math.exp(-3.0 * dt);  // apply drag (-4.0)  <- todo: use a global constant
   appState.momentum.vOffsetMs *= drag;
   appState.offsetMs -= appState.momentum.vOffsetMs * dt;
 
@@ -212,7 +213,7 @@ function zoom(dt) {
 /* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('click', function (e) {
-  if (e.pointerType==="mouse") return;  // simulate touchscreen
+  //if (e.pointerType==="mouse") return;  // simulate touchscreen
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))
@@ -263,7 +264,7 @@ canvas.addEventListener('click', function (e) {
     else if (elem.subType === 'add-event') addNewEvent(elem.view);
   }
 });
-/*
+
 canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse') return;
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
@@ -335,10 +336,8 @@ canvas.addEventListener('pointerup', (e)=>{
     // Convert last drag frame delta into per-second velocity estimate using last frame dt
     const now = performance.now();
     const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
+
     appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
-  
-const debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
-console.log(debugText);
     appState.momentum.lastDragSpeed = 0;
 
     return;
@@ -349,7 +348,7 @@ console.log(debugText);
     return;
   }
 });
-*/
+
 canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();

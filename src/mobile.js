@@ -135,7 +135,7 @@ debugText = "";
 function updatePan(pointer) {
   const dx = pointer.x - pointer.prevX;
   if (dx === 0) return;
-debugText += dx + ", ";
+//debugText += dx + ", ";
   appState.offsetMs -= dx * appState.msPerPx;
   appState.momentum.lastDragSpeed = dx * appState.msPerPx;
   draw(false);
@@ -146,8 +146,8 @@ function finishPanMomentum() {
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000;
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
 
-debugText += ` lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
-debugMobile(true);
+//debugText += ` lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+//debugMobile(true);
   appState.momentum.lastDragSpeed = 0;
 }
 
@@ -155,7 +155,7 @@ debugMobile(true);
 /* ------------------- Touch handlers -------------------- */
 
 canvas.addEventListener('pointerdown', (e) => {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
 
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
@@ -184,7 +184,7 @@ canvas.addEventListener('pointerdown', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();
@@ -215,7 +215,7 @@ canvas.addEventListener('pointermove', (e) => {
 }, { passive: false });
 
 function endPointer(e) {
-  //if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
   e.preventDefault();
