@@ -145,8 +145,9 @@ function finishPanMomentum() {
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000;
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
 
-debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
-debugMobile(debugText);
+//debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+debugText = `lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+debugMobile(debugText, true);
 
   appState.momentum.lastDragSpeed = 0;
 }
@@ -294,7 +295,7 @@ function zoomAtX(x, factor) {
 
 /* ------------------- Debug -------------------- */
 
-export function debugMobile(text="") {
+export function debugMobile(text="", rightAlign=false) {
   const ctx = canvas.getContext('2d');
   const leftLabel = window.innerWidth - 250;
   const leftValue = window.innerWidth - 100;
@@ -306,7 +307,8 @@ export function debugMobile(text="") {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  ctx.fillText(debugText, 40, window.innerHeight - 40);
+  const left = rightAlign ? window.innerwidth - 250 : 40;
+  ctx.fillText(debugText, left, window.innerHeight - 40);
   /*
   ctx.fillText('isTouchPanning:', leftLabel, top);
   ctx.fillText(String(isTouchPanning), leftValue, top);
