@@ -6,7 +6,8 @@ export const TIME = {
   MIN_MS_PER_PX: 1000 * 60 * 5,        // 5 minutes per pixel (very zoomed in)
   MAX_MS_PER_PX: 1000 * 60 * 60 * 24 * 365 * 5, // ~5 years per pixel
   MAX_CLICK_MOVE: 1, // maximum mouse movement allowed for a mouse click
-  ZOOM_SPEED: 10  // auto zoom speed
+  ZOOM_SPEED: 10,  // auto zoom speed
+  MU_FACTOR: -3.0 // "coefficient of friction"; rate by which momentum slows; orig. -4.0
 };
 
 export const DRAW = {

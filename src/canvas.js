@@ -5,7 +5,7 @@ import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseO
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
-import {isTouchPanning, debugMobile} from './mobile.js';
+import {debugMobile} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 
@@ -52,6 +52,17 @@ export const appState = {
   },
   authentication: {
     userId: null
+  },
+  touch: {
+    isTouchPanning: false,
+    pinch: {
+      pinching: false,
+      pinchStartDist: 0,
+      pinchStartMsPerPx: 0,
+      pinchMidX: 0,
+      pinchMidT: 0,
+      pinchEverOccurred: false
+    }
   },
   views:[]
 }
@@ -151,7 +162,7 @@ export function tick(now) {
     appState.momentum.lastDragSpeed = 0; 
     return;
   }
-  if (isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch  <- todo: integrate into appState
+  if (appState.touch.isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch  <- todo: integrate into appState
 
   if (appState.zoom.isZooming) {
     zoom(dt); 
@@ -161,7 +172,7 @@ export function tick(now) {
   // carry on momentum, if there is velocity
   if (appState.momentum.vOffsetMs === 0) return;
 
-  const drag = Math.exp(-3.0 * dt);  // apply drag (-4.0)  <- todo: use a global constant
+  const drag = Math.exp(TIME.MU_FACTOR * dt);  // apply drag
   appState.momentum.vOffsetMs *= drag;
   appState.offsetMs -= appState.momentum.vOffsetMs * dt;
 
