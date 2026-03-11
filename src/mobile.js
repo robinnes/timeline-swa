@@ -61,43 +61,43 @@ function queueSyntheticClick(x, y) {
 function qualifiesAsTap(p) {
   const dt = performance.now() - p.downTime;
   const move = Math.hypot(p.x - p.startX, p.y - p.startY);
-  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !appState.touch.pinch.pinchEverOccurred;
+  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !appState.touch.pinchEverOccurred;
 }
 
 /* ------------------- Pinch zoom -------------------- */
 
 function beginPinch() {
-  const p = appState.touch.pinch;
+  const t = appState.touch;
   const pts = [...active.values()];
   if (pts.length < 2) return;
 
   const [p1, p2] = pts;
-  p.pinching = true;
-  p.pinchEverOccurred = true;
-  appState.touch.isTouchPanning = false;
+  t.pinching = true;
+  t.pinchEverOccurred = true;
+  t.isTouchPanning = false;
 
-  p.pinchStartDist = distance(p1, p2);
-  p.pinchStartMsPerPx = appState.msPerPx;
+  t.pinchStartDist = distance(p1, p2);
+  t.pinchStartMsPerPx = appState.msPerPx;
 
   const mid = midpoint(p1, p2);
-  p.pinchMidX = mid.x;
-  p.pinchMidT = Util.pxToTime(p.pinchMidX);
+  t.pinchMidX = mid.x;
+  t.pinchMidT = Util.pxToTime(t.pinchMidX);
 }
 
 function updatePinch() {
-  const p = appState.touch.pinch;
+  const t = appState.touch;
   const pts = [...active.values()];
-  if (pts.length < 2 || !p.pinching) return;
+  if (pts.length < 2 || !t.pinching) return;
 
   const [p1, p2] = pts;
   const dist = distance(p1, p2);
-  if (p.pinchStartDist <= 0 || dist <= 0) return;
+  if (t.pinchStartDist <= 0 || dist <= 0) return;
 
-  const scale = p.pinchStartDist / dist; // fingers apart => dist bigger => zoom in
+  const scale = t.pinchStartDist / dist; // fingers apart => dist bigger => zoom in
   const vp = getCanvasViewport();
 
-  appState.msPerPx = clampMsPerPx(p.pinchStartMsPerPx * scale);
-  appState.offsetMs = p.pinchMidT - TIME.EPOCH - ((p.pinchMidX - vp.left) * appState.msPerPx);
+  appState.msPerPx = clampMsPerPx(t.pinchStartMsPerPx * scale);
+  appState.offsetMs = t.pinchMidT - TIME.EPOCH - ((t.pinchMidX - vp.left) * appState.msPerPx);
 
   draw(true);
 }
@@ -153,7 +153,7 @@ canvas.addEventListener('pointerdown', (e) => {
   setMousePosition(e.clientX, e.clientY);
 
   if (active.size === 1) {
-    appState.touch.pinch.pinchEverOccurred = false;
+    appState.touch.pinchEverOccurred = false;
     beginPan(p);
   } else if (active.size === 2) {
     beginPinch();
@@ -161,6 +161,7 @@ canvas.addEventListener('pointerdown', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
+  const t = appState.touch;
   if (e.pointerType !== 'touch') return;
   if (!active.has(e.pointerId)) return;
 
@@ -179,13 +180,13 @@ canvas.addEventListener('pointermove', (e) => {
     return;
   }
 
-  if (active.size === 1 && !appState.touch.pinch.pinching) {
+  if (active.size === 1 && !t.pinching) {
     const moveFromStart = Math.hypot(p.x - p.startX, p.y - p.startY);
     if (moveFromStart > TAP_MAX_MOVE) {
-      appState.touch.isTouchPanning = true;
+      t.isTouchPanning = true;
     }
 
-    if (appState.touch.isTouchPanning) {
+    if (t.isTouchPanning) {
       updatePan(p);
     }
   }
@@ -203,9 +204,9 @@ function endPointer(e) {
 
   active.delete(e.pointerId);
 
-  if (t.pinch.pinching && active.size < 2) {
-    t.pinch.pinching = false;
-    t.pinch.pinchStartDist = 0;
+  if (t.pinching && active.size < 2) {
+    t.pinching = false;
+    t.pinchStartDist = 0;
   }
 
   if (active.size === 1) {

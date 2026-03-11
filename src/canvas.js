@@ -55,14 +55,12 @@ export const appState = {
   },
   touch: {
     isTouchPanning: false,
-    pinch: {
-      pinching: false,
-      pinchStartDist: 0,
-      pinchStartMsPerPx: 0,
-      pinchMidX: 0,
-      pinchMidT: 0,
-      pinchEverOccurred: false
-    }
+    pinching: false,
+    pinchStartDist: 0,
+    pinchStartMsPerPx: 0,
+    pinchMidX: 0,
+    pinchMidT: 0,
+    pinchEverOccurred: false
   },
   views:[]
 }
