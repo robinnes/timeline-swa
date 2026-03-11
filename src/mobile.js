@@ -146,6 +146,7 @@ function finishPanMomentum() {
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
 
 debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+debugMobile(debugText);
 
   appState.momentum.lastDragSpeed = 0;
 }
