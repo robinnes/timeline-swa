@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {TIME} from './constants.js';
+import {TIME, TOUCH} from './constants.js';
 import {drawTicks, tickSpec} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
@@ -148,7 +148,7 @@ export async function initialLoad() {
 }
 
 
-/* ------------------- Momentum handling -------------------- */
+/* ------------------- Pan and momentum handling -------------------- */
 
 export function tick(now) {
   requestAnimationFrame(tick);
@@ -160,7 +160,7 @@ export function tick(now) {
     appState.momentum.lastDragSpeed = 0; 
     return;
   }
-  if (appState.touch.isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch  <- todo: integrate into appState
+  if (appState.touch.isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch
 
   if (appState.zoom.isZooming) {
     zoom(dt); 
@@ -177,6 +177,14 @@ export function tick(now) {
   if (Math.abs(appState.momentum.vOffsetMs) < (1 * appState.msPerPx)) appState.momentum.vOffsetMs = 0;
   else draw(false);
 };
+
+export function throwCanvas() {
+  // Convert last drag frame delta into per-second velocity estimate using last frame dt
+  const now = performance.now();
+  const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
+  appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+  appState.momentum.lastDragSpeed = 0;
+}
 
 function zoom(dt) {
   // incrementally move window offset and zoom toward new values
@@ -222,7 +230,7 @@ function zoom(dt) {
 /* ------------------- Mouse and keyboard events -------------------- */
 
 canvas.addEventListener('click', function (e) {
-  //if (e.pointerType==="mouse") return;  // simulate touchscreen
+  if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))
@@ -275,7 +283,7 @@ canvas.addEventListener('click', function (e) {
 });
 
 canvas.addEventListener('pointerdown', (e)=>{
-  if (e.pointerType !== 'mouse') return;
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
 
@@ -296,8 +304,7 @@ canvas.addEventListener('pointerdown', (e)=>{
 });
 
 canvas.addEventListener('pointermove', (e)=>{
-  if (e.pointerType !== 'mouse') return;
-  
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
   appState.mouseX = e.clientX;
   appState.mouseY = e.clientY;
   if (Math.abs(e.clientX - appState.momentum.lastX) >= TIME.MAX_CLICK_MOVE) appState.pan.ignoreClick = true;
@@ -338,17 +345,11 @@ canvas.addEventListener('pointermove', (e)=>{
 }, { passive:false });
 
 canvas.addEventListener('pointerup', (e)=>{
-  if (e.pointerType !== 'mouse') return;
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
 
   if (appState.pan.isPanning) {
     appState.pan.isPanning = false;
-    // Convert last drag frame delta into per-second velocity estimate using last frame dt
-    const now = performance.now();
-    const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
-
-    appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
-    appState.momentum.lastDragSpeed = 0;
-
+    throwCanvas();
     return;
   }
 

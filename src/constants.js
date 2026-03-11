@@ -39,7 +39,8 @@ export const TICK = {
 
 export const TOUCH = {
   TAP_MAX_MS: 250,
-  TAP_MAX_MOVE: 10
+  TAP_MAX_MOVE: 10,
+  SIMULATE_MODE: false  // force pointer event handlers in mobile.js, even with a mouse
 };
 
 export const CONTAINER = 'timelines';

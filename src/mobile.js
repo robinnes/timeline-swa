@@ -1,16 +1,10 @@
 import * as Util from './util.js';
-import {appState, draw, getCanvasViewport} from './canvas.js';
+import {appState, draw, getCanvasViewport, throwCanvas} from './canvas.js';
 import {TIME, DRAW, TOUCH} from './constants.js';
 export const canvas = document.getElementById('canvas');
 
 const active = new Map(); // pointerId -> touch state
 let debugText = "";
-
-/*
-const TAP_MAX_MS = 250;
-const TAP_MAX_MOVE = 10;
-*/
-
 
 /* ------------------- Helpers -------------------- */
 
@@ -113,19 +107,11 @@ function updatePan(pointer) {
   draw(false);
 }
 
-function finishPanMomentum() {
-  const now = performance.now();
-  const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000;
-  appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
-  appState.momentum.lastDragSpeed = 0;
-}
-
 
 /* ------------------- Touch handlers -------------------- */
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (e.pointerType !== 'touch') return;
-
+  if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
 
@@ -152,10 +138,9 @@ canvas.addEventListener('pointerdown', (e) => {
 }, { passive: false });
 
 canvas.addEventListener('pointermove', (e) => {
-  const t = appState.touch;
-  if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
   if (!active.has(e.pointerId)) return;
-
+  const t = appState.touch;
   e.preventDefault();
 
   const p = active.get(e.pointerId);
@@ -184,10 +169,9 @@ canvas.addEventListener('pointermove', (e) => {
 }, { passive: false });
 
 function endPointer(e) {
-  const t = appState.touch;
-  if (e.pointerType !== 'touch') return;
+  if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
   if (!active.has(e.pointerId)) return;
-
+  const t = appState.touch;
   e.preventDefault();
 
   const p = active.get(e.pointerId);
@@ -210,7 +194,7 @@ function endPointer(e) {
     beginPan(survivor);
   } else if (active.size === 0) {
     if (t.isTouchPanning && !wasTap) {
-      finishPanMomentum();
+      throwCanvas();
     }
     t.isTouchPanning = false;
   }
