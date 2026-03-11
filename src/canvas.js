@@ -148,7 +148,7 @@ export function tick(now) {
   appState.momentum.lastTick = now;
 
   if (appState.pan.isPanning || isTouchPanning) {
-    appState.momentum.lastDragSpeed = 0;
+    //appState.momentum.lastDragSpeed = 0;  is this messing touch pan momentum?
     return;
   }
 
