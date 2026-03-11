@@ -37,4 +37,9 @@ export const TICK = {
   PADDING: 20
 };
 
+export const TOUCH = {
+  TAP_MAX_MS: 250,
+  TAP_MAX_MOVE: 10
+};
+
 export const CONTAINER = 'timelines';

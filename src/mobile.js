@@ -1,24 +1,15 @@
 import * as Util from './util.js';
 import {appState, draw, getCanvasViewport} from './canvas.js';
-import {TIME, DRAW} from './constants.js';
+import {TIME, DRAW, TOUCH} from './constants.js';
 export const canvas = document.getElementById('canvas');
 
 const active = new Map(); // pointerId -> touch state
-/*
-export let isTouchPanning = false;
+let debugText = "";
 
-let pinching = false;
-let pinchStartDist = 0;
-let pinchStartMsPerPx = 0;
-let pinchMidX = 0;
-let pinchMidT = 0;
-let pinchEverOccurred = false;
-*/
-// tap
+/*
 const TAP_MAX_MS = 250;
 const TAP_MAX_MOVE = 10;
-
-let debugText = "";
+*/
 
 
 /* ------------------- Helpers -------------------- */
@@ -61,7 +52,7 @@ function queueSyntheticClick(x, y) {
 function qualifiesAsTap(p) {
   const dt = performance.now() - p.downTime;
   const move = Math.hypot(p.x - p.startX, p.y - p.startY);
-  return dt <= TAP_MAX_MS && move <= TAP_MAX_MOVE && !appState.touch.pinchEverOccurred;
+  return dt <= TOUCH.TAP_MAX_MS && move <= TOUCH.TAP_MAX_MOVE && !appState.touch.pinchEverOccurred;
 }
 
 /* ------------------- Pinch zoom -------------------- */
@@ -182,7 +173,7 @@ canvas.addEventListener('pointermove', (e) => {
 
   if (active.size === 1 && !t.pinching) {
     const moveFromStart = Math.hypot(p.x - p.startX, p.y - p.startY);
-    if (moveFromStart > TAP_MAX_MOVE) {
+    if (moveFromStart > TOUCH.TAP_MAX_MOVE) {
       t.isTouchPanning = true;
     }
 
