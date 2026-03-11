@@ -141,6 +141,9 @@ function finishPanMomentum() {
   const now = performance.now();
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000;
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+
+debugText = `lastTick:${appState.momentum.lastTick}, now:${now}, dt:${dt}, lastDragSpeed:${appState.momentum.lastDragSpeed}, vOffsetMs:${appState.momentum.vOffsetMs}`;
+
   appState.momentum.lastDragSpeed = 0;
 }
 
