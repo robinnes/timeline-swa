@@ -147,6 +147,18 @@ export async function initialLoad() {
   openTimeline(file, false);
 }
 
+export function identifyHoverElement() {
+  // assign indeces of interactive screen element that pointer/mouse is over (if any)
+  let foundIdx = -1, foundLinkIdx = -1;
+  for (let i = screenElements.length-1; i > 0; i--) {  
+    const se = screenElements[i];
+    if (isMouseOver(se.left, se.right, se.top, se.bottom))
+      if (se.type !== "link") foundIdx = i;
+      else foundLinkIdx = i;
+  };
+  appState.highlighted.idx = foundIdx;
+  appState.highlighted.linkIdx = foundLinkIdx;
+};
 
 /* ------------------- Pan and momentum handling -------------------- */
 
@@ -290,8 +302,8 @@ canvas.addEventListener('pointerdown', (e)=>{
   appState.zoom.isZooming = false;  // stop any zooming in progress
     
   if (appState.highlighted.idx !== -1 && screenElements[appState.highlighted.idx].type === 'handle') {
-      startDragging();
-      return;
+    startDragging();
+    return;
 
   } else {
     // start panning
@@ -326,17 +338,13 @@ canvas.addEventListener('pointermove', (e)=>{
     return;
 
   } else {
-    // check if mouse is over any interactive elements
-    let foundIdx = -1, foundLinkIdx = -1;  
-    for (let i = screenElements.length-1; i > 0; i--) {  
-      const se = screenElements[i];
-      if (isMouseOver(se.left, se.right, se.top, se.bottom)) {
-        if (!se.type === "link") foundIdx = i;
-        else foundLinkIdx = i;
-      };
-    }
+    // determine element pointer is over (if any) and if it's changed...
+    const beforeIdx = appState.highlighted.idx;
+    const beforeLinkIdx = appState.highlighted.linkIdx;
+    identifyHoverElement();
+    
     // if so then draw, which will reset screenElements and highlight the one under mouseX/mouseY
-    if (foundIdx !== appState.highlighted.idx || foundLinkIdx !== appState.highlighted.linkIdx) {
+    if (beforeIdx !== appState.highlighted.idx || beforeLinkIdx !== appState.highlighted.linkIdx) {
       draw(false);
     }
     return;
@@ -595,7 +603,6 @@ export async function openTimeline(file, zoom, sourceView) {
 /* ------------------- Canvas button handling -------------------- */
 
 async function closeView(viewIdx) {
-console.log({viewIdx});
   // determine whether there are other views on the same timeline
   const view = appState.views[viewIdx];
   const tlKey = view.tlKey;

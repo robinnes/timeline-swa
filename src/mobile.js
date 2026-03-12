@@ -1,8 +1,9 @@
 import * as Util from './util.js';
-import {appState, draw, getCanvasViewport, throwCanvas} from './canvas.js';
 import {TIME, DRAW, TOUCH} from './constants.js';
-export const canvas = document.getElementById('canvas');
+import {appState, draw, getCanvasViewport, throwCanvas, identifyHoverElement, screenElements} from './canvas.js';
+import {startDragging, drag, stopDragging} from './dragging.js';
 
+const canvas = document.getElementById('canvas');
 const active = new Map(); // pointerId -> touch state
 let debugText = "";
 
@@ -131,7 +132,12 @@ canvas.addEventListener('pointerdown', (e) => {
 
   if (active.size === 1) {
     appState.touch.pinchEverOccurred = false;
-    beginPan(p);
+    identifyHoverElement();
+    if (screenElements[appState.highlighted.idx]?.type === 'handle') {
+      startDragging();
+    } else {
+      beginPan(p);
+    }
   } else if (active.size === 2) {
     beginPinch();
   }
@@ -157,6 +163,12 @@ canvas.addEventListener('pointermove', (e) => {
   }
 
   if (active.size === 1 && !t.pinching) {
+
+    if (appState.drag.isDragging) {
+      drag(e);
+      return;
+    }
+
     const moveFromStart = Math.hypot(p.x - p.startX, p.y - p.startY);
     if (moveFromStart > TOUCH.TAP_MAX_MOVE) {
       t.isTouchPanning = true;
@@ -193,6 +205,12 @@ function endPointer(e) {
     survivor.prevY = survivor.y;
     beginPan(survivor);
   } else if (active.size === 0) {
+
+    if (appState.drag.isDragging) {
+      stopDragging(false);
+      return;
+    }
+
     if (t.isTouchPanning && !wasTap) {
       throwCanvas();
     }
