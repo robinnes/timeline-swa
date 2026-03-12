@@ -151,24 +151,11 @@ export function identifyHoverElement() {
   // assign indeces of interactive screen element that pointer/mouse is over (if any)
   let foundIdx = -1, foundLinkIdx = -1;
   for (let i = 0; i < screenElements.length; i++) {  
-  //for (let i = screenElements.length-1; i > 0; i--) {  
     const se = screenElements[i];
-    /*
-    if (se.eventPos?.event?.label==="Father Bob Innes died") {
-      if (isMouseOver(se.left, se.right, se.top, se.bottom)) {
-        console.log("here");
-      }
-    }
-*/
     if (isMouseOver(se.left, se.right, se.top, se.bottom))
       if (se.type !== "link") foundIdx = i;
-      //if (!se.type === "link") foundIdx = i;
       else foundLinkIdx = i;
   };
-
-  if (foundIdx > -1) {
-    //console.log("stop");
-  }
   appState.highlighted.idx = foundIdx;
   appState.highlighted.linkIdx = foundLinkIdx;
 };

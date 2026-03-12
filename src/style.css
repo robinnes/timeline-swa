@@ -27,16 +27,7 @@ html, body {
   grid-template-columns: var(--w) 1fr; /* sidebar + main area */
   height: 100%;
 }
-/*
-      .stage { 
-        width: 100vw; 
-        height: 100vh; 
-        margin-left: auto;
-        position: relative;
-        transition: width 0.3s ease;
-      }
-      .stage.shrink { width: calc(100vw - var(--sidebar-w)); }
-*/
+
 /********************************* Canvas *********************************/
 
 #canvas { 
@@ -146,7 +137,6 @@ html, body {
 /*************************** Sidebar ***************************/
 aside.sidebar {
   background: linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-  border-right: 1px solid var(--border);
   border-right: 1px solid rgba(255,255,255,0.08);
   box-shadow: var(--shadow);
   padding: 0px 12px 0px 12px; /* 18px 16px 16px 16px */
@@ -285,18 +275,20 @@ aside.sidebar {
 /* Scrollable region inside the panel */
 .panel__content {
   flex: 1;           /* take all remaining vertical space */
-  overflow: auto;    /* scroll inside content only */
-  padding: 0 0;
   min-height: 0;
   padding-bottom: 12px;
 }
 
-/* Any panel content that directly contains sidebar__section blocks */
-.panel__content,
-.subpanel {
+/* Edit/view modifiers for panel content */
+.panel__content--view {
+  display: block;
+  overflow: auto;
+}
+
+.panel__content--edit {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  overflow: hidden;
 }
 
 /* Panel header area */
@@ -373,11 +365,11 @@ aside.sidebar {
 
 /********************************* Subpanels (Edit Event) *********************************/
 
-/* Scrollable region inside the panel */
 .subpanel {
-  flex: 1;           /* take all remaining vertical space */
-  overflow: auto;    /* scroll inside content only */
-  padding: 0 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
   min-height: 0;
   padding-bottom: 12px;
 }
@@ -477,13 +469,19 @@ aside.sidebar {
   padding-top: 14px;
 }
 
-/* Let the last section fill remaining height */
-.panel__content > .sidebar__section:last-child,
+/* Edit panels: let the last section fill remaining height */
+.panel__content--edit > .sidebar__section:last-child,
 .subpanel > .sidebar__section:last-child {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* View panels: sections behave like normal stacked blocks */
+.panel__content--view > .sidebar__section {
+  display: block;
+  flex: 0 0 auto;
 }
 
 
@@ -504,10 +502,22 @@ h2.label {
   font-weight: 650;
 }
 
-.details {   /* details display */
+.details {
   padding: 14px 0;
-  flex: 1 1 auto; /* fill remaining vertical space */
-  min-height: 0; /* allow internal scrolling */
+}
+
+/* View panels: details flow naturally with the rest of the content */
+.panel__content--view .details {
+  display: block;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
+}
+
+/* Edit panels: details may expand/scroll internally */
+.panel__content--edit .details {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -520,11 +530,10 @@ h2.label {
 .display-textarea a:hover { text-decoration: underline; }
 .display-textarea .tagnavigate__tree {margin: 0;}  /* no margin for tag navigation tree */
 
-.edit-input,  /* edit-input simulates an editable field but is read-only (edit event date)  */
+.edit-input,
 .edit-textarea {
-  flex: 1 1 auto;
-  min-height: 0;
   width: 100%;
+  min-height: 0;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.04);
   color: var(--fg);
@@ -532,6 +541,15 @@ h2.label {
   font: inherit;
   border-radius: 4px;
   box-sizing: border-box;
+  resize: none;
+}
+
+.panel__content--edit .edit-input,
+.panel__content--edit .edit-textarea,
+.subpanel .edit-input,
+.subpanel .edit-textarea {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .edit-input:focus,
@@ -546,11 +564,6 @@ h2.label {
   outline: none;
   border-color: rgba(255,255,255,0.04);
   box-shadow: none;
-}
-.edit-textarea {
-  resize: none;
-  flex: 1;
-  min-height: 0;
 }
 
 /* single-row text input */
