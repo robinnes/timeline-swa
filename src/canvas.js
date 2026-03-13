@@ -16,6 +16,7 @@ export const appState = {
   msPerPx: TIME.MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
   offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 30,  // date at left of the window; center near "now",
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
+  isTouchScreen: null,
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
     eventPos: null,
@@ -70,6 +71,16 @@ export const timelineCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
 /* ------------------- Functions -------------------- */
+
+export async function initialLoad() {
+  // open public timeline indicated param "tl" if present
+  const params = new URLSearchParams(window.location.search);
+  const tlParam = params.get("tl");
+  if (!tlParam) return;
+
+  const file = tlParam + ".json";
+  openTimeline(file, false);
+}
 
 export function getCanvasViewport() {
   // the effective area of the canvas will shrink when the side panel is opened
@@ -135,16 +146,6 @@ export function draw(reposition){
   }
   //Util.debugVars();
   debugMobile();  
-}
-
-export async function initialLoad() {
-  // open public timeline indicated param "tl" if present
-  const params = new URLSearchParams(window.location.search);
-  const tlParam = params.get("tl");
-  if (!tlParam) return;
-
-  const file = tlParam + ".json";
-  openTimeline(file, false);
 }
 
 export function identifyHoverElement() {
@@ -243,6 +244,8 @@ function zoom(dt) {
 
 canvas.addEventListener('click', function (e) {
   if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
+  appState.isTouchScreen = (!e.pointerType);
+console.log(appState.isTouchScreen);
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))

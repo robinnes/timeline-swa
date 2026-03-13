@@ -388,7 +388,7 @@ export function openSelectedView(display) {
 
   if (display) openSidebar();
 
-  if (editMode) editTimelineTitle.focus();
+  if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
 export function openSelectedEvent(display) {
@@ -405,7 +405,7 @@ export function openSelectedEvent(display) {
 
   if (display) openSidebar();
 
-  if (editMode) editEventLabel.focus();
+  if (editMode && !appState.isTouchScreen) editEventLabel.focus(); 
 }
 
 export function setSidebarEvent(e) {
