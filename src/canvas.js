@@ -173,7 +173,10 @@ export function tick(now) {
     appState.momentum.lastDragSpeed = 0; 
     return;
   }
-  if (appState.touch.isTouchPanning) return;  // resetting lastDragSpeed doesn't work as well with touch
+  if (appState.touch.isTouchPanning) {
+    appState.momentum.lastDragSpeed = 0;
+    return;  // resetting lastDragSpeed doesn't work as well with touch
+  }
 
   if (appState.zoom.isZooming) {
     zoom(dt); 
@@ -245,7 +248,6 @@ function zoom(dt) {
 canvas.addEventListener('click', function (e) {
   if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
   appState.isTouchScreen = (!e.pointerType);
-console.log(appState.isTouchScreen);
   if (appState.pan.ignoreClick) return;
 
   if (document.querySelector('.app-menu').classList.contains('is-open'))
