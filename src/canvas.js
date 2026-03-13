@@ -41,9 +41,8 @@ export const appState = {
   momentum: {  // brief moment of continued panning after mouse up to simulate a momentum effect
     lastX: 0,
     vOffsetMs: 0,
-    lastDragSpeed: 0,
     lastTick: performance.now(),
-    tickQueue: []
+    tickQueue: []  // queue recording pointer speed, used to calc avg momentum
   },
   zoom: {  // automatic zoom/pan to a location
     isZooming: false,
@@ -143,10 +142,10 @@ export function draw(reposition){
     drawTicks();
     drawEvents();
   } catch (err) {
-    debugText = err.stack;
+    debugAppendText(err.stack);
   }
   //Util.debugVars();
-  debugDisplay();  
+  //debugDisplay();
 }
 
 export function identifyHoverElement() {
@@ -170,17 +169,9 @@ export function tick(now) {
   const dt = (now - appState.momentum.lastTick) / 1000;
   appState.momentum.lastTick = now;
 
-  if (appState.pan.isPanning) {
-console.log("Tick");
-recordMomentumTick(0);
-    appState.momentum.lastDragSpeed = 0; 
+  if (appState.pan.isPanning || appState.touch.isTouchPanning) {
+    recordMomentumTick(0);  // record zero pointer movement
     return;
-  }
-  if (appState.touch.isTouchPanning) {
-//debugAppendText("tick, ");
-recordMomentumTick(0);
-    appState.momentum.lastDragSpeed = 0;
-    return;  // resetting lastDragSpeed doesn't work as well with touch
   }
 
   if (appState.zoom.isZooming) {
@@ -203,13 +194,10 @@ export function throwCanvas() {
   // Convert last drag frame delta into per-second velocity estimate using last frame dt
   const now = performance.now();
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
-//console.log("throw: dx=" + appState.momentum.lastDragSpeed / appState.msPerPx);
-const avgMomentum = getMomentum();
-appState.momentum.tickQueue = [];
-console.log({lastDragSpeed:appState.momentum.lastDragSpeed / appState.msPerPx, avgMomentum})
-  //appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+
+  const avgMomentum = getMomentum();  // calculate momentum from recent recorded pointer speeds
   appState.momentum.vOffsetMs = (avgMomentum * appState.msPerPx) / dt;
-  appState.momentum.lastDragSpeed = 0;
+  appState.momentum.tickQueue = [];
 }
 
 function zoom(dt) {
@@ -254,15 +242,8 @@ function zoom(dt) {
 
 export function recordMomentumTick(m) {
   const a = appState.momentum.tickQueue;
-  const TICK_QUEUE_SIZE = 5;
   a.push(m);
-  if (a.length > TICK_QUEUE_SIZE) a.splice(0, 1);
-
-  let st = "";
-  for (let i=0; i<a.length; i++) {
-    st += a[i] + ", ";
-  }
-  console.log(st);
+  if (a.length > TIME.TICK_QUEUE_SIZE) a.splice(0, 1);
 }
 
 function getMomentum() {
@@ -368,9 +349,7 @@ canvas.addEventListener('pointermove', (e)=>{
 
     appState.momentum.lastX = e.clientX;
     appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
-    appState.momentum.lastDragSpeed = dx * appState.msPerPx;
-console.log(dx);
-recordMomentumTick(dx);
+    recordMomentumTick(dx);
     draw(false);
     return;
 

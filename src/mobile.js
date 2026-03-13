@@ -97,12 +97,10 @@ function beginPan(pointer) {
   appState.momentum.vOffsetMs = 0;
   appState.momentum.lastDragSpeed = 0;
   appState.momentum.lastX = pointer.x;
-//  debugText = "";
 }
 
 function updatePan(pointer) {
   const dx = pointer.x - pointer.prevX;
-  //debugText += dx + ", ";
   recordMomentumTick(dx);
   if (dx === 0) return;
 
@@ -215,9 +213,7 @@ function endPointer(e) {
     }
 
     if (t.isTouchPanning && !wasTap) {
-//debugAppendText("throw:" + appState.momentum.lastDragSpeed / appState.msPerPx);
       throwCanvas();
-//debugDisplay();
     }
     t.isTouchPanning = false;
   }

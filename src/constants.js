@@ -7,7 +7,8 @@ export const TIME = {
   MAX_MS_PER_PX: 1000 * 60 * 60 * 24 * 365 * 5, // ~5 years per pixel
   MAX_CLICK_MOVE: 1, // maximum mouse movement allowed for a mouse click
   ZOOM_SPEED: 10,  // auto zoom speed
-  MU_FACTOR: -3.0 // "coefficient of friction"; rate by which momentum slows; orig. -4.0
+  MU_FACTOR: -3.0, // "coefficient of friction"; rate by which momentum slows; orig. -4.0
+  TICK_QUEUE_SIZE: 5 // the number of recent pointer speeds to base average on
 };
 
 export const DRAW = {
@@ -40,7 +41,7 @@ export const TICK = {
 export const TOUCH = {
   TAP_MAX_MS: 250,
   TAP_MAX_MOVE: 10,
-  SIMULATE_MODE: true  // force pointer event handlers in mobile.js, even with a mouse
+  SIMULATE_MODE: false  // force pointer event handlers in mobile.js, even with a mouse
 };
 
 export const CONTAINER = 'timelines';
