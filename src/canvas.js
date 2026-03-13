@@ -5,7 +5,7 @@ import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseO
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
-import {debugMobile} from './mobile.js';
+import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 
@@ -145,7 +145,7 @@ export function draw(reposition){
     debugText = err.stack;
   }
   //Util.debugVars();
-  debugMobile();  
+  debugDisplay();  
 }
 
 export function identifyHoverElement() {
@@ -170,10 +170,12 @@ export function tick(now) {
   appState.momentum.lastTick = now;
 
   if (appState.pan.isPanning) {
+//console.log("tick");
     appState.momentum.lastDragSpeed = 0; 
     return;
   }
   if (appState.touch.isTouchPanning) {
+debugAppendText("tick, ");
     appState.momentum.lastDragSpeed = 0;
     return;  // resetting lastDragSpeed doesn't work as well with touch
   }
@@ -198,6 +200,7 @@ export function throwCanvas() {
   // Convert last drag frame delta into per-second velocity estimate using last frame dt
   const now = performance.now();
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
+//console.log("throw: dx=" + appState.momentum.lastDragSpeed / appState.msPerPx);
   appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
   appState.momentum.lastDragSpeed = 0;
 }
@@ -335,6 +338,7 @@ canvas.addEventListener('pointermove', (e)=>{
     appState.momentum.lastX = e.clientX;
     appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
     appState.momentum.lastDragSpeed = dx * appState.msPerPx;
+//console.log(dx);
     draw(false);
     return;
 

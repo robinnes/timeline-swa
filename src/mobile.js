@@ -97,10 +97,12 @@ function beginPan(pointer) {
   appState.momentum.vOffsetMs = 0;
   appState.momentum.lastDragSpeed = 0;
   appState.momentum.lastX = pointer.x;
+  debugText = "";
 }
 
 function updatePan(pointer) {
   const dx = pointer.x - pointer.prevX;
+  debugText += dx + ", ";
   if (dx === 0) return;
 
   appState.offsetMs -= dx * appState.msPerPx;
@@ -212,7 +214,9 @@ function endPointer(e) {
     }
 
     if (t.isTouchPanning && !wasTap) {
+debugAppendText("throw:" + appState.momentum.lastDragSpeed / appState.msPerPx);
       throwCanvas();
+debugDisplay();
     }
     t.isTouchPanning = false;
   }
@@ -233,7 +237,11 @@ canvas.addEventListener('pointerleave', (e) => {
 
 /* ------------------- Debug -------------------- */
 
-export function debugMobile(rightAlign=false) {
+export function debugAppendText(text) {
+  debugText += text;
+}
+
+export function debugDisplay() {
   const ctx = canvas.getContext('2d');
   ctx.save();
   ctx.font = DRAW.LABEL_FONT;
@@ -241,7 +249,7 @@ export function debugMobile(rightAlign=false) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  const left = rightAlign ? window.innerWidth - 250 : 40;
+  const left = 40;
   ctx.fillText(debugText, left, window.innerHeight - 40);
 
   ctx.restore();
