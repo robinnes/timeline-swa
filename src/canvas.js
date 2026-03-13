@@ -42,7 +42,8 @@ export const appState = {
     lastX: 0,
     vOffsetMs: 0,
     lastDragSpeed: 0,
-    lastTick: performance.now()
+    lastTick: performance.now(),
+    tickQueue: []
   },
   zoom: {  // automatic zoom/pan to a location
     isZooming: false,
@@ -170,12 +171,14 @@ export function tick(now) {
   appState.momentum.lastTick = now;
 
   if (appState.pan.isPanning) {
-//console.log("tick");
+console.log("Tick");
+recordMomentumTick(0);
     appState.momentum.lastDragSpeed = 0; 
     return;
   }
   if (appState.touch.isTouchPanning) {
-debugAppendText("tick, ");
+//debugAppendText("tick, ");
+recordMomentumTick(0);
     appState.momentum.lastDragSpeed = 0;
     return;  // resetting lastDragSpeed doesn't work as well with touch
   }
@@ -201,7 +204,11 @@ export function throwCanvas() {
   const now = performance.now();
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
 //console.log("throw: dx=" + appState.momentum.lastDragSpeed / appState.msPerPx);
-  appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+const avgMomentum = getMomentum();
+appState.momentum.tickQueue = [];
+console.log({lastDragSpeed:appState.momentum.lastDragSpeed / appState.msPerPx, avgMomentum})
+  //appState.momentum.vOffsetMs = (appState.momentum.lastDragSpeed || 0) / dt;
+  appState.momentum.vOffsetMs = (avgMomentum * appState.msPerPx) / dt;
   appState.momentum.lastDragSpeed = 0;
 }
 
@@ -243,6 +250,30 @@ function zoom(dt) {
     appState.zoom.isZooming = false;
   }
   draw(true);
+}
+
+export function recordMomentumTick(m) {
+  const a = appState.momentum.tickQueue;
+  const TICK_QUEUE_SIZE = 5;
+  a.push(m);
+  if (a.length > TICK_QUEUE_SIZE) a.splice(0, 1);
+
+  let st = "";
+  for (let i=0; i<a.length; i++) {
+    st += a[i] + ", ";
+  }
+  console.log(st);
+}
+
+function getMomentum() {
+  // return the average recorded in tickQueue
+  const a = appState.momentum.tickQueue;
+  if (a.length===0) return 0;
+  let ttl = 0;
+  for (let i=0; i<a.length; i++) {
+    ttl += a[i];
+  }
+  return ttl / a.length;
 }
 
 
@@ -338,7 +369,8 @@ canvas.addEventListener('pointermove', (e)=>{
     appState.momentum.lastX = e.clientX;
     appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
     appState.momentum.lastDragSpeed = dx * appState.msPerPx;
-//console.log(dx);
+console.log(dx);
+recordMomentumTick(dx);
     draw(false);
     return;
 

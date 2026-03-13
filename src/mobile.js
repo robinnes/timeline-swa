@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {TIME, DRAW, TOUCH} from './constants.js';
-import {appState, draw, getCanvasViewport, throwCanvas, identifyHoverElement, screenElements} from './canvas.js';
+import {appState, draw, getCanvasViewport, throwCanvas, identifyHoverElement, screenElements, recordMomentumTick} from './canvas.js';
 import {startDragging, drag, stopDragging} from './dragging.js';
 
 const canvas = document.getElementById('canvas');
@@ -97,12 +97,13 @@ function beginPan(pointer) {
   appState.momentum.vOffsetMs = 0;
   appState.momentum.lastDragSpeed = 0;
   appState.momentum.lastX = pointer.x;
-  debugText = "";
+//  debugText = "";
 }
 
 function updatePan(pointer) {
   const dx = pointer.x - pointer.prevX;
-  debugText += dx + ", ";
+  //debugText += dx + ", ";
+  recordMomentumTick(dx);
   if (dx === 0) return;
 
   appState.offsetMs -= dx * appState.msPerPx;
@@ -214,9 +215,9 @@ function endPointer(e) {
     }
 
     if (t.isTouchPanning && !wasTap) {
-debugAppendText("throw:" + appState.momentum.lastDragSpeed / appState.msPerPx);
+//debugAppendText("throw:" + appState.momentum.lastDragSpeed / appState.msPerPx);
       throwCanvas();
-debugDisplay();
+//debugDisplay();
     }
     t.isTouchPanning = false;
   }
