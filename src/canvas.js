@@ -318,6 +318,7 @@ canvas.addEventListener('pointerdown', (e)=>{
   if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
   e.preventDefault();  // prevent focus, text selection, etc (necessary?)
   canvas.setPointerCapture(e.pointerId);
+  canvas.focus();
 
   appState.zoom.isZooming = false;  // stop any zooming in progress
     
