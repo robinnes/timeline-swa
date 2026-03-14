@@ -35,7 +35,8 @@ export const TICK = {
   MAX_TICK_LABEL_BRIGHT: 0.85, // max brightness for tick labels
   TICK_TOP: 6,
   TICK_LABEL_HEIGHT: 18,
-  PADDING: 20
+  PADDING: 20,
+  TICK_FONT: '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
 };
 
 export const TOUCH = {

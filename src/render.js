@@ -23,6 +23,7 @@ export function zoomSpec(sig){
   const factor = Math.log10(appState.msPerPx);
   const z = zoomMaster[sig - 1];
   return {
+    zoomMaster: z,
     factor,
     size: (Math.max((z.threshold + persistence - factor), 0) * z.growth) + sizeAdj,
     fade: (factor > z.threshold) ?
@@ -677,7 +678,8 @@ export function drawEvents() {
   // iterate views...
   for (const vw of appState.views) {
     const tl = timelineCache.get(vw.tlKey);
-    drawTimelineLabel(vw, vw===appState.highlighted.view);  // view/timeline label
+    const highlight = (vw===appState.highlighted.view);
+    drawTimelineLabel(vw, highlight);  // view/timeline label
     if (tl._mode==="edit") {
       if (appState.selected.event?._timeline===tl) {
         const sel = vw.eventPos.find((ep) => ep.event===appState.selected.event);

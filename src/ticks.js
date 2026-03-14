@@ -99,7 +99,8 @@ function drawTick(text, left, width, fade, t, mode) {
     ctx.fill();
     fade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
   }
-  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+
+  ctx.font = TICK.TICK_FONT;
   ctx.fillStyle = `rgba(255, 255, 255, ${fade})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -115,7 +116,7 @@ export function drawTicks() {
   const t0 = Util.pxToTime(vp.left);
   const t1 = Util.pxToTime(vp.right);
   const tickWidth = spec.msPerTick / appState.msPerPx;
-  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+  ctx.font = TICK.TICK_FONT;
   let t = spec.start(t0);
 
   // Corner label (display year or month+year in top-left if necessary)
@@ -170,7 +171,7 @@ export function drawTicks() {
     const x = Math.round(Util.timeToPx(t)) + 0.5; // crisp lines
     
     // major = whether this is a "major" tick (1st of month, Jan 1, decade start, etc)
-    const major = (function(){
+    const major = (function() {
       if (spec.mode==='day') return new Date(t).getUTCDate() === 1; // 1st of month as major
       if (spec.mode==='month') return new Date(t).getUTCMonth() === 0; // January as major
       return new Date(t).getUTCFullYear() % spec.majorEvery === 0;

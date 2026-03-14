@@ -403,7 +403,25 @@ canvas.addEventListener('keydown', function (e) {
   const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
 
-  if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
+  if (appState.selected.event && appState.selected.view && sidebarIsOpen()) {
+    if (e.key === 'ArrowRight') {
+      const nextEvent = identifyNextEvent(appState.selected.view, appState.selected.event, 1);
+      if (nextEvent) {
+        appState.selected.event = nextEvent;
+        openSelectedEvent(false);
+        zoomToEvent(appState.selected.event);
+      }
+
+    } else if (e.key === 'ArrowLeft') {
+      const previousEvent = identifyPreviousEvent(appState.selected.view, appState.selected.event, 1);
+      if (previousEvent) {
+        appState.selected.event = previousEvent;
+        openSelectedEvent(false);
+        zoomToEvent(appState.selected.event);
+      }
+
+    }
+  } else if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
   {
     if (e.key === 'ArrowUp') {
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
@@ -417,7 +435,6 @@ canvas.addEventListener('keydown', function (e) {
     } else if (e.key === 'ArrowLeft') {
       zoomToTick(appState.fixedPanMode.step(appState.fixedPanMode.start(midT),-1));
     }
-    
   } else {  // zoom/pan by increments
     if (e.key === 'ArrowUp') mouseZoom(midX, Math.pow(TIME.ZOOM_FACTOR, -1))
     else if (e.key === 'ArrowDown') mouseZoom(midX, Math.pow(TIME.ZOOM_FACTOR, 1))
@@ -471,6 +488,92 @@ function mouseZoom(x, factor) {
   draw(true);
 };
 
+function compareEventsForSort(a, b) {
+  // sort rule is: _tFrom, _tTo (descending) then id
+  if (a._tFrom !== b._tFrom) return a._tFrom - b._tFrom;
+  if (a._tTo !== b._tTo) return b._tTo - a._tTo;
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+}
+
+function identifyNextEvent(view, e) {
+  let next = null;
+  for (const ev of view.eventPos) {
+    if (ev.event === e) continue;
+    if (compareEventsForSort(ev.event, e) > 0) {
+      if (next === null || compareEventsForSort(ev.event, next) < 0)   // keep the smallest candidate
+        next = ev.event;
+    }
+  }
+  return next;
+}
+
+function identifyPreviousEvent(view, e) {
+  let previous = null;
+  for (const ev of view.eventPos) {
+    if (ev.event === e) continue;
+    if (compareEventsForSort(ev.event, e) < 0) {
+      if (previous === null || compareEventsForSort(ev.event, previous) > 0)   // keep the smallest candidate
+        previous = ev.event;
+    }
+  }
+  return previous;
+}
+
+
+/* ------------------- Zoom -------------------- */
+
+function positionForEvent(e) {
+  const vp = getCanvasViewport();
+  const spec = zoomSpec(e.significance);
+  const width = e._tTo - e._tFrom;
+    
+  if (spec.style==="line") {
+    return {
+      offsetMs: (e._tFrom - (width / 10)) - TIME.EPOCH,
+      msPerPx: width / (vp.width / 1.2)
+    };
+  }
+  const msPerPx = Math.pow(10, spec.zoomMaster.threshold);
+  return {
+    offsetMs: e._tFrom - (vp.width * msPerPx) / 2  - TIME.EPOCH,
+    msPerPx: msPerPx
+  };
+}
+
+function positionForView(vw) {
+  if (!vw.tFrom || !vw.tTo) {
+    return { offsetMs: appState.offsetMs, msPerPx: appState.msPerPx };
+  }
+
+  const vp = getCanvasViewport();
+  const width = vw.tTo - vw.tFrom;
+
+  return {
+    offsetMs: (vw.tFrom - (width / 10)) - TIME.EPOCH,
+    msPerPx: width / (vp.width / 1.2)
+  };
+}
+
+function zoomToEvent(e) {
+  const p = positionForEvent(e);
+  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
+}
+
+export function zoomToView(view) {
+  const p = positionForView(view);
+  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
+  positionViews(true);
+}
+
+function centerOnView(view) {
+  const p = positionForView(view);
+  appState.offsetMs = p.offsetMs;
+  appState.msPerPx = p.msPerPx;
+  draw(true);
+}
+
 function zoomToTick(t, t2) {
   const vp = getCanvasViewport();
   const tNext = (t2 === undefined) ? appState.fixedPanMode.step(t, 1) : t2;
@@ -495,33 +598,6 @@ function getViewForFile(file) {
   //const scope = file.includes('/') ? 'public' : 'private';
   const found = appState.views.find(vw => vw.file === file /*&& vw.scope === scope*/);
   return(found);
-}
-
-function positionForView(vw) {
-  if (!vw.tFrom || !vw.tTo) {
-    return { offsetMs: appState.offsetMs, msPerPx: appState.msPerPx };
-  }
-
-  const vp = getCanvasViewport();
-  const width = vw.tTo - vw.tFrom;
-
-  return {
-    offsetMs: (vw.tFrom - (width / 10)) - TIME.EPOCH,
-    msPerPx: width / (vp.width / 1.2)
-  };
-}
-
-function centerOnView(view) {
-  const p = positionForView(view);
-  appState.offsetMs = p.offsetMs;
-  appState.msPerPx = p.msPerPx;
-  draw(true);
-}
-
-export function zoomToView(view) {
-  const p = positionForView(view);
-  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
-  positionViews(true);
 }
 
 async function linkToFile(file) {
