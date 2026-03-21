@@ -10,7 +10,8 @@ export const pxToTime = x => {
 
 export const timeToPx = t => {
   const vp = getCanvasViewport();
-  return vp.left + ((t - TIME.EPOCH - appState.offsetMs + (1000 * 60 * 60 * 12)) / appState.msPerPx);
+  //return vp.left + ((t - TIME.EPOCH - appState.offsetMs + (1000 * 60 * 60 * 12)) / appState.msPerPx);
+  return vp.left + ((t - TIME.EPOCH - appState.offsetMs) / appState.msPerPx);
 };
 
 //export const pxPerDay = x => (1 / (appState.msPerPx / TIME.MS_PER_DAY));
@@ -58,8 +59,8 @@ export function debugVars() {
   const ctx = canvas.getContext('2d');
   //const sig = appState.selected.event.significance;
   //const spec = zoomSpec(sig);
-  const leftLabel = window.innerWidth - 200;
-  const leftValue = window.innerWidth - 150;
+  const leftLabel = window.innerWidth - 300;
+  const leftValue = window.innerWidth - 200;
   let top = window.innerHeight - 75;
 
   ctx.save();
@@ -81,9 +82,10 @@ export function debugVars() {
   top += 20;
   ctx.fillText(`size(${sig}):`, leftLabel, top);
   ctx.fillText(Math.round((spec.size)*1000)/1000, leftValue, top);
-  */
+  
   ctx.fillText("userId:", leftLabel, top);
   ctx.fillText(appState.authentication.userId, leftValue, top);
+  */
 
   ctx.restore();
   

@@ -1,9 +1,9 @@
 export const TIME = {
   EPOCH: Date.UTC(2000,0,1),
   MS_PER_DAY: 86400000, // 1000*60*60*24
-  ZOOM_FACTOR: 1.1,  // zoom speed applied to wheel and incremental panning
+  ZOOM_FACTOR: 1.1,  // zoom speed applied to wheel and incremental panning 1.1
   PAN_FACTOR: 200,  // zoom speed for panning in fixed pan mode (arrow keys)
-  MIN_MS_PER_PX: 1000 * 60 * 5,        // 5 minutes per pixel (very zoomed in)
+  MIN_MS_PER_PX: 1000,        // 5 minutes per pixel (very zoomed in) --1000 * 60 * 5
   MAX_MS_PER_PX: 1000 * 60 * 60 * 24 * 365 * 5, // ~5 years per pixel
   MAX_CLICK_MOVE: 1, // maximum mouse movement allowed for a mouse click
   ZOOM_SPEED: 10,  // auto zoom speed
@@ -31,12 +31,16 @@ export const DRAW = {
 };
 
 export const TICK = {
-  PUSHING_THRESHOLD: 200, // px distance from corner label to start "pushing"
+  //PUSHING_THRESHOLD: 200, // px distance from corner label to start "pushing"
   MAX_TICK_LABEL_BRIGHT: 0.85, // max brightness for tick labels
   TICK_TOP: 6,
   TICK_LABEL_HEIGHT: 18,
   PADDING: 20,
-  TICK_FONT: '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif'
+  TICK_FONT: '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+  MIN_WIDTH: 10,  // minimum width of ticks in pixels
+  MINOR_LINE_COLOR: 'rgba(255,255,255,0.10)',
+  MAJOR_LINE_COLOR: 'rgba(255,255,255,0.25)',
+  NOW_LINE_COLOR: 'rgba(0, 123, 255, 0.7)'
 };
 
 export const TOUCH = {

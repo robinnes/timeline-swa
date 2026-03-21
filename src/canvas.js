@@ -13,8 +13,8 @@ export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
 
 export const appState = {
-  msPerPx: TIME.MS_PER_DAY * 30,  // controls zoom; shifts timeline relative to EPOCH at x=0
-  offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 30,  // date at left of the window; center near "now",
+  msPerPx: TIME.MS_PER_DAY * 1,  // controls zoom; shifts timeline relative to EPOCH at x=0
+  offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 1,  // date at left of the window; center near "now",
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
   isTouchScreen: null,
   highlighted: {
