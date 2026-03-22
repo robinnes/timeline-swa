@@ -63,15 +63,36 @@ export function initializeEvent(e) {
     if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
     if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
 
+    /*
     e._tFrom = Date.parse(e.dateFrom) + (12 * h);
     e._tTo = Date.parse(e.dateTo) + (12 * h);
     e._fLeft = Date.parse(e.fadeLeft) + (12 * h);
     e._fRight = Date.parse(e.fadeRight) + (12 * h);
     e._dateTime = (e._fRight + e._fLeft) / 2;
+    */
+
+    e._tFrom = (typeof e.dateFrom === "string") ? Date.parse(e.dateFrom) : e.dateFrom;
+    e._tTo = (typeof e.dateTo === "string") ? Date.parse(e.dateTo) : e.dateTo;
+    e._fLeft = (typeof e.fadeLeft === "string") ? Date.parse(e.fadeLeft) : e.fadeLeft;
+    e._fRight = (typeof e.fadeRight === "string") ? Date.parse(e.fadeRight) : e.fadeRight;
     
+    e._tFrom += (12 * h);
+    e._tTo += (12 * h);
+    e._fLeft += (12 * h);
+    e._fRight += (12 * h);
+    e._dateTime = (e._fRight + e._fLeft) / 2;
+
+    e.dateFrom = e._tFrom;
+    e.dateTo = e._tTo;
+    e.fadeLeft = e._fLeft;
+    e.fadeRight = e._fRight;
+
   } else {
     if (!e.date) e.date = e.dateFrom; // nothing fance like finding middle of line vars...
-    const d = Date.parse(e.date)  // OK to assume that every dot event has a date
+    //const d = Date.parse(e.date)  // OK to assume that every dot event has a date
+    const d = (typeof e.date === "string") ? Date.parse(e.date) : e.date;
+e.date = d;
+e.datePrecision = "day";
     e.color = "white";
     
     //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side

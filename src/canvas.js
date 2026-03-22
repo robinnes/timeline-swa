@@ -197,8 +197,8 @@ export function throwCanvas() {
 
   const avgMomentum = getMomentum();  // calculate momentum from recent recorded pointer speeds
   appState.momentum.tickQueue = [];
-console.log({avgMomentum});
 
+  // if momentum is above threshold, then "throw" the canvas
   if (Math.abs(avgMomentum) >= TIME.MIN_SPEED_FOR_THROW)
     appState.momentum.vOffsetMs = (avgMomentum * appState.msPerPx) / dt;
   
