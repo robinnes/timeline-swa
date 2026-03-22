@@ -15,8 +15,15 @@ console.log(x.multiRow, x.multiWidth);
 */
 
 /*
-const d = new Date(Date.UTC(2020, 11, 20, 12, 23, 16, 738));
-console.log(d);
-d.setUTCMinutes(0,0,0);
-console.log(d);
+import {tickSpec} from './ticks.js';
+const t = 1774085570380;
+for (const ts of tickSpec.values()) {
+  const func = ts.label[ts.label.length-1].text;
+  console.log({mode:ts.mode, label:func(t)})
+}
+
+
+const d = Date.parse("2025-10-");
+console.log(new Date(d).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'numeric', timeZone:'UTC'}));
+
 */

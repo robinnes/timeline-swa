@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {TIME, TOUCH} from './constants.js';
-import {drawTicks, tickSpec} from './ticks.js';
+import {drawTicks, tickSpec, getTickSpec} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
@@ -196,8 +196,12 @@ export function throwCanvas() {
   const dt = Math.max(16.7, now - (appState.momentum.lastTick || now)) / 1000; // ~1 frame if unknown
 
   const avgMomentum = getMomentum();  // calculate momentum from recent recorded pointer speeds
-  appState.momentum.vOffsetMs = (avgMomentum * appState.msPerPx) / dt;
   appState.momentum.tickQueue = [];
+console.log({avgMomentum});
+
+  if (Math.abs(avgMomentum) >= TIME.MIN_SPEED_FOR_THROW)
+    appState.momentum.vOffsetMs = (avgMomentum * appState.msPerPx) / dt;
+  
 }
 
 function zoom(dt) {
@@ -733,7 +737,11 @@ function addNewEvent(viewIdx) {
   const vw = appState.views[viewIdx];
   const tl = timelineCache.get(vw.tlKey);
   const t = Util.pxToTime(getCanvasMidX());
-  const d = new Date(t).toISOString().split('T')[0];
+  
+  //const d = new Date(t).toISOString().split('T')[0];
+  const ts = getTickSpec();
+  
+
   let sig = 3;
   // smallest sig that will fully render
   for (let s = 3; s > 0; s--) {

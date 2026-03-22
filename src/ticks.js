@@ -173,7 +173,7 @@ export const tickSpec = new Map([
     }]
 ]);
 
-function getTickSpec() {
+export function getTickSpec() {
   // iterate tickSpec until current zoom level (msPerPx) would produce ticks at minimum MIN_WIDTH pixels
   let spec = null;
   for (const value of tickSpec.values()) {
@@ -347,7 +347,7 @@ export function drawTicks() {
   if (nowX >= 0 && nowX <= w) {
     drawTickLine(nowX, 2, TICK.NOW_LINE_COLOR);
   }
-//ebugVars();
+debugVars();
 }
 
 // *********************************************************************************
@@ -365,7 +365,7 @@ export function debugVars() {
   
   const spec = getTickSpec();
   const tickWidth = spec.msPerTick / appState.msPerPx;
-  //const fadeFactor = Math.min((tickWidth - spec.minWidth) / spec.minWidth, 0.85);
+  const t = Util.pxToTime(0);
   
   ctx.fillText("tickSpec:", leftLabel, top);
   ctx.fillText(spec.mode, leftValue, top);
@@ -375,6 +375,9 @@ export function debugVars() {
   top += 20;
   ctx.fillText("tickWidth:", leftLabel, top);
   ctx.fillText(Math.round(tickWidth*1000)/1000, leftValue, top);
+  top += 20;
+  ctx.fillText("t:", leftLabel, top);
+  ctx.fillText(Math.round(t*1000)/1000, leftValue, top);
 
 
   ctx.restore();
