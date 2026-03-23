@@ -16,8 +16,8 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    events: tl.events.map(({id, significance, label, date, datePrecision, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
-                            id, significance, label, date, datePrecision, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
+    events: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
+                            id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
     }))
   };
   return JSON.stringify(txt, null, 2);
@@ -45,64 +45,50 @@ export function initializeEvent(e) {
   e._parsedWidth = parsed.multiWidth;
   e._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (e.thumbnail && e._parsedRows < DRAW.THUMB_LABEL_ROWS) e._parsedRows = DRAW.THUMB_LABEL_ROWS;
-  //e._yOffset = null;
 
   if (style === 'line') {
-    if (!e.dateFrom) e.dateFrom = e.date;
-    if (!e.dateTo) e.dateTo = e.date;
-    if (!e.fadeLeft) e.fadeLeft = e.dateFrom;
-    if (!e.fadeRight) e.fadeRight = e.dateTo;
+    // if switched from dot to line
+    if (!e.dateFrom) e.dateFrom = {...e.date};
+    if (!e.dateTo) e.dateTo = {...e.date};
+    if (!e.fadeLeft) e.fadeLeft = {...e.dateFrom};
+    if (!e.fadeRight) e.fadeRight = {...e.dateTo};
+
+    // backward compatability
+    if (typeof e.dateFrom === "string") e.dateFrom = {ts:Date.parse(e.dateFrom), prec:"day"};
+    if (typeof e.dateTo === "string") e.dateTo = {ts:Date.parse(e.dateTo), prec:"day"};
+    if (typeof e.fadeLeft === "string") e.fadeLeft = {ts:Date.parse(e.fadeLeft), prec:"day"};
+    if (typeof e.fadeRight === "string") e.fadeRight = {ts:Date.parse(e.fadeRight), prec:"day"};
+
+    // adjust timestamp to center of tick (assume prec="day" for now)
+    e._tFrom = e.dateFrom.ts + (12*h);
+    e._tTo = e.dateTo.ts + (12*h);
+    e._fLeft = e.fadeLeft.ts + (12*h);
+    e._fRight = e.fadeRight.ts + (12*h);
+
+    // sanity checks
+    if (e._tTo < e._tFrom)    { e.dateTo = {...e.dateFrom};    e._tTo = e._tFrom; }
+    if (e._fLeft > e._fRight) { e.fadeRight = {...e.fadeLeft}; e._fRight = e._fLeft; }
+    if (e._fLeft > e._tTo)    { e.fadeLeft = {...e.dateTo};    e._fLeft = e._tTo; }
+    if (e._fLeft < e._tFrom)  { e.fadeLeft = {...e.dateFrom};  e._fLeft = e._tFrom; }
+    if (e._fRight < e._tFrom) { e.fadeRight = {...e.dateFrom}; e._fRight = e._tFrom; }
+    if (e._fRight > e._tTo)   { e.fadeRight = {...e.dateTo};   e._fRight = e._tTo; }
+
+    e._dateTime = (e._fRight + e._fLeft) / 2;
   
-    //if (e.color === 'white') e.color = DRAW.DEFAULT_LINE_COLOR;
-
-    //sanity checks
-    if (e.dateTo < e.dateFrom) e.dateTo = e.dateFrom;
-    if (e.fadeLeft > e.fadeRight) e.fadeRight = e.fadeLeft;
-    if (e.fadeLeft > e.dateTo) e.fadeLeft = e.dateTo;
-    if (e.fadeLeft < e.dateFrom) e.fadeLeft = e.dateFrom;
-    if (e.fadeRight < e.dateFrom) e.fadeRight = e.dateFrom;
-    if (e.fadeRight > e.dateTo) e.fadeRight = e.dateTo;
-
-    /*
-    e._tFrom = Date.parse(e.dateFrom) + (12 * h);
-    e._tTo = Date.parse(e.dateTo) + (12 * h);
-    e._fLeft = Date.parse(e.fadeLeft) + (12 * h);
-    e._fRight = Date.parse(e.fadeRight) + (12 * h);
-    e._dateTime = (e._fRight + e._fLeft) / 2;
-    */
-
-    e._tFrom = (typeof e.dateFrom === "string") ? Date.parse(e.dateFrom) : e.dateFrom;
-    e._tTo = (typeof e.dateTo === "string") ? Date.parse(e.dateTo) : e.dateTo;
-    e._fLeft = (typeof e.fadeLeft === "string") ? Date.parse(e.fadeLeft) : e.fadeLeft;
-    e._fRight = (typeof e.fadeRight === "string") ? Date.parse(e.fadeRight) : e.fadeRight;
-    
-    e._tFrom += (12 * h);
-    e._tTo += (12 * h);
-    e._fLeft += (12 * h);
-    e._fRight += (12 * h);
-    e._dateTime = (e._fRight + e._fLeft) / 2;
-
-    e.dateFrom = e._tFrom;
-    e.dateTo = e._tTo;
-    e.fadeLeft = e._fLeft;
-    e.fadeRight = e._fRight;
-
   } else {
-    if (!e.date) e.date = e.dateFrom; // nothing fance like finding middle of line vars...
-    //const d = Date.parse(e.date)  // OK to assume that every dot event has a date
-    const d = (typeof e.date === "string") ? Date.parse(e.date) : e.date;
-e.date = d;
-e.datePrecision = "day";
-    e.color = "white";
-    
+    // if switched from line to dot
+    if (!e.date) e.date = {...e.dateFrom}; // nothing fance like finding middle of line vars...
+
+    // backward compatability
+    if (typeof e.date === "string") e.date = {ts:Date.parse(e.date), prec:"day"};
+
     //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-    e._dateTime = d + (12 * h);
+    e._dateTime = e.date.ts + (12 * h);
     e._tFrom = e._dateTime - (4 * h);
     e._tTo = e._dateTime + (4 * h);
     e._fLeft = e._tFrom + (3 * h);
     e._fRight = e._tTo - (3 * h);
   }
-  //e._x = Util.timeToPx(e._dateTime);  // used only to position labels in relation to each other
 };
 
 export function initializeTitle(tl) {

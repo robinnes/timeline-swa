@@ -3,6 +3,7 @@ import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeEvent} from './timeline.js';
 import {markDirty} from './panel.js';
 import {positionLabels, formatEventDates} from './render.js';
+import {startOfTick} from './ticks.js';
 
 export function startDragging() {
   // start dragging a handle
@@ -47,11 +48,13 @@ export function drag(e) {
   // dragging a handle to change event dateTime
   const se = appState.selected.event;
   const attr = appState.drag.attribute;
-  const t = Util.pxToTime(e.clientX) - 12 * 60 * 60 * 1000; // add 12 hours to center on date
-  const d = new Date(t).toISOString().split('T')[0];
-  
-  if (attr === 'dateFrom' && se.fadeLeft === se.dateFrom) se.fadeLeft = d; // move the 'fade' dates with from/to
-  if (attr === 'dateTo' && se.fadeRight === se.dateTo) se.fadeRight = d;
+  const t = Util.pxToTime(e.clientX);  // timestamp in center of the window
+  const roundT = startOfTick(t);
+  if (roundT === se[attr].ts) return;  // snap to tick
+  const d = {ts:roundT, prec:'day'};  // assume precision="day" for now
+
+  if (attr === 'dateFrom' && se._fLeft === se._tFrom) se.fadeLeft = d; // move the 'fade' dates with from/to
+  if (attr === 'dateTo' && se._fRight === se._tTo) se.fadeRight = d;
   se[attr] = d; // initializeEvent will handle limits
   initializeEvent(se);
   document.getElementById('event-date-display').value = formatEventDates(se);

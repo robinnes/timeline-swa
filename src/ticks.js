@@ -185,6 +185,9 @@ export function getTickSpec() {
   return spec;
 }
 
+export function startOfTick(t) {
+  return startOfDay(t);
+}
 
 /* ------------------- Draw elements -------------------- */
 
@@ -347,7 +350,7 @@ export function drawTicks() {
   if (nowX >= 0 && nowX <= w) {
     drawTickLine(nowX, 2, TICK.NOW_LINE_COLOR);
   }
-debugVars();
+//debugVars();
 }
 
 // *********************************************************************************

@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {TIME, TOUCH} from './constants.js';
-import {drawTicks, tickSpec, getTickSpec} from './ticks.js';
+import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
 import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
 import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
@@ -737,10 +737,7 @@ function addNewEvent(viewIdx) {
   const vw = appState.views[viewIdx];
   const tl = timelineCache.get(vw.tlKey);
   const t = Util.pxToTime(getCanvasMidX());
-  
-  //const d = new Date(t).toISOString().split('T')[0];
-  const ts = getTickSpec();
-  
+  const roundT = startOfTick(t)
 
   let sig = 3;
   // smallest sig that will fully render
@@ -753,7 +750,7 @@ function addNewEvent(viewIdx) {
     id: Util.uuid(),
     significance: sig, 
     label: "New event", 
-    date: d, 
+    date: {ts:roundT, prec:"day"}, 
     color: "white",
     details: null,
     tagIds: vw.tagFilter ? [vw.tagFilter] : [],  // if clicked view is filtered, inherit the tag filter
