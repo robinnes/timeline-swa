@@ -52,124 +52,141 @@ function addHours(t, n){return t + n * 1000 * 60 * 60; }
 function startOfMinute(t){ const d = new Date(t); d.setUTCSeconds(0,0); return d.getTime(); }
 function addMinutes(t, n){return t + n * 1000 * 60; }
 
+
 function formatYear(t){ return new Date(t).getUTCFullYear().toString(); }
+function formatYearCirca(t){ return 'c ' + new Date(t).getUTCFullYear().toString(); }
+
 function formatMonthYear(t){ return new Date(t).toLocaleString(undefined,{month:'short', year:'numeric', timeZone:'UTC'}); }
 function formatMonth(t){ return new Date(t).toLocaleString(undefined,{month:'short', timeZone:'UTC'}); }
-function formatDayYear(t){ return new Date(t).toLocaleString(undefined,{weekday:'short', year:'numeric', month:'short', day:'numeric', timeZone:'UTC'}); }
+
 function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric', timeZone:'UTC'}); }
+function formatDayFull(t){ return new Date(t).toLocaleString(undefined,{year:'numeric', month:'short', day:'numeric', timeZone:'UTC'}); }
 function formatWeekday(t){ return new Date(t).toLocaleString('en-GB',{weekday:'short', day:'numeric', timeZone:'UTC'}); }
+function formatWeekdayFull(t){ return new Date(t).toLocaleString(undefined,{weekday:'short', year:'numeric', month:'short', day:'numeric', timeZone:'UTC'}); }
+
 function formatHour(t){ return new Date(t).toLocaleString(undefined,{hour:'numeric', timeZone:'UTC'}); }
-function formatMinuteYear(t){ return new Date(t).toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'numeric', timeZone:'UTC'}); }
+//function formatHourFull(t){ return new Date(t).toLocaleString(undefined,{year:'numeric', month:'short', day:'numeric', hour:'numeric', timeZone:'UTC'}); }
+
 function formatMinute(t){ const m = "0" + new Date(t).toLocaleString(undefined, {minute:'2-digit', timeZone:'UTC'}); return m.slice(-2); }
 function formatMinuteLong(t){ return new Date(t).toLocaleString(undefined, {hour:'numeric', minute:'2-digit', timeZone:'UTC'}); }
+function formatMinuteWeekday(t){ return new Date(t).toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'}); }
+function formatMinuteFull(t){ return new Date(t).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'numeric', timeZone:'UTC'}); }
 
 
 /* ------------------- Time hierarchy logic -------------------- */
 
 export const tickSpec = new Map([
   ['minute', { 
-      mode:'minute', 
-      zoomOut:'hour', 
-      zoomIn:null, 
-      start:startOfMinute, 
-      step:addMinutes, 
-      majorLabel:formatMinuteLong, 
-      cornerLabel:formatMinuteYear, 
-      majorEvery:60, 
-      msPerTick:1000*60, 
+      mode: 'minute', 
+      zoomOut: 'hour', 
+      zoomIn: null, 
+      start: startOfMinute, 
+      step: addMinutes, 
+      majorLabel: formatMinuteLong, 
+      cornerLabel: formatMinuteWeekday, 
+      majorEvery: 60, 
+      msPerTick: 1000*60, 
       newEventSig: 1,
-      label: [{minWidth:20, text:formatMinute}]
+      label: [{minWidth:20, text:formatMinute}],
+      panelLabel: formatMinuteFull
       }],
   ['hour', { 
-      mode:'hour', 
-      zoomOut:'day', 
-      zoomIn:'minute', 
-      start:startOfHour, 
-      step:addHours, 
-      majorLabel:formatWeekday, 
-      cornerLabel:formatDayYear, 
-      majorEvery:24, 
-      msPerTick:1000*60*60, 
+      mode: 'hour', 
+      zoomOut: 'day', 
+      zoomIn: 'minute', 
+      start: startOfHour, 
+      step: addHours, 
+      majorLabel: formatWeekday, 
+      cornerLabel: formatWeekdayFull, 
+      majorEvery: 24, 
+      msPerTick: 1000*60*60, 
       newEventSig: 1,
-      label: [{minWidth:30, text:formatHour}]
+      label: [{minWidth:30, text:formatHour}],
+      panelLabel: formatMinuteFull 
       }],
   ['day', {
-      mode:'day',
-      zoomOut:'month',
-      zoomIn:'day', 
-      start:startOfDay,
-      step:addDays,
-      majorLabel:formatMonth,
-      cornerLabel:formatMonthYear,
-      majorEvery:30,
-      msPerTick:86400000,
-      newEventSig:1,
-      label: [{minWidth:60, text:formatWeekday}, {minWidth:20, text:formatDay}]
+      mode: 'day',
+      zoomOut: 'month',
+      zoomIn: 'day', 
+      start: startOfDay,
+      step: addDays,
+      majorLabel: formatMonth,
+      cornerLabel: formatMonthYear,
+      majorEvery: 30,
+      msPerTick: 86400000,
+      newEventSig: 1,
+      label: [{minWidth:60, text:formatWeekday}, {minWidth:20, text:formatDay}],
+      panelLabel: formatDayFull
       }],
   ['month', {
-      mode:'month',
-      zoomOut:'year',
-      zoomIn:'day',
-      start:startOfMonth,
-      step:addMonths,
-      majorLabel:formatYear,
-      cornerLabel:formatYear,
-      majorEvery:12,
-      msPerTick:86400000*30,
-      newEventSig:2,
-      label: [{minWidth:30, text:formatMonth}]
+      mode: 'month',
+      zoomOut: 'year',
+      zoomIn: 'day',
+      start: startOfMonth,
+      step: addMonths,
+      majorLabel: formatYear,
+      cornerLabel: formatYear,
+      majorEvery: 12,
+      msPerTick: 86400000*30,
+      newEventSig: 2,
+      label: [{minWidth:30, text:formatMonth}],
+      panelLabel: formatMonthYear
     }],
   ['year', { 
-      mode:'year',
-      zoomOut:'decade',
-      zoomIn:'month',
-      start:startOfYear, 
-      step:addYears, 
-      majorLabel:formatYear, 
-      cornerLabel:null, 
-      majorEvery:10, 
-      msPerTick:86400000*365, 
-      newEventSig:3,
-      label: [{minWidth:40, text:formatYear}]
+      mode: 'year',
+      zoomOut: 'decade',
+      zoomIn: 'month',
+      start: startOfYear, 
+      step: addYears, 
+      majorLabel: formatYear, 
+      cornerLabel: null, 
+      majorEvery: 10, 
+      msPerTick: 86400000*365, 
+      newEventSig: 3,
+      label: [{minWidth:40, text:formatYear}],
+      panelLabel: formatYear
     }],
   ['decade', {
-      mode:'decade',
-      zoomOut:'century',
-      zoomIn:'year',
-      start:startOfDecade,
-      step:addDecades,
-      majorLabel:formatYear,
-      cornerLabel:null,
-      majorEvery:100,
-      msPerTick:86400000*365*10,
-      newEventSig:3,
-      label: [{minWidth:30, text:formatYear}]
+      mode: 'decade',
+      zoomOut: 'century',
+      zoomIn: 'year',
+      start: startOfDecade,
+      step: addDecades,
+      majorLabel: formatYear,
+      cornerLabel: null,
+      majorEvery: 100,
+      msPerTick: 86400000*365*10,
+      newEventSig: 3,
+      label: [{minWidth:30, text:formatYear}],
+      panelLabel: formatYearCirca
     }],
   ['century', {
-      mode:'century',
-      zoomOut:'millenium',
-      zoomIn:'decade',
-      start:startOfCentury,
-      step:addCenturies,
-      majorLabel:formatYear,
-      cornerLabel:null,
-      majorEvery:1000,
-      msPerTick:86400000*365*100,
-      newEventSig:3,
-      label: [{minWidth:30, text:formatYear}]
+      mode: 'century',
+      zoomOut: 'millenium',
+      zoomIn: 'decade',
+      start: startOfCentury,
+      step: addCenturies,
+      majorLabel: formatYear,
+      cornerLabel: null,
+      majorEvery: 1000,
+      msPerTick: 86400000*365*100,
+      newEventSig: 3,
+      label: [{minWidth:30, text:formatYear}],
+      panelLabel: formatYearCirca
     }],
   ['millenium', {
-      mode:'millenium',
-      zoomOut:'millenium',
-      zoomIn:'century',
-      start:startOfMillenium,
-      step:addMillenia,
-      majorLabel:formatYear,
-      cornerLabel:null,
-      majorEvery:10000,
-      msPerTick:86400000*365*1000,
-      newEventSig:3,
-      label: [{minWidth:30, text:formatYear}]
+      mode: 'millenium',
+      zoomOut: 'millenium',
+      zoomIn: 'century',
+      start: startOfMillenium,
+      step: addMillenia,
+      majorLabel: formatYear,
+      cornerLabel: null,
+      majorEvery: 10000,
+      msPerTick: 86400000*365*1000,
+      newEventSig: 3,
+      label: [{minWidth:30, text:formatYear}],
+      panelLabel: formatYearCirca
     }]
 ]);
 
@@ -186,7 +203,15 @@ export function getTickSpec() {
 }
 
 export function startOfTick(t) {
-  return startOfDay(t);
+  const spec = getTickSpec();
+  return spec.start(t);
+}
+
+export function formatEventDate(compoundDate) {
+  // compoundDate = {ts, prec}
+  const d = new Date(compoundDate.ts);  // date from the timestamp
+  const spec = tickSpec.get(compoundDate.prec);  // tickSpec for that precision
+  return spec.panelLabel(d);  // return result from the appropriate function
 }
 
 /* ------------------- Draw elements -------------------- */
@@ -246,7 +271,6 @@ export function drawTicks() {
   const spec = getTickSpec();
   const majorSpec = tickSpec.get(spec.zoomOut);
   const vp = getCanvasViewport();
-  const w = vp.width;
   const t0 = Util.pxToTime(vp.left);
   const t1 = Util.pxToTime(vp.right);
   const tickWidth = spec.msPerTick / appState.msPerPx;
@@ -264,7 +288,7 @@ export function drawTicks() {
   let pushingWidth = 0;
   
   if (spec.cornerLabel) {
-    const cornerLabelText = spec.cornerLabel(t0);
+    const cornerLabelText = spec.cornerLabel(majorT);
     
     // Determine whether a major tick is close to the corner label
     const firstMajorTick = majorSpec.step(majorT, 1);
@@ -280,8 +304,9 @@ export function drawTicks() {
       pushingWidth = ctx.measureText(pushingLabel).width; 
       pushingX = Math.max(firstMajorX, DRAW.EDGE_GAP + (pushingWidth / 2));
     }
-    const cornerLabelT = spec.mode==='day' ? startOfMonth(t) : startOfYear(t);
-    const cornerLabelMode = spec.mode==='day' ? 'month' : 'year';
+    const cornerLabelT = majorT;
+    const cornerLabelMode = spec.zoomOut;
+
     // Draw corner label
     drawTickLabel(cornerLabelText, cornerLabelX, cornerLabelWidth, TICK.MAX_TICK_LABEL_BRIGHT, cornerLabelT, cornerLabelMode);
   }
@@ -347,7 +372,7 @@ export function drawTicks() {
 
   // Current date/time blue line
   const nowX = Util.timeToPx(timeZoneNow());
-  if (nowX >= 0 && nowX <= w) {
+  if (nowX >= 0 && nowX <= vp.right) {
     drawTickLine(nowX, 2, TICK.NOW_LINE_COLOR);
   }
 //debugVars();
@@ -378,10 +403,11 @@ export function debugVars() {
   top += 20;
   ctx.fillText("tickWidth:", leftLabel, top);
   ctx.fillText(Math.round(tickWidth*1000)/1000, leftValue, top);
+  /*
   top += 20;
   ctx.fillText("t:", leftLabel, top);
   ctx.fillText(Math.round(t*1000)/1000, leftValue, top);
-
+  */
 
   ctx.restore();
 };

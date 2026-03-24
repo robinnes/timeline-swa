@@ -1,706 +1,1651 @@
 {
+  "id": "2d8bfd83-a12e-4d0e-86f7-3ccb34d1354a",
   "title": "Modern Israel",
-  "dateFrom": "1897-08-09",
-  "dateTo": "2025-09-26",
+  "tags": [],
   "events": [
     {
+      "id": "a9314633-1077-4c3f-8f62-54db26ff6e31",
       "significance": 6,
       "label": "Pre-State: Zionist Movement & British Mandate",
-      "dateFrom": "1897-08-29",
-      "dateTo": "1948-05-14",
-      "fadeLeft": "1920-01-15",
-      "fadeRight": "1948-05-14",
-      "color": "blue"
+      "dateFrom": {
+        "ts": -2282860800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -682732800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -1576713600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -682732800000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "09b25fc6-1fc1-4cd5-9e0e-947aab17b14c",
       "significance": 6,
       "label": "David Ben-Gurion (I)",
-      "dateFrom": "1948-05-14",
-      "dateTo": "1953-12-07",
-      "fadeLeft": "1948-05-14",
-      "fadeRight": "1953-12-07",
-      "color": "green"
+      "dateFrom": {
+        "ts": -682732800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -507081600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -682732800000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -507081600000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "e1d1bf1b-3e76-4452-910a-6650f504ba6e",
       "significance": 6,
       "label": "Moshe Sharett",
-      "dateFrom": "1953-12-07",
-      "dateTo": "1955-11-03",
-      "fadeLeft": "1953-12-07",
-      "fadeRight": "1955-11-03",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": -507081600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -446947200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -507081600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -446947200000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "f578ad5d-3e84-416c-baca-c0aac7d39b44",
       "significance": 6,
       "label": "David Ben-Gurion (II)",
-      "dateFrom": "1955-11-03",
-      "dateTo": "1963-06-26",
-      "fadeLeft": "1955-11-03",
-      "fadeRight": "1963-06-26",
-      "color": "green"
+      "dateFrom": {
+        "ts": -446947200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -205718400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -446947200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -205718400000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "e6ad806d-d060-4ab0-99c7-d64f7bfc4408",
       "significance": 6,
       "label": "Levi Eshkol",
-      "dateFrom": "1963-06-26",
-      "dateTo": "1969-03-17",
-      "fadeLeft": "1963-06-26",
-      "fadeRight": "1969-02-26",
+      "dateFrom": {
+        "ts": -205718400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -25056000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -205718400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -26697600000,
+        "prec": "day"
+      },
       "color": "blue",
-      "colorRight": "yellow"
+      "colorRight": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "09239740-391f-4f1d-86f6-2ec9336c764b",
       "significance": 5,
       "label": "Yigal Allon (acting PM)",
-      "dateFrom": "1969-02-26",
-      "dateTo": "1969-03-17",
-      "fadeLeft": "1969-03-01",
-      "fadeRight": "1969-03-12",
-      "color": "green"
+      "dateFrom": {
+        "ts": -26697600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -25056000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -26438400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -25488000000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "1453e007-3992-4729-9352-039b4e78cdb8",
       "significance": 6,
       "label": "Golda Meir",
-      "dateFrom": "1969-03-17",
-      "dateTo": "1974-06-03",
-      "fadeLeft": "1969-03-17",
-      "fadeRight": "1974-06-03",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": -25056000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 139449600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -25056000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 139449600000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "b384de7d-97ae-4bbd-8da3-60f1779a1fa3",
       "significance": 6,
       "label": "Yitzhak Rabin (I)",
-      "dateFrom": "1974-06-03",
-      "dateTo": "1977-06-21",
-      "fadeLeft": "1974-06-03",
-      "fadeRight": "1977-04-22",
+      "dateFrom": {
+        "ts": 139449600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 235699200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 139449600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 230515200000,
+        "prec": "day"
+      },
       "color": "green",
-      "colorRight": "yellow"
+      "colorRight": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "53384dbf-a9b8-4561-bfd8-d65461441b07",
       "significance": 2,
       "label": "Shimon Peres (acting PM)",
-      "date": "1977-04-22",
-      "color": "white"
+      "date": {
+        "ts": 230515200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "fbac9a4b-1562-41a3-980f-d2434dd14344",
       "significance": 6,
       "label": "Menachem Begin",
-      "dateFrom": "1977-06-21",
-      "dateTo": "1983-10-10",
-      "fadeLeft": "1977-06-21",
-      "fadeRight": "1983-10-10",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 235699200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 434592000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 235699200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 434592000000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "07a3e621-a68e-41ef-a3c2-ca362b647b39",
       "significance": 6,
       "label": "Yitzhak Shamir (I)",
-      "dateFrom": "1983-10-10",
-      "dateTo": "1984-09-13",
-      "fadeLeft": "1983-10-10",
-      "fadeRight": "1984-09-13",
-      "color": "blue"
+      "dateFrom": {
+        "ts": 434592000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 463881600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 434592000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 463881600000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "63c2111e-cee8-4c6a-8db6-cf0a774916df",
       "significance": 6,
       "label": "Shimon Peres",
-      "dateFrom": "1984-09-13",
-      "dateTo": "1986-10-20",
-      "fadeLeft": "1984-09-13",
-      "fadeRight": "1986-10-20",
-      "color": "purple"
+      "dateFrom": {
+        "ts": 463881600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 530150400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 463881600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 530150400000,
+        "prec": "day"
+      },
+      "color": "purple",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "1aff93a3-8c06-4077-8e6d-ad36df4594a5",
       "significance": 6,
       "label": "Yitzhak Shamir (II)",
-      "dateFrom": "1986-10-20",
-      "dateTo": "1992-07-13",
-      "fadeLeft": "1986-10-20",
-      "fadeRight": "1992-07-13",
-      "color": "blue"
+      "dateFrom": {
+        "ts": 530150400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 710985600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 530150400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 710985600000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "9718a86d-5219-44c6-bd9a-6e9ae3f90684",
       "significance": 6,
       "label": "Yitzhak Rabin (II)",
-      "dateFrom": "1992-07-13",
-      "dateTo": "1995-11-04",
-      "fadeLeft": "1992-07-13",
-      "fadeRight": "1995-11-04",
-      "color": "green"
+      "dateFrom": {
+        "ts": 710985600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 815443200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 710985600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 815443200000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "fe9628d5-ba17-4443-b7ce-61a435e0e7a0",
       "significance": 2,
       "label": "Shimon Peres PM",
-      "date": "1995-11-22",
-      "color": "white"
+      "date": {
+        "ts": 816998400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "76a1a32c-1afe-4e44-b1cb-370d09eb00de",
       "significance": 6,
       "label": "Shimon Peres",
-      "dateFrom": "1995-11-04",
-      "dateTo": "1996-06-18",
-      "fadeLeft": "1995-11-22",
-      "fadeRight": "1996-06-18",
-      "color": "purple"
+      "dateFrom": {
+        "ts": 815443200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 835056000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 816998400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 835056000000,
+        "prec": "day"
+      },
+      "color": "purple",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "02c5236c-d11e-4fc1-878c-956f201e3f1d",
       "significance": 6,
       "label": "Benjamin Netanyahu (I)",
-      "dateFrom": "1996-06-18",
-      "dateTo": "1999-07-06",
-      "fadeLeft": "1996-06-18",
-      "fadeRight": "1999-07-06",
-      "color": "blue"
+      "dateFrom": {
+        "ts": 835056000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 931219200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 835056000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 931219200000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "299f4153-223f-4643-b12a-996d0370875b",
       "significance": 6,
       "label": "Ehud Barak",
-      "dateFrom": "1999-07-06",
-      "dateTo": "2001-03-07",
-      "fadeLeft": "1999-07-06",
-      "fadeRight": "2001-03-07",
-      "color": "green"
+      "dateFrom": {
+        "ts": 931219200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 983923200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 931219200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 983923200000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "22bd841f-c164-4602-99bd-b829b4f9fb99",
       "significance": 6,
       "label": "Ariel Sharon",
-      "dateFrom": "2001-03-07",
-      "dateTo": "2006-01-04",
-      "fadeLeft": "2001-03-07",
-      "fadeRight": "2006-01-04",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 983923200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1136332800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 983923200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1136332800000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "be7ed970-37bc-4b35-9b36-182d54ef5d77",
       "significance": 2,
       "label": "Ehud Olmert PM",
-      "date": "2006-04-14",
-      "color": "white"
+      "date": {
+        "ts": 1144972800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "af1c7aad-d352-4efe-8eca-a46c8c10f791",
       "significance": 6,
       "label": "Ehud Olmert",
-      "dateFrom": "2006-01-04",
-      "dateTo": "2009-03-31",
-      "fadeLeft": "2006-04-14",
-      "fadeRight": "2009-03-31",
+      "dateFrom": {
+        "ts": 1136332800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1238457600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1144972800000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1238457600000,
+        "prec": "day"
+      },
       "color": "purple",
-      "colorLeft": "yellow"
+      "colorLeft": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "08724481-ba53-4d24-8716-134e26b0f0f8",
       "significance": 6,
       "label": "Benjamin Netanyahu (II)",
-      "dateFrom": "2009-03-31",
-      "dateTo": "2021-06-13",
-      "fadeLeft": "2009-03-31",
-      "fadeRight": "2021-06-13",
-      "color": "blue"
+      "dateFrom": {
+        "ts": 1238457600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1623542400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1238457600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1623542400000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6547582b-98cd-4e34-b76a-7bba3da40b98",
       "significance": 6,
       "label": "Naftali Bennett",
-      "dateFrom": "2021-06-13",
-      "dateTo": "2022-06-30",
-      "fadeLeft": "2021-06-13",
-      "fadeRight": "2022-06-30",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 1623542400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1656547200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1623542400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1656547200000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "da07a4a3-0042-4e04-ab62-192946aff603",
       "significance": 6,
       "label": "Yair Lapid",
-      "dateFrom": "2022-07-01",
-      "dateTo": "2022-12-29",
-      "fadeLeft": "2022-07-01",
-      "fadeRight": "2022-12-29",
-      "color": "green"
+      "dateFrom": {
+        "ts": 1656633600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1672272000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1656633600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1672272000000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "b5a0738e-e512-4988-b14f-4d1c4f3b2d76",
       "significance": 6,
       "label": "Benjamin Netanyahu (III)",
-      "dateFrom": "2022-12-29",
-      "dateTo": "2025-09-26",
-      "fadeLeft": "2022-12-29",
-      "fadeRight": "2025-09-26",
-      "color": "blue"
+      "dateFrom": {
+        "ts": 1672272000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1758844800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1672272000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1758844800000,
+        "prec": "day"
+      },
+      "color": "blue",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "4d087d64-673f-4d42-8d55-a8779a43d36e",
       "significance": 3,
       "label": "First Zionist Congress (Basel)",
-      "date": "1897-08-09",
+      "date": {
+        "ts": -2284588800000,
+        "prec": "day"
+      },
       "dateFrom": "1897-08-09",
       "dateTo": "1897-08-31",
       "fadeLeft": "1897-08-15",
       "fadeRight": "1897-08-25",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "d9bbd7c4-e8d8-4410-bfde-76292722f756",
       "significance": 3,
       "label": "Balfour Declaration",
-      "date": "1917-11-02",
-      "color": "white"
+      "date": {
+        "ts": -1646179200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "2a7f43b0-a63e-4b14-8348-f2ac079ea4dd",
       "significance": 3,
       "label": "San Remo Conference assigns Mandate to Britain",
-      "date": "1920-04-25",
-      "color": "white"
+      "date": {
+        "ts": -1567987200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "a2ae64cf-4073-4729-ba63-9e8fe0983a2b",
       "significance": 3,
       "label": "League of Nations Mandate for Palestine approved",
-      "date": "1922-07-24",
-      "color": "white"
+      "date": {
+        "ts": -1497139200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "de7f0a1f-cac4-4109-8d1b-801d0035456c",
       "significance": 3,
       "label": "British Mandate enters into force",
-      "date": "1923-09-29",
-      "color": "white"
+      "date": {
+        "ts": -1459814400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "06c44d82-bfd2-4aca-9b8a-30a2e0eb0ca3",
       "significance": 5,
       "label": "Arab Revolt in Palestine",
-      "dateFrom": "1936-04-19",
-      "dateTo": "1939-10-01",
-      "fadeLeft": "1936-08-19",
-      "fadeRight": "1939-06-01",
-      "color": "green"
+      "dateFrom": {
+        "ts": -1063584000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -954720000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -1053043200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -965260800000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "b9947754-1139-4001-883d-c6a314edbb5f",
       "significance": 3,
       "label": "British White Paper limits Jewish immigration",
-      "date": "1939-05-17",
-      "color": "white"
+      "date": {
+        "ts": -966556800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "baa840dd-355c-4738-bda5-a2bcd0998820",
       "significance": 3,
       "label": "King David Hotel bombing",
-      "date": "1946-07-22",
-      "color": "white"
+      "date": {
+        "ts": -739929600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "0acc4ba9-289a-4470-8f0d-f83e4e93488d",
       "significance": 3,
       "label": "UN Partition Plan (GA 181)",
-      "date": "1947-11-29",
-      "color": "white"
+      "date": {
+        "ts": -697161600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "221f16b7-74eb-4532-9bf3-16346e9dfdf0",
       "significance": 3,
       "label": "Israeli Declaration of Independence",
-      "date": "1948-05-14",
-      "color": "white"
+      "date": {
+        "ts": -682732800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "02eae7a7-0967-4b4a-9b0a-4aca170b3c7d",
       "significance": 5,
       "label": "1948 Arab-Israeli War",
-      "dateFrom": "1948-05-15",
-      "dateTo": "1949-07-20",
-      "fadeLeft": "1948-05-15",
-      "fadeRight": "1949-02-24",
-      "color": "red"
+      "dateFrom": {
+        "ts": -682646400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -645408000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -682646400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -658022400000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "48ae601b-28d5-429d-8071-e286693e7818",
       "significance": 4,
       "label": "Rhodes Armistice Agreements",
-      "dateFrom": "1949-02-24",
-      "dateTo": "1949-07-20",
-      "fadeLeft": "1949-02-24",
-      "fadeRight": "1949-07-20"
+      "dateFrom": {
+        "ts": -658022400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -645408000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -658022400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -645408000000,
+        "prec": "day"
+      },
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "7141a206-41be-44a7-ad07-090c85da9983",
       "significance": 3,
       "label": "Israel admitted to United Nations",
-      "date": "1949-05-11",
-      "color": "white"
+      "date": {
+        "ts": -651456000000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "5ee36630-39af-43e0-b74c-aa01e38ef799",
       "significance": 2,
       "label": "Luxembourg Reparations Agreement with West Germany",
-      "date": "1952-09-10",
-      "color": "white"
+      "date": {
+        "ts": -546220800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "2d3e5935-2ed8-42ae-a67a-712b5cb0a8d4",
       "significance": 3,
       "label": "Law of Return enacted",
-      "date": "1950-07-05",
-      "color": "white"
+      "date": {
+        "ts": -615168000000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "00b463b2-2cd5-4ac9-b3f5-c9b354c50482",
       "significance": 5,
       "label": "Suez Crisis / Operation Kadesh",
-      "dateFrom": "1956-10-29",
-      "dateTo": "1957-03-07",
-      "fadeLeft": "1956-11-29",
-      "fadeRight": "1957-02-07",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": -415756800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -404611200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -413078400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -407030400000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "f98d97db-b0ce-48d3-ab14-42f8de36c356",
       "significance": 3,
       "label": "Eichmann capture in Argentina",
-      "date": "1960-05-11",
-      "color": "white"
+      "date": {
+        "ts": -304300800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "9c5ebf9a-9f61-4d2e-8d08-22422ee9b54e",
       "significance": 5,
       "label": "Eichmann trial",
-      "dateFrom": "1961-04-11",
-      "dateTo": "1962-06-01",
-      "fadeLeft": "1961-09-11",
-      "fadeRight": "1962-06-01",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": -275356800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -239414400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -262137600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -239414400000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "adc34612-18bf-45f8-ab73-b5338410ecaf",
       "significance": 3,
       "label": "Eichmann execution",
-      "date": "1962-06-01",
-      "color": "white"
+      "date": {
+        "ts": -239414400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "3ad31ce5-b606-435d-ab69-a3b32bda4864",
       "significance": 2,
       "label": "Dimona nuclear reactor publicly acknowledged",
-      "date": "1960-12-21",
-      "color": "white"
+      "date": {
+        "ts": -284947200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "3a85bc16-769c-46d8-bba7-0cbac51e999d",
       "significance": 3,
       "label": "Palestine Liberation Organization founded",
-      "date": "1964-05-28",
-      "color": "white"
+      "date": {
+        "ts": -176601600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6577d51e-1ff5-4659-9d93-57376acc7056",
       "significance": 5,
       "label": "Six-Day War",
-      "dateFrom": "1967-06-05",
-      "dateTo": "1967-06-10",
-      "fadeLeft": "1967-06-06",
-      "fadeRight": "1967-06-09",
-      "color": "red"
+      "dateFrom": {
+        "ts": -81302400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": -80870400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": -81216000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": -80956800000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6dd0172b-4a43-4614-8460-66e05925566e",
       "significance": 2,
       "label": "Jerusalem reunification (IDF enters Old City)",
-      "date": "1967-06-07",
-      "color": "white"
+      "date": {
+        "ts": -81129600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "bc179e4f-3610-43b8-acc4-898f84a4befd",
       "significance": 3,
       "label": "Yom Kippur War",
-      "date": "1973-10-06",
+      "date": {
+        "ts": 118713600000,
+        "prec": "day"
+      },
       "dateFrom": "1973-10-06",
       "dateTo": "1973-10-25",
       "fadeLeft": "1973-10-11",
       "fadeRight": "1973-10-20",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "45bde56f-b39b-426a-99a6-aaca338aa370",
       "significance": 3,
       "label": "Camp David Accords",
-      "date": "1978-09-17",
-      "color": "white"
+      "date": {
+        "ts": 274838400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "4277405b-686d-4fe9-961b-17845d8514e5",
       "significance": 3,
       "label": "Egypt-Israel Peace Treaty",
-      "date": "1979-03-26",
-      "color": "white"
+      "date": {
+        "ts": 291254400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "4eceb962-365d-4d37-8d4d-2fe8808b58fa",
       "significance": 3,
       "label": "Jerusalem Law (Basic Law)",
-      "date": "1980-07-30",
-      "color": "white"
+      "date": {
+        "ts": 333763200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "e8b60b6f-63ed-4f11-abbb-983a9fef2ce6",
       "significance": 3,
       "label": "Operation Opera strikes Iraqi Osirak reactor",
-      "date": "1981-06-07",
-      "color": "white"
+      "date": {
+        "ts": 360720000000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "1627f836-c6eb-467c-bc5e-6e45e859b471",
       "significance": 5,
       "label": "First Lebanon War (invasion phase)",
-      "dateFrom": "1982-06-06",
-      "dateTo": "1982-08-30",
-      "fadeLeft": "1982-06-21",
-      "fadeRight": "1982-08-15",
-      "color": "red"
+      "dateFrom": {
+        "ts": 392169600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 399513600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 393465600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 398217600000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "ed1a4f13-b17f-4390-8088-2bccd02558b0",
       "significance": 3,
       "label": "Sabra and Shatila massacre",
-      "date": "1982-09-16",
+      "date": {
+        "ts": 400982400000,
+        "prec": "day"
+      },
       "dateFrom": "1982-09-16",
       "dateTo": "1982-09-18",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "1b2b49db-440c-43a4-a468-d20d39b401c5",
       "significance": 5,
       "label": "Operation Moses airlift of Ethiopian Jews",
-      "dateFrom": "1984-11-21",
-      "dateTo": "1985-01-05",
-      "fadeLeft": "1984-12-01",
-      "fadeRight": "1984-12-25",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 469843200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 473731200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 470707200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 472780800000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "b13f3601-6cf1-4416-afc0-ee41dd965770",
       "significance": 5,
       "label": "First Intifada",
-      "dateFrom": "1987-12-09",
-      "dateTo": "1993-09-13",
-      "fadeLeft": "1988-01-09",
-      "fadeRight": "1993-08-13",
-      "color": "red"
+      "dateFrom": {
+        "ts": 566006400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 747878400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 568684800000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 745200000000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "776c29a4-ef54-4ad5-ac30-2128cf488232",
       "significance": 4,
       "label": "Gulf War Scud attacks on Israel",
-      "dateFrom": "1991-01-18",
-      "dateTo": "1991-02-25",
-      "fadeLeft": "1991-01-28",
-      "fadeRight": "1991-02-15",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 664156800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 667440000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 665020800000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 666576000000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "a9823383-ce35-4eee-ac79-a8e25d63ebd1",
       "significance": 3,
       "label": "Operation Solomon airlift of Ethiopian Jews",
-      "date": "1991-05-24",
+      "date": {
+        "ts": 675043200000,
+        "prec": "day"
+      },
       "dateFrom": "1991-05-24",
       "dateTo": "1991-05-25",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "75c1afec-8d54-4ee4-94d1-bf23cff0a7be",
       "significance": 3,
       "label": "Madrid Peace Conference",
-      "date": "1991-10-30",
+      "date": {
+        "ts": 688780800000,
+        "prec": "day"
+      },
       "dateFrom": "1991-10-30",
       "dateTo": "1991-11-01",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6d6f15d1-815c-4b12-8104-3185f10ee69f",
       "significance": 3,
       "label": "Oslo I Accord (Declaration of Principles)",
-      "date": "1993-09-13",
-      "color": "white"
+      "date": {
+        "ts": 747878400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "13eac4aa-16fb-4c88-8d6b-e0a57099098a",
       "significance": 3,
       "label": "Israel-Jordan Peace Treaty (Wadi Araba)",
-      "date": "1994-10-26",
-      "color": "white"
+      "date": {
+        "ts": 783129600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "e48af3df-b08b-41c1-a5a0-9c0ff4281329",
       "significance": 3,
       "label": "Oslo II Accord",
-      "date": "1995-09-28",
-      "color": "white"
+      "date": {
+        "ts": 812246400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "237ce7fc-44f3-47ce-a6e7-3b3739c18783",
       "significance": 3,
       "label": "Assassination of PM Yitzhak Rabin",
-      "date": "1995-11-04",
-      "color": "white"
+      "date": {
+        "ts": 815443200000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "07b2c6a0-a7cf-4cb2-8dc9-60d7dc1d29f9",
       "significance": 3,
       "label": "Hebron Protocol",
-      "date": "1997-01-15",
-      "color": "white"
+      "date": {
+        "ts": 853286400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "e2481cf9-02b2-437e-b273-59b8c531fbbf",
       "significance": 3,
       "label": "Wye River Memorandum",
-      "date": "1998-10-23",
-      "color": "white"
+      "date": {
+        "ts": 909100800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "bb4a08c9-6e93-46ef-ac23-9cc21110d0dd",
       "significance": 3,
       "label": "IDF withdrawal from southern Lebanon",
-      "date": "2000-05-24",
-      "color": "white"
+      "date": {
+        "ts": 959126400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "cc370bc3-ddc6-4133-a94b-515baf3b40ab",
       "significance": 3,
       "label": "Camp David Summit (final-status talks)",
-      "date": "2000-07-11",
+      "date": {
+        "ts": 963273600000,
+        "prec": "day"
+      },
       "dateFrom": "2000-07-11",
       "dateTo": "2000-07-25",
       "fadeLeft": "2000-07-15",
       "fadeRight": "2000-07-21",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "5505c45e-9fd8-455c-9965-1ef572358110",
       "significance": 5,
       "label": "Second Intifada",
-      "dateFrom": "2000-09-28",
-      "dateTo": "2005-02-08",
-      "fadeLeft": "2000-10-28",
-      "fadeRight": "2005-01-08",
-      "color": "red"
+      "dateFrom": {
+        "ts": 970099200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1107820800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 972691200000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1105142400000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "9fdb9197-92c4-4d1e-b718-800f6ebf6a6d",
       "significance": 4,
       "label": "Operation Defensive Shield (West Bank)",
-      "dateFrom": "2002-03-29",
-      "dateTo": "2002-05-10",
-      "fadeLeft": "2002-04-04",
-      "fadeRight": "2002-05-05",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1017360000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1020988800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1017878400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1020556800000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "2a266260-54d7-4371-8a11-eb4b3f6ab4ec",
       "significance": 3,
       "label": "West Bank barrier construction begins",
-      "date": "2002-06-16",
-      "color": "white"
+      "date": {
+        "ts": 1024185600000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "c11af448-b706-4011-8625-3b2ed3ba3d16",
       "significance": 5,
       "label": "Gaza Disengagement",
-      "dateFrom": "2005-08-15",
-      "dateTo": "2005-09-12",
-      "fadeLeft": "2005-08-20",
-      "fadeRight": "2005-09-07",
-      "color": "green"
+      "dateFrom": {
+        "ts": 1124064000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1126483200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1124496000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1126051200000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6809808f-08ce-4ac6-aced-f831e4cfd359",
       "significance": 5,
       "label": "Second Lebanon War",
-      "dateFrom": "2006-07-12",
-      "dateTo": "2006-08-14",
-      "fadeLeft": "2006-07-17",
-      "fadeRight": "2006-08-09",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1152662400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1155513600000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1153094400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1155081600000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "b64a4160-f2c9-4557-87ec-e98e79675337",
       "significance": 3,
       "label": "Hamas takeover of Gaza",
-      "date": "2007-06-14",
+      "date": {
+        "ts": 1181779200000,
+        "prec": "day"
+      },
       "dateFrom": "2007-06-14",
       "dateTo": "2007-06-15",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "4f5bad38-0bb9-442a-897a-a22e3e1d4fb3",
       "significance": 5,
       "label": "Operation Cast Lead (Gaza)",
-      "dateFrom": "2008-12-27",
-      "dateTo": "2009-01-18",
-      "fadeLeft": "2009-01-02",
-      "fadeRight": "2009-01-13",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1230336000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1232236800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1230854400000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1231804800000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "577a48c0-acd3-4b85-83eb-51330d257dac",
       "significance": 3,
       "label": "Gaza flotilla raid",
-      "date": "2010-05-31",
-      "color": "white"
+      "date": {
+        "ts": 1275264000000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "2165f95d-bfda-47a9-887b-d0e554fd0075",
       "significance": 5,
       "label": "Operation Pillar of Defense (Gaza)",
-      "dateFrom": "2012-11-14",
-      "dateTo": "2012-11-21",
-      "fadeLeft": "2012-11-16",
-      "fadeRight": "2012-11-19",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1352851200000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1353456000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1353024000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1353283200000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "a35d2ebd-55b3-434a-ad58-c143cddb7dff",
       "significance": 5,
       "label": "Operation Protective Edge (Gaza)",
-      "dateFrom": "2014-07-08",
-      "dateTo": "2014-08-26",
-      "fadeLeft": "2014-07-13",
-      "fadeRight": "2014-08-21",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1404777600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1409011200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1405209600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1408579200000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "acf14a3c-3b44-4260-a804-e5ed41cc068d",
       "significance": 3,
       "label": "US Embassy moves to Jerusalem",
-      "date": "2018-05-14",
-      "color": "white"
+      "date": {
+        "ts": 1526256000000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "6847c03f-07e4-4996-8272-b4a401ae15a5",
       "significance": 2,
       "label": "Basic Law: Nation-State of the Jewish People",
-      "date": "2018-07-19",
-      "color": "white"
+      "date": {
+        "ts": 1531958400000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "8bab126a-5d94-431a-b74f-80c1dfb543a6",
       "significance": 5,
       "label": "Operation Guardian of the Walls (Gaza)",
-      "dateFrom": "2021-05-10",
-      "dateTo": "2021-05-21",
-      "fadeLeft": "2021-05-12",
-      "fadeRight": "2021-05-19",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1620604800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1621555200000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1620777600000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1621382400000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "56c363ab-0c97-4002-8ec0-eff81a0796e2",
       "significance": 5,
       "label": "Abraham Accords normalization (UAE/Bahrain/Morocco)",
-      "dateFrom": "2020-09-15",
-      "dateTo": "2020-12-10",
-      "fadeLeft": "2020-09-30",
-      "fadeRight": "2020-11-25",
-      "color": "green"
+      "dateFrom": {
+        "ts": 1600128000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1607558400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1601424000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1606262400000,
+        "prec": "day"
+      },
+      "color": "green",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "bb51fc83-a6e8-416f-b8ed-84dc7bc12aa1",
       "significance": 3,
       "label": "Israel-Lebanon maritime border agreement",
-      "date": "2022-10-27",
-      "color": "white"
+      "date": {
+        "ts": 1666828800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "cdcc0c09-81ba-4035-b21b-c509751a1b84",
       "significance": 4,
       "label": "Judicial overhaul protests in Israel",
-      "dateFrom": "2023-01-07",
-      "dateTo": "2023-12-31",
-      "fadeLeft": "2023-02-07",
-      "fadeRight": "2023-11-30",
-      "color": "yellow"
+      "dateFrom": {
+        "ts": 1673049600000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1703980800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1675728000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1701302400000,
+        "prec": "day"
+      },
+      "color": "yellow",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "4c242206-76ec-4702-a1cc-93bd13f8c075",
       "significance": 5,
       "label": "Operation Shield and Arrow (Gaza vs PIJ)",
-      "dateFrom": "2023-05-09",
-      "dateTo": "2023-05-13",
-      "fadeLeft": "2023-05-10",
-      "fadeRight": "2023-05-12",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1683590400000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1683936000000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1683676800000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1683849600000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "8edd66d4-ea53-46a8-9738-43281baf543a",
       "significance": 3,
       "label": "Oct 7th Hamas Attack",
-      "date": "2023-10-07",
-      "color": "white"
+      "date": {
+        "ts": 1696636800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "09ed081d-fa4e-4859-832f-72accc7bf026",
       "significance": 5,
       "label": "Israel-Hamas War",
-      "dateFrom": "2023-10-07",
-      "dateTo": "2025-09-26",
-      "fadeLeft": "2023-10-15",
-      "fadeRight": "2025-09-26",
-      "color": "red"
+      "dateFrom": {
+        "ts": 1696636800000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1758844800000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1697328000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1758844800000,
+        "prec": "day"
+      },
+      "color": "red",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "874c428a-40d9-43c9-90e7-481c87c21376",
       "significance": 5,
       "label": "Hostage-prisoner pause and exchanges",
-      "dateFrom": "2023-11-24",
-      "dateTo": "2023-11-30",
-      "fadeLeft": "2023-11-24",
-      "fadeRight": "2023-11-30",
-      "color": "black"
+      "dateFrom": {
+        "ts": 1700784000000,
+        "prec": "day"
+      },
+      "dateTo": {
+        "ts": 1701302400000,
+        "prec": "day"
+      },
+      "fadeLeft": {
+        "ts": 1700784000000,
+        "prec": "day"
+      },
+      "fadeRight": {
+        "ts": 1701302400000,
+        "prec": "day"
+      },
+      "color": "black",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "7778aef4-78c8-44b2-a4d5-df9438ee050b",
       "significance": 3,
       "label": "Iran direct attack with drones and missiles",
-      "date": "2024-04-14",
-      "color": "white"
+      "date": {
+        "ts": 1713052800000,
+        "prec": "day"
+      },
+      "color": "white",
+      "tagIds": [],
+      "include": true
     },
     {
+      "id": "1e88abf4-cd2e-4313-98b0-29a6c747b5dd",
       "significance": 2,
       "label": "Hezbollah pager attack",
-      "date": "2024-09-17",
+      "date": {
+        "ts": 1726531200000,
+        "prec": "day"
+      },
       "dateFrom": "2024-09-17",
       "dateTo": "2024-09-18",
-      "color": "white"
+      "color": "white",
+      "tagIds": [],
+      "include": true
     }
   ]
 }

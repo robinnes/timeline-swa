@@ -1,12 +1,13 @@
 import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
-import {formatEventDates, positionLabels} from './render.js';
+import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
+import {formatEventDate} from './ticks.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -373,6 +374,16 @@ for (const txt of displayTextAreas) {
 }
 
 /* ------------------- Open view/event -------------------- */
+
+export function formatEventDates(e) {
+  //const spec = zoomSpec(e.significance);
+  //if (spec.style === 'dot') return formatEventDate(e.date);  // Util.formatTextDate(e.date);
+  if (e.significance <= 3) return formatEventDate(e.date);
+
+  const from = formatEventDate(e.dateFrom); // Util.formatTextDate(e.dateFrom);
+  const to = formatEventDate(e.dateTo); // Util.formatTextDate(e.dateTo);
+  return `${from ?? "?"} - ${to ?? "?"}`;
+}
 
 export function openSelectedView(display) {
   const vw = appState.selected.view;

@@ -736,9 +736,7 @@ async function closeView(viewIdx) {
 function addNewEvent(viewIdx) {
   const vw = appState.views[viewIdx];
   const tl = timelineCache.get(vw.tlKey);
-  const t = Util.pxToTime(getCanvasMidX());
-  const roundT = startOfTick(t)
-
+  
   let sig = 3;
   // smallest sig that will fully render
   for (let s = 3; s > 0; s--) {
@@ -746,11 +744,16 @@ function addNewEvent(viewIdx) {
     sig = s;
   }
 
+  // base date precision on the current zoom level of the canvas
+  const prec = getTickSpec().mode;
+  const midT = Util.pxToTime(getCanvasMidX());
+  const ts = startOfTick(midT);
+
   var event = {
     id: Util.uuid(),
     significance: sig, 
     label: "New event", 
-    date: {ts:roundT, prec:"day"}, 
+    date: {ts:ts, prec:prec}, 
     color: "white",
     details: null,
     tagIds: vw.tagFilter ? [vw.tagFilter] : [],  // if clicked view is filtered, inherit the tag filter

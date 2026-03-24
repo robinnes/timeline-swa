@@ -39,22 +39,6 @@ export function isMouseOver(left, right, top, bottom) {
   return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
 }
 
-function formatEventDate(dt) {
-  // date = {ts, prec}, gonna need tickSpec, not assume prec="day"
-  const d = new Date(dt.ts);
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
-}
-
-export function formatEventDates(e) {
-  const spec = zoomSpec(e.significance);
-
-  if (spec.style === 'dot') return formatEventDate(e.date);  // Util.formatTextDate(e.date);
-
-  const from = formatEventDate(e.dateFrom); // Util.formatTextDate(e.dateFrom);
-  const to = formatEventDate(e.dateTo); // Util.formatTextDate(e.dateTo);
-  return `${from ?? "?"} - ${to ?? "?"}`;
-}
-
 
 /***************************** Colors *****************************/
 

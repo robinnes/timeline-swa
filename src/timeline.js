@@ -4,6 +4,7 @@ import {appState, timelineCache, draw} from './canvas.js';
 import {zoomSpec, positionViews} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
+import {tickSpec} from './ticks.js';
 
 
 function timelineString(tl) {
@@ -24,7 +25,6 @@ function timelineString(tl) {
 }
 
 export function initializeEvent(e) {
-  const h = 60*60*1000;
   const spec = zoomSpec(e.significance);
   const style = spec.style;
   
@@ -53,17 +53,12 @@ export function initializeEvent(e) {
     if (!e.fadeLeft) e.fadeLeft = {...e.dateFrom};
     if (!e.fadeRight) e.fadeRight = {...e.dateTo};
 
-    // backward compatability
-    if (typeof e.dateFrom === "string") e.dateFrom = {ts:Date.parse(e.dateFrom), prec:"day"};
-    if (typeof e.dateTo === "string") e.dateTo = {ts:Date.parse(e.dateTo), prec:"day"};
-    if (typeof e.fadeLeft === "string") e.fadeLeft = {ts:Date.parse(e.fadeLeft), prec:"day"};
-    if (typeof e.fadeRight === "string") e.fadeRight = {ts:Date.parse(e.fadeRight), prec:"day"};
-
     // adjust timestamp to center of tick (assume prec="day" for now)
-    e._tFrom = e.dateFrom.ts + (12*h);
-    e._tTo = e.dateTo.ts + (12*h);
-    e._fLeft = e.fadeLeft.ts + (12*h);
-    e._fRight = e.fadeRight.ts + (12*h);
+    //const msPerTick = tickSpec.get(e.date.prec).msPerTick;
+    e._tFrom = e.dateFrom.ts + (tickSpec.get(e.dateFrom.prec).msPerTick * 0.5);
+    e._tTo = e.dateTo.ts + (tickSpec.get(e.dateTo.prec).msPerTick * 0.5);
+    e._fLeft = e.fadeLeft.ts + (tickSpec.get(e.fadeLeft.prec).msPerTick * 0.5);
+    e._fRight = e.fadeRight.ts + (tickSpec.get(e.fadeRight.prec).msPerTick * 0.5);
 
     // sanity checks
     if (e._tTo < e._tFrom)    { e.dateTo = {...e.dateFrom};    e._tTo = e._tFrom; }
@@ -77,17 +72,15 @@ export function initializeEvent(e) {
   
   } else {
     // if switched from line to dot
-    if (!e.date) e.date = {...e.dateFrom}; // nothing fance like finding middle of line vars...
-
-    // backward compatability
-    if (typeof e.date === "string") e.date = {ts:Date.parse(e.date), prec:"day"};
+    if (!e.date) e.date = {...e.dateFrom}; // nothing fancy like finding middle of line vars...
 
     //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-    e._dateTime = e.date.ts + (12 * h);
-    e._tFrom = e._dateTime - (4 * h);
-    e._tTo = e._dateTime + (4 * h);
-    e._fLeft = e._tFrom + (3 * h);
-    e._fRight = e._tTo - (3 * h);
+    const msPerTick = tickSpec.get(e.date.prec).msPerTick;
+    e._dateTime = e.date.ts + Math.round(msPerTick * 0.5);  // (12 * h);
+    e._tFrom = e._dateTime - Math.round(msPerTick * 0.4);  // (4 * h);
+    e._tTo = e._dateTime + Math.round(msPerTick * 0.4);  // (4 * h);
+    e._fLeft = e._tFrom + Math.round(msPerTick * 0.3);  // (3 * h);
+    e._fRight = e._tTo - Math.round(msPerTick * 0.3);  // (3 * h);
   }
 };
 
