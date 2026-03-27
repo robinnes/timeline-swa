@@ -363,7 +363,7 @@ aside.sidebar {
 }
 
 
-/********************************* Subpanels (Edit Event) *********************************/
+/********************************* Subpanels (Edit Item) *********************************/
 
 .subpanel {
   display: flex;
@@ -839,7 +839,7 @@ h2.label {
   margin-top: 10px;
 }
 
-/* ---------------- Tag Picker (Edit Event > Tags) ---------------- */
+/* ---------------- Tag Picker (Edit Item > Tags) ---------------- */
 
 .tagpick__hint {
   color: var(--muted);

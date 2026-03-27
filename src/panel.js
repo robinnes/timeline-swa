@@ -2,12 +2,12 @@ import * as Util from './util.js';
 import {TIME} from './constants.js';
 import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
-import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeEvent, initializeTitle} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
-import {formatEventDate} from './ticks.js';
+import {formatItemDate} from './ticks.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -24,12 +24,12 @@ const timelineSaveBtn = document.getElementById('timeline-save');
 const timelinePublishBtn = document.getElementById('timeline-publish');
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
 
-const eventDeleteBtn = document.getElementById('event-delete');
-const editEventLabel = document.getElementById('edit-event-label');
-const editEventDetails = document.getElementById('edit-event-details');
+const itemDeleteBtn = document.getElementById('item-delete');
+const editItemLabel = document.getElementById('edit-item-label');
+const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
-const significanceButtons = Array.from(document.querySelectorAll('input[name="event-significance"]'));
+const significanceButtons = Array.from(document.querySelectorAll('input[name="item-significance"]'));
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
@@ -55,7 +55,7 @@ export function closeSidebar() {
   if (!sidebarIsOpen()) return;
   sidebar.classList.remove('open');
   sidebar.setAttribute('aria-hidden', 'true');
-  appState.selected.event = null;
+  appState.selected.item = null;
   appState.selected.timeline = null;
   animateCanvasWithSidebar();
   canvas.focus();
@@ -117,9 +117,9 @@ for (const btn of tabButtons) {
     let panelId = null;
     if (target === 'timeline') {
       panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
-    } else if (target === 'event') {
-      panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-event' : 'panel-view-event');
-      if (appState.selected.event) setSidebarEvent(appState.selected.event);
+    } else if (target === 'item') {
+      panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-item' : 'panel-view-item');
+      if (appState.selected.item) setSidebarItem(appState.selected.item);
     }
     if (panelId) showPanel(panelId);
 
@@ -154,9 +154,9 @@ function setActiveEditTab(targetPanelId) {
 function updateTabStates() {
   // Disable or enable tabs based on application state
   for (const btn of tabButtons) {
-    // Disable 'Event' tab when there is no selected event
-    if (btn.dataset.target === 'event') {
-      const shouldDisable = !appState.selected.event;
+    // Disable 'item' tab when there is no selected item
+    if (btn.dataset.target === 'item') {
+      const shouldDisable = !appState.selected.item;
       btn.disabled = shouldDisable;
       btn.classList.toggle('is-disabled', shouldDisable);
       btn.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
@@ -200,7 +200,7 @@ async function cancelTimelineEdit() {
     else {
       const vwBelow = appState.views[Math.max(viewIdx-1, 0)];
       appState.selected.view = vwBelow;
-      appState.selected.event = null;
+      appState.selected.item = null;
       openSelectedView(false);
       zoomToView(vwBelow);  // closing the sidebar would conflict with the zoom animation
     }
@@ -248,13 +248,13 @@ export function markDirty(tl) {
   updateSaveButton?.();
 }
 
-eventDeleteBtn.addEventListener('click', (e) => {
+itemDeleteBtn.addEventListener('click', (e) => {
   e.preventDefault();
   const tl = appState.selected.timeline;
-  const events = tl.events;
-  const idx = events.indexOf(appState.selected.event);
-  events.splice(idx, 1);
-  appState.selected.event = null;
+  const items = tl.items;
+  const idx = items.indexOf(appState.selected.item);
+  items.splice(idx, 1);
+  appState.selected.item = null;
   markDirty(tl);
   draw(true);
   openSelectedView(false);
@@ -311,22 +311,22 @@ for (const tabsEl of subpanelTabs) {
 }
 
 
-/* ------------------- Edit event panel -------------------- */
+/* ------------------- Edit item panel -------------------- */
 
-editEventLabel.addEventListener('input', (e) => {
+editItemLabel.addEventListener('input', (e) => {
   const s = e.target.value;
-  const event = appState.selected.event;
-  event.label = s;
+  const item = appState.selected.item;
+  item.label = s;
   markDirty(appState.selected.timeline);
-  initializeEvent(event);  // appearance of bubble label may change
+  initializeItem(item);  // appearance of bubble label may change
   positionLabels();
   draw();
 });
 
-editEventDetails.addEventListener('input', (e) => {
+editItemDetails.addEventListener('input', (e) => {
   const v = e.target.value;
-  const event = appState.selected.event;
-  event.details = v;
+  const item = appState.selected.item;
+  item.details = v;
   markDirty(appState.selected.timeline);
 });
 
@@ -373,15 +373,15 @@ for (const txt of displayTextAreas) {
   });
 }
 
-/* ------------------- Open view/event -------------------- */
+/* ------------------- Open view/item -------------------- */
 
-export function formatEventDates(e) {
+export function formatItemDates(e) {
   //const spec = zoomSpec(e.significance);
-  //if (spec.style === 'dot') return formatEventDate(e.date);  // Util.formatTextDate(e.date);
-  if (e.significance <= 3) return formatEventDate(e.date);
+  //if (spec.style === 'dot') return formatItemDate(e.date);  // Util.formatTextDate(e.date);
+  if (e.prominence <= 3) return formatItemDate(e.date);
 
-  const from = formatEventDate(e.dateFrom); // Util.formatTextDate(e.dateFrom);
-  const to = formatEventDate(e.dateTo); // Util.formatTextDate(e.dateTo);
+  const from = formatItemDate(e.dateFrom); // Util.formatTextDate(e.dateFrom);
+  const to = formatItemDate(e.dateTo); // Util.formatTextDate(e.dateTo);
   return `${from ?? "?"} - ${to ?? "?"}`;
 }
 
@@ -402,52 +402,52 @@ export function openSelectedView(display) {
   if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
-export function openSelectedEvent(display) {
+export function openSelectedItem(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   const editMode = (tl._mode==="edit");
 
-  setSidebarEvent(appState.selected.event);
+  setSidebarItem(appState.selected.item);
   setSidebarView(vw);
 
-  const panel = editMode ? "panel-edit-event" : "panel-view-event";
+  const panel = editMode ? "panel-edit-item" : "panel-view-item";
   showPanel(panel);
-  setActiveEditTab('event');
+  setActiveEditTab('item');
 
   if (display) openSidebar();
 
-  if (editMode && !appState.isTouchScreen) editEventLabel.focus(); 
+  if (editMode && !appState.isTouchScreen) editItemLabel.focus(); 
 }
 
-export function setSidebarEvent(e) {
-  // update sidebar (all panels) to selected event
+export function setSidebarItem(item) {
+  // update sidebar (all panels) to selected item
   const $ = (id) => document.getElementById(id);
   
-  // view event panel
-  //$("event-label").textContent = e.label ?? '';
-  $("event-label").innerHTML = e.label;
+  // view item panel
+  //$("item-label").textContent = e.label ?? '';
+  $("item-label").innerHTML = item.label;
 
-  $("event-date").innerHTML = formatEventDates(e);;
+  $("item-date").innerHTML = formatItemDates(item);;
 
   // if details looks like HTML, show as HTML; otherwise plain-text
-  const isHtml = /<[a-z][\s\S]*>/i.test(e.details);  // necessary?
-  if (isHtml) $("event-details").innerHTML = e.details;
-  else $("event-details").innerText = e.details ?? '';
+  const isHtml = /<[a-z][\s\S]*>/i.test(item.details);  // necessary?
+  if (isHtml) $("item-details").innerHTML = item.details;
+  else $("item-details").innerText = item.details ?? '';
 
-  // edit event panel
-  editEventLabel.value = e.label ?? '';
-  editEventDetails.value = e.details ?? '';
-  $('event-date-display').value = formatEventDates(e);
+  // edit item panel
+  editItemLabel.value = item.label ?? '';
+  editItemDetails.value = item.details ?? '';
+  $('item-date-display').value = formatItemDates(item);
 
   updateSignificanceButton();
   updateColorSelectorState();
   updateColorButtons();
 
-  // event thumbnail (on view and edit panels)
-  const thumb = e.thumbnail;
+  // item thumbnail (on view and edit panels)
+  const thumb = item.thumbnail;
   const imgs = [
-    $('event-thumb-edit-img'),
-    $('event-thumb-view-img')
+    $('item-thumb-edit-img'),
+    $('item-thumb-view-img')
   ];
   for (const img of imgs) {
     if (thumb) {
@@ -461,7 +461,7 @@ export function setSidebarEvent(e) {
     }
   }
 
-  renderTagPickerUI(appState.selected.timeline, e);
+  renderTagPickerUI(appState.selected.timeline, item);
 
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
@@ -506,16 +506,16 @@ function setSidebarView(vw) {
 
 /* ------------------- Significance buttons -------------------- */
 
-// Significance change handler: update selected.event.significance and mark dirty
+// Significance change handler: update selected.item.significance and mark dirty
 for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
     const v = parseInt(e.target.value, 10);
-    const event = appState.selected.event;
+    const item = appState.selected.item;
     const tl = appState.selected.timeline;
-    if (!event) return;
-    event.significance = v;
-    initializeEvent(event);
-    if (tl._mode === 'edit') markDirty(tl);  // mark timeline dirty when event changed
+    if (!item) return;
+    item.prominence = v;
+    initializeItem(item);
+    if (tl._mode === 'edit') markDirty(tl);  // mark timeline dirty when item changed
     updateColorSelectorState();
     updateColorButtons(); // significance switch can change color
     draw(true);  // may need to reposition labels
@@ -523,23 +523,23 @@ for (const r of significanceButtons) {
 }
 
 function updateSignificanceButton() {
-  // set significance radio based on selected.event.significance (if present)
-  const sig = appState.selected.event.significance ?? null;
+  // set significance radio based on selected.item.significance (if present)
+  const sig = appState.selected.item.prominence ?? null;
   if (sig != null) {
-    const el = document.querySelector(`input[name="event-significance"][value="${sig}"]`);
+    const el = document.querySelector(`input[name="item-significance"][value="${sig}"]`);
     if (el) el.checked = true;
   } else {
     // default to normal point (value 2)
-    const el = document.querySelector('input[name="event-significance"][value="2"]');
+    const el = document.querySelector('input[name="item-significance"][value="2"]');
     if (el) el.checked = true;
   }
 }
 
 function updateColorSelectorState() {
-  // color options depend on significance: no left/right for Point events, etc.
-  const e = appState.selected.event;
+  // color options depend on prominence: no left/right for Point items, etc.
+  const e = appState.selected.item;
   if (!e) return;
-  const isPoint = e.significance <= 3;
+  const isPoint = e.prominence <= 3;
   const leftRightSelectors = document.querySelectorAll('input[name="color-target"][value="left"], input[name="color-target"][value="right"]');
   
   leftRightSelectors.forEach(radio => {
@@ -571,22 +571,22 @@ for (const radio of colorTargetRadios) {
 for (const btn of colorButtons) {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    const event = appState.selected.event;
-    if (!event) return;
+    const item = appState.selected.item;
+    if (!item) return;
     const newColor = btn.dataset.color;
     const target = getSelectedColorTarget();
     
     switch (target) {
       case 'left':
-        event.colorLeft = newColor;
+        item.colorLeft = newColor;
         break;
       case 'right':
-        event.colorRight = newColor;
+        item.colorRight = newColor;
         break;
       default: // 'main'
-        event.color = newColor;
+        item.color = newColor;
     }
-    markDirty(event._timeline);
+    markDirty(item._timeline);
     updateColorButtons();
     draw();
   });
@@ -599,7 +599,7 @@ function getSelectedColorTarget() {
 }
 
 function updateColorButtons() {
-  const e = appState.selected.event;
+  const e = appState.selected.item;
   if (!e) return;
   const target = getSelectedColorTarget();
 

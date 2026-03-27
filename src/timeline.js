@@ -17,70 +17,70 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    items: tl.events.map(({id, significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
-                            id, prominence: significance, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
+    items: tl.items.map(({id, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
+                            id, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
     }))
   };
   return JSON.stringify(txt, null, 2);
 }
 
-export function initializeEvent(e) {
-  const spec = zoomSpec(e.significance);
+export function initializeItem(i) {
+  const spec = zoomSpec(i.prominence);
   const style = spec.style;
   
   // Assign unique ID if not present
-  if (e.id === undefined) e.id = Util.uuid();
+  if (i.id === undefined) i.id = Util.uuid();
 
   // Initialize tags selection
-  if (!Array.isArray(e.tagIds)) e.tagIds = [];
+  if (!Array.isArray(i.tagIds)) i.tagIds = [];
 
   // Check 'include' flag if not present or no tags are selected (force visibility)
-  if (e.include===undefined || e.tagIds.length===0) e.include = true;
+  if (i.include===undefined || i.tagIds.length===0) i.include = true;
   
   // Establish properties for positioning labels
-  const parsed = parseLabel(e.label, e.thumbnail);
-  e._labelSingle = parsed.singleRow;
-  e._labelWidth = parsed.singleWidth;
-  e._parsedLabel = parsed.multiRow;
-  e._parsedWidth = parsed.multiWidth;
-  e._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
-  if (e.thumbnail && e._parsedRows < DRAW.THUMB_LABEL_ROWS) e._parsedRows = DRAW.THUMB_LABEL_ROWS;
+  const parsed = parseLabel(i.label, i.thumbnail);
+  i._labelSingle = parsed.singleRow;
+  i._labelWidth = parsed.singleWidth;
+  i._parsedLabel = parsed.multiRow;
+  i._parsedWidth = parsed.multiWidth;
+  i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
+  if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
   if (style === 'line') {
     // if switched from dot to line
-    if (!e.dateFrom) e.dateFrom = {...e.date};
-    if (!e.dateTo) e.dateTo = {...e.date};
-    if (!e.fadeLeft) e.fadeLeft = {...e.dateFrom};
-    if (!e.fadeRight) e.fadeRight = {...e.dateTo};
+    if (!i.dateFrom) i.dateFrom = {...i.date};
+    if (!i.dateTo) i.dateTo = {...i.date};
+    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
+    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
 
     // adjust timestamp to center of tick (assume prec="day" for now)
-    //const msPerTick = tickSpec.get(e.date.prec).msPerTick;
-    e._tFrom = e.dateFrom.ts + (tickSpec.get(e.dateFrom.prec).msPerTick * 0.5);
-    e._tTo = e.dateTo.ts + (tickSpec.get(e.dateTo.prec).msPerTick * 0.5);
-    e._fLeft = e.fadeLeft.ts + (tickSpec.get(e.fadeLeft.prec).msPerTick * 0.5);
-    e._fRight = e.fadeRight.ts + (tickSpec.get(e.fadeRight.prec).msPerTick * 0.5);
+    //const msPerTick = tickSpec.get(i.date.prec).msPerTick;
+    i._tFrom = i.dateFrom.ts + (tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
+    i._tTo = i.dateTo.ts + (tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
+    i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
+    i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
 
     // sanity checks
-    if (e._tTo < e._tFrom)    { e.dateTo = {...e.dateFrom};    e._tTo = e._tFrom; }
-    if (e._fLeft > e._fRight) { e.fadeRight = {...e.fadeLeft}; e._fRight = e._fLeft; }
-    if (e._fLeft > e._tTo)    { e.fadeLeft = {...e.dateTo};    e._fLeft = e._tTo; }
-    if (e._fLeft < e._tFrom)  { e.fadeLeft = {...e.dateFrom};  e._fLeft = e._tFrom; }
-    if (e._fRight < e._tFrom) { e.fadeRight = {...e.dateFrom}; e._fRight = e._tFrom; }
-    if (e._fRight > e._tTo)   { e.fadeRight = {...e.dateTo};   e._fRight = e._tTo; }
+    if (i._tTo < i._tFrom)    { i.dateTo = {...i.dateFrom};    i._tTo = i._tFrom; }
+    if (i._fLeft > i._fRight) { i.fadeRight = {...i.fadeLeft}; i._fRight = i._fLeft; }
+    if (i._fLeft > i._tTo)    { i.fadeLeft = {...i.dateTo};    i._fLeft = i._tTo; }
+    if (i._fLeft < i._tFrom)  { i.fadeLeft = {...i.dateFrom};  i._fLeft = i._tFrom; }
+    if (i._fRight < i._tFrom) { i.fadeRight = {...i.dateFrom}; i._fRight = i._tFrom; }
+    if (i._fRight > i._tTo)   { i.fadeRight = {...i.dateTo};   i._fRight = i._tTo; }
 
-    e._dateTime = (e._fRight + e._fLeft) / 2;
+    i._dateTime = (i._fRight + i._fLeft) / 2;
   
   } else {
     // if switched from line to dot
-    if (!e.date) e.date = {...e.dateFrom}; // nothing fancy like finding middle of line vars...
+    if (!i.date) i.date = {...i.dateFrom}; // nothing fancy like finding middle of line vars...
 
-    //convert to a small span in the middle of that day; extend all 'spanning' events to noon on either side
-    const msPerTick = tickSpec.get(e.date.prec).msPerTick;
-    e._dateTime = e.date.ts + Math.round(msPerTick * 0.5);  // (12 * h);
-    e._tFrom = e._dateTime - Math.round(msPerTick * 0.4);  // (4 * h);
-    e._tTo = e._dateTime + Math.round(msPerTick * 0.4);  // (4 * h);
-    e._fLeft = e._tFrom + Math.round(msPerTick * 0.3);  // (3 * h);
-    e._fRight = e._tTo - Math.round(msPerTick * 0.3);  // (3 * h);
+    //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
+    const msPerTick = tickSpec.get(i.date.prec).msPerTick;
+    i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
+    i._tFrom = i._dateTime - Math.round(msPerTick * 0.4);
+    i._tTo = i._dateTime + Math.round(msPerTick * 0.4);
+    i._fLeft = i._tFrom + Math.round(msPerTick * 0.3);
+    i._fRight = i._tTo - Math.round(msPerTick * 0.3);
   }
 };
 
@@ -117,9 +117,9 @@ export async function loadTimeline(file) {
 
   if (tl.tags) tl.tags.forEach(initializeTag);
   
-  for (const event of tl.events) {
-    event._timeline = tl;
-    initializeEvent(event);
+  for (const item of tl.items) {
+    item._timeline = tl;
+    initializeItem(item);
   }
 
   timelineCache.set(tlKey, tl);
@@ -139,7 +139,7 @@ export function addNewTimeline(title) {
     id:          id,
     title:       title, 
     details:     null, 
-    events:      [],
+    items:      [],
     tags:        [],
     _key:        tlKey,
     _file:       null,
@@ -159,7 +159,7 @@ export function addNewTimeline(title) {
     tFrom:     null,
     tTo:       null,
     tagFilter: null,
-    eventPos:  []
+    itemPos:  []
   }
   appState.views.push(vw);
 

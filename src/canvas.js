@@ -1,9 +1,9 @@
 import * as Util from './util.js';
 import {TIME, TOUCH} from './constants.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterEventsForView, drawEvents, isMouseOver, zoomSpec} from './render.js';
-import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedEvent} from './panel.js';
-import {loadTimeline, closeTimeline, initializeEvent} from './timeline.js';
+import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, zoomSpec} from './render.js';
+import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
+import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
@@ -19,16 +19,16 @@ export const appState = {
   isTouchScreen: null,
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
-    eventPos: null,
+    itemPos: null,
     view: null,
     linkIdx: -1
   },
   selected: {
-    event: null,
+    item: null,
     timeline: null,
     view: null
   },
-  drag: {  // dragging handles to change event dates
+  drag: {  // dragging handles to change item dates
     isDragging: false,
     attribute: null,
     start: {date: null, dateFrom: null, dateTo: null, fadeLeft: null, fadeRight: null, dirty: null}
@@ -132,7 +132,7 @@ export function setPointerCursor() {
 }
 
 export function draw(reposition){
-  try {
+//  try {
     if (reposition) positionLabels();
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -140,10 +140,10 @@ export function draw(reposition){
     appState.highlighted.idx = -1;
     appState.highlighted.linkIdx = -1;
     drawTicks();
-    drawEvents();
-  } catch (err) {
-    debugAppendText(err.stack);
-  }
+    drawItems();
+//  } catch (err) {
+//    debugAppendText(err.stack);
+//  }
   //Util.debugVars();
   //debugDisplay();
 }
@@ -300,10 +300,10 @@ canvas.addEventListener('click', function (e) {
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
   } else if (elem.type === 'line' || elem.type === 'bubble' || elem.type === 'label') {
-      appState.selected.event = elem.eventPos.event; // appState.highlighted.eventPos.event;
-      appState.selected.timeline = appState.selected.event._timeline;
+      appState.selected.item = elem.itemPos.item; // appState.highlighted.itemPos.item;
+      appState.selected.timeline = appState.selected.item._timeline;
       appState.selected.view = elem.view;
-      openSelectedEvent(true);
+      openSelectedItem(true);
       draw(false);
   } else if (elem.type === 'view') {
     const vw = appState.views[elem.view];
@@ -314,7 +314,7 @@ canvas.addEventListener('click', function (e) {
 
   } else if (elem.type === 'button') {
     if (elem.subType === 'close-timeline') closeView(elem.view); 
-    else if (elem.subType === 'add-event') addNewEvent(elem.view);
+    else if (elem.subType === 'add-item') addNewItem(elem.view);
   }
 });
 
@@ -408,21 +408,21 @@ canvas.addEventListener('keydown', function (e) {
   const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
 
-  if (appState.selected.event && appState.selected.view && sidebarIsOpen()) {
+  if (appState.selected.item && appState.selected.view && sidebarIsOpen()) {
     if (e.key === 'ArrowRight') {
-      const nextEvent = identifyNextEvent(appState.selected.view, appState.selected.event, 1);
-      if (nextEvent) {
-        appState.selected.event = nextEvent;
-        openSelectedEvent(false);
-        zoomToEvent(appState.selected.event);
+      const nextItem = identifyNextItem(appState.selected.view, appState.selected.item, 1);
+      if (nextItem) {
+        appState.selected.item = nextItem;
+        openSelectedItem(false);
+        zoomToItem(appState.selected.item);
       }
 
     } else if (e.key === 'ArrowLeft') {
-      const previousEvent = identifyPreviousEvent(appState.selected.view, appState.selected.event, 1);
-      if (previousEvent) {
-        appState.selected.event = previousEvent;
-        openSelectedEvent(false);
-        zoomToEvent(appState.selected.event);
+      const previousItem = identifyPreviousItem(appState.selected.view, appState.selected.item, 1);
+      if (previousItem) {
+        appState.selected.item = previousItem;
+        openSelectedItem(false);
+        zoomToItem(appState.selected.item);
       }
 
     }
@@ -493,7 +493,7 @@ function mouseZoom(x, factor) {
   draw(true);
 };
 
-function compareEventsForSort(a, b) {
+function compareItemsForSort(a, b) {
   // sort rule is: _tFrom, _tTo (descending) then id
   if (a._tFrom !== b._tFrom) return a._tFrom - b._tFrom;
   if (a._tTo !== b._tTo) return b._tTo - a._tTo;
@@ -502,25 +502,25 @@ function compareEventsForSort(a, b) {
   return 0;
 }
 
-function identifyNextEvent(view, e) {
+function identifyNextItem(view, e) {
   let next = null;
-  for (const ev of view.eventPos) {
-    if (ev.event === e) continue;
-    if (compareEventsForSort(ev.event, e) > 0) {
-      if (next === null || compareEventsForSort(ev.event, next) < 0)   // keep the smallest candidate
-        next = ev.event;
+  for (const ev of view.itemPos) {
+    if (ev.item === e) continue;
+    if (compareItemsForSort(ev.item, e) > 0) {
+      if (next === null || compareItemsForSort(ev.item, next) < 0)   // keep the smallest candidate
+        next = ev.item;
     }
   }
   return next;
 }
 
-function identifyPreviousEvent(view, e) {
+function identifyPreviousItem(view, e) {
   let previous = null;
-  for (const ev of view.eventPos) {
-    if (ev.event === e) continue;
-    if (compareEventsForSort(ev.event, e) < 0) {
-      if (previous === null || compareEventsForSort(ev.event, previous) > 0)   // keep the smallest candidate
-        previous = ev.event;
+  for (const ev of view.itemPos) {
+    if (ev.item === e) continue;
+    if (compareItemsForSort(ev.item, e) < 0) {
+      if (previous === null || compareItemsForSort(ev.item, previous) > 0)   // keep the smallest candidate
+        previous = ev.item;
     }
   }
   return previous;
@@ -529,20 +529,20 @@ function identifyPreviousEvent(view, e) {
 
 /* ------------------- Zoom -------------------- */
 
-function positionForEvent(e) {
+function positionForItem(i) {
   const vp = getCanvasViewport();
-  const spec = zoomSpec(e.significance);
-  const width = e._tTo - e._tFrom;
+  const spec = zoomSpec(i.prominence);
+  const width = i._tTo - i._tFrom;
     
   if (spec.style==="line") {
     return {
-      offsetMs: (e._tFrom - (width / 10)) - TIME.EPOCH,
+      offsetMs: (i._tFrom - (width / 10)) - TIME.EPOCH,
       msPerPx: width / (vp.width / 1.2)
     };
   }
   const msPerPx = Math.pow(10, spec.zoomMaster.threshold);
   return {
-    offsetMs: e._tFrom - (vp.width * msPerPx) / 2  - TIME.EPOCH,
+    offsetMs: i._tFrom - (vp.width * msPerPx) / 2  - TIME.EPOCH,
     msPerPx: msPerPx
   };
 }
@@ -561,8 +561,8 @@ function positionForView(vw) {
   };
 }
 
-function zoomToEvent(e) {
-  const p = positionForEvent(e);
+function zoomToItem(i) {
+  const p = positionForItem(i);
   appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
 }
 
@@ -627,7 +627,7 @@ function linkToTag(origVw, tagID) {
   const origIdx = appState.views.indexOf(origVw);
   const newVw = structuredClone(origVw);  // copy originating view
   newVw.tagFilter = tagID;
-  filterEventsForView(newVw);  // establish min/max dates
+  filterItemsForView(newVw);  // establish min/max dates
 
   appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
   //positionViews(false);
@@ -648,7 +648,7 @@ export async function followHyperlink(origVw, a, forceDisplay) {
   if (view) {
     const tl = timelineCache.get(view.tlKey);
     appState.selected.view = view;
-    appState.selected.event = null;
+    appState.selected.item = null;
   
     const display = sidebarIsOpen() || forceDisplay;
     openSelectedView(display);
@@ -684,9 +684,9 @@ export async function openTimeline(file, zoom, sourceView) {
     tFrom: null,
     tTo: null,
     tagFilter: null,
-    eventPos: []
+    itemPos: []
   }
-  filterEventsForView(view);  // establish min/max dates for view (tFrom/tTo)
+  filterItemsForView(view);  // establish min/max dates for view (tFrom/tTo)
 
   if (!sourceView) appState.views.push(view);
   else appState.views.splice(sourceView, 0, view);  // insert above currently selected view
@@ -733,15 +733,15 @@ async function closeView(viewIdx) {
   }
 }
 
-function addNewEvent(viewIdx) {
+function addNewItem(viewIdx) {
   const vw = appState.views[viewIdx];
   const tl = timelineCache.get(vw.tlKey);
   
-  let sig = 3;
-  // smallest sig that will fully render
-  for (let s = 3; s > 0; s--) {
-    if (zoomSpec(s).fade < 1) break;
-    sig = s;
+  let prom = 3;
+  // smallest prominence that will fully render
+  for (let p = 3; p > 0; p--) {
+    if (zoomSpec(p).fade < 1) break;
+    prom = p;
   }
 
   // base date precision on the current zoom level of the canvas
@@ -749,26 +749,26 @@ function addNewEvent(viewIdx) {
   const midT = Util.pxToTime(getCanvasMidX());
   const ts = startOfTick(midT);
 
-  var event = {
+  var item = {
     id: Util.uuid(),
-    significance: sig, 
-    label: "New event", 
+    prominence: prom, 
+    label: "New item", 
     date: {ts:ts, prec:prec}, 
     color: "white",
     details: null,
     tagIds: vw.tagFilter ? [vw.tagFilter] : [],  // if clicked view is filtered, inherit the tag filter
-    include: (!vw.tagFilter),  // if clicked view is filtered, don't include event in base timeline
+    include: (!vw.tagFilter),  // if clicked view is filtered, don't include item in base timeline
     _timeline: tl
   };
 
-  initializeEvent(event);
-  appState.selected.event = event;
+  initializeItem(item);
+  appState.selected.item = item;
   appState.selected.view = vw;
   appState.selected.timeline = tl;
-  tl.events.push(event);
+  tl.items.push(item);
   tl._dirty = true;
   draw(true);
-  openSelectedEvent(true);
+  openSelectedItem(true);
 }
 
 /*

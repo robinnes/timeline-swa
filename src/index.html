@@ -21,75 +21,75 @@
     </div>
     <!-- Sidebar -->
     <div class="app">
-      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Event Details">
+      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Item Details">
         <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
         <div class="sidebar__scroll">
           <!-- Tabs sit below the header -->
           <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
             <button class="tab-btn is-active" data-target="timeline" role="tab" aria-selected="true">Timeline</button>
-            <button class="tab-btn" data-target="event" role="tab" aria-selected="false">Event</button>
+            <button class="tab-btn" data-target="item" role="tab" aria-selected="false">Item</button>
           </div>
           <div class="panel__tabs-sep" aria-hidden="true"></div>
           <div class="panels-container">
-            <!-- View event panel -->
-            <div id="panel-view-event" class="panel">
+            <!-- View item panel -->
+            <div id="panel-view-item" class="panel">
               <div class="panel__content panel__content--view">
                 <section class="sidebar__section">
-                  <div class="date" id="event-date"></div>
+                  <div class="date" id="item-date"></div>
                   <div class="thumblabel__section">
-                    <img class="thumbnail-img" id="event-thumb-view-img" alt="View event thumbnail"/>
-                    <h2 class="label display-textarea" id="event-label"></h2>
+                    <img class="thumbnail-img" id="item-thumb-view-img" alt="View item thumbnail"/>
+                    <h2 class="label display-textarea" id="item-label"></h2>
                   </div>
                 </section>
                 <section class="sidebar__section">
-                  <div class="details display-textarea" id="event-details"></div>
+                  <div class="details display-textarea" id="item-details"></div>
                 </section>
               </div>
             </div>
-            <!-- Edit event panel -->
-            <div id="panel-edit-event" class="panel" hidden inert>
+            <!-- Edit item panel -->
+            <div id="panel-edit-item" class="panel" hidden inert>
               <div class="panel__content panel__content--edit">
-                <div class="subpanel__tabs" data-subtab-scope="edit-event">
-                  <button class="subtab-btn is-active" data-target="subpanel-edit-event-main"    role="subtab" aria-selected="true">Main</button>
-                  <button class="subtab-btn"           data-target="subpanel-edit-event-details" role="subtab" aria-selected="false">Details</button>
-                  <button class="subtab-btn"           data-target="subpanel-edit-event-tags"    role="subtab" aria-selected="false">Tags</button>
+                <div class="subpanel__tabs" data-subtab-scope="edit-item">
+                  <button class="subtab-btn is-active" data-target="subpanel-edit-item-main"    role="subtab" aria-selected="true">Main</button>
+                  <button class="subtab-btn"           data-target="subpanel-edit-item-details" role="subtab" aria-selected="false">Details</button>
+                  <button class="subtab-btn"           data-target="subpanel-edit-item-tags"    role="subtab" aria-selected="false">Tags</button>
                 </div>
                 <!-- Main subpanel -->
-                <div id="subpanel-edit-event-main" class="subpanel">
+                <div id="subpanel-edit-item-main" class="subpanel">
                   <section class="sidebar__section">
-                    <label for="edit-event-label" class="control-label">Label</label>
-                    <textarea id="edit-event-label" class="edit-textarea" rows="2"></textarea>
+                    <label for="edit-item-label" class="control-label">Label</label>
+                    <textarea id="edit-item-label" class="edit-textarea" rows="2"></textarea>
                   </section>
                   <section class="sidebar__section">
                     <label for="select-thumbnail-btn" class="control-label">Thumbnail</label>
                     <div class="thumb__section">
                       <button class="action-btn action-btn-small" id="select-thumbnail-btn">Select</button>
                       <div class="thumb__right">
-                        <img class="thumbnail-img" id="event-thumb-edit-img" alt="Edit event thumbnail"/>
+                        <img class="thumbnail-img" id="item-thumb-edit-img" alt="Edit item thumbnail"/>
                         <button class="action-btn action-btn-close" id="close-thumbnail-btn">×</button>
                       </div>
                     </div>
                   </section>
                   <section class="sidebar__section">
-                    <label for="event-date-display" class="control-label">Date</label>
-                    <input id="event-date-display" class="edit-input" type="text" readonly>
+                    <label for="item-date-display" class="control-label">Date</label>
+                    <input id="item-date-display" class="edit-input" type="text" readonly>
                   </section>
                   <section class="sidebar__section">
                     <div class="significance">
                       <div class="significance-row">
                         <label class="control-label">Point</label>
                         <div class="significance-controls">
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="1" id="sig-1"><span>Minor</span></label>
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="2" id="sig-2"><span>Normal</span></label>
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="3" id="sig-3"><span>Major</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="1" id="sig-1"><span>Minor</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="2" id="sig-2"><span>Normal</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="3" id="sig-3"><span>Major</span></label>
                         </div>
                       </div>
                       <div class="significance-row">
                         <label class="control-label">Span</label>
                         <div class="significance-controls">
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="4" id="sig-4"><span>Minor</span></label>
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="5" id="sig-5"><span>Normal</span></label>
-                          <label class="sig-btn"><input type="radio" name="event-significance" value="6" id="sig-6"><span>Major</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="4" id="sig-4"><span>Minor</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="5" id="sig-5"><span>Normal</span></label>
+                          <label class="sig-btn"><input type="radio" name="item-significance" value="6" id="sig-6"><span>Major</span></label>
                         </div>
                       </div>
                     </div>
@@ -113,14 +113,14 @@
                   </section>
                 </div>
                 <!-- Details subpanel-->
-                <div id="subpanel-edit-event-details" class="subpanel" hidden inert>
+                <div id="subpanel-edit-item-details" class="subpanel" hidden inert>
                   <section class="sidebar__section">
-                    <label for="edit-event-details" class="control-label">Description</label>
-                    <textarea id="edit-event-details" class="edit-textarea"></textarea>
+                    <label for="edit-item-details" class="control-label">Description</label>
+                    <textarea id="edit-item-details" class="edit-textarea"></textarea>
                   </section>
                 </div>
                 <!-- Tags subpanel -->
-                <div id="subpanel-edit-event-tags" class="subpanel" hidden inert>
+                <div id="subpanel-edit-item-tags" class="subpanel" hidden inert>
                   <section class="sidebar__section">
                     <div class="tagpick">
                       <div class="tagpick__hint" id="tagpick-hint" hidden>
@@ -128,18 +128,18 @@
                       </div>
 <!--                      <ul class="tagpick__tree">
                         <li style="padding-left: 0px;">
-                          <input type="checkbox" id="edit-event-include"/>
+                          <input type="checkbox" id="edit-item-include"/>
                           <div class="tagpick__label">Include in Base Timeline</div>
                         </li>
                       </ul> -->
-                      <ul class="tagpick__tree" id="event-tag-tree" role="group" aria-label="Event tags"></ul>
+                      <ul class="tagpick__tree" id="item-tag-tree" role="group" aria-label="Item tags"></ul>
                     </div>
                   </section>
                 </div>
               </div>
               <div class="panel__footer">
                 <div class="panel__footer--left">
-                  <button id="event-delete" class="action-btn" aria-label="Delete event">Delete event</button>
+                  <button id="item-delete" class="action-btn" aria-label="Delete item">Delete item</button>
                 </div>
               </div>
             </div>

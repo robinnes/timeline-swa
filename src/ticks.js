@@ -86,7 +86,7 @@ export const tickSpec = new Map([
       cornerLabel: formatMinuteWeekday, 
       majorEvery: 60, 
       msPerTick: 1000*60, 
-      newEventSig: 1,
+      newItemProm: 1,
       label: [{minWidth:20, text:formatMinute}],
       panelLabel: formatMinuteFull
       }],
@@ -100,7 +100,7 @@ export const tickSpec = new Map([
       cornerLabel: formatWeekdayFull, 
       majorEvery: 24, 
       msPerTick: 1000*60*60, 
-      newEventSig: 1,
+      newItemProm: 1,
       label: [{minWidth:30, text:formatHour}],
       panelLabel: formatMinuteFull 
       }],
@@ -114,7 +114,7 @@ export const tickSpec = new Map([
       cornerLabel: formatMonthYear,
       majorEvery: 30,
       msPerTick: 86400000,
-      newEventSig: 1,
+      newItemProm: 1,
       label: [{minWidth:60, text:formatWeekday}, {minWidth:20, text:formatDay}],
       panelLabel: formatDayFull
       }],
@@ -128,7 +128,7 @@ export const tickSpec = new Map([
       cornerLabel: formatYear,
       majorEvery: 12,
       msPerTick: 86400000*30,
-      newEventSig: 2,
+      newItemProm: 2,
       label: [{minWidth:30, text:formatMonth}],
       panelLabel: formatMonthYear
     }],
@@ -142,7 +142,7 @@ export const tickSpec = new Map([
       cornerLabel: null, 
       majorEvery: 10, 
       msPerTick: 86400000*365, 
-      newEventSig: 3,
+      newItemProm: 3,
       label: [{minWidth:40, text:formatYear}],
       panelLabel: formatYear
     }],
@@ -156,7 +156,7 @@ export const tickSpec = new Map([
       cornerLabel: null,
       majorEvery: 100,
       msPerTick: 86400000*365*10,
-      newEventSig: 3,
+      newItemProm: 3,
       label: [{minWidth:30, text:formatYear}],
       panelLabel: formatYearCirca
     }],
@@ -170,7 +170,7 @@ export const tickSpec = new Map([
       cornerLabel: null,
       majorEvery: 1000,
       msPerTick: 86400000*365*100,
-      newEventSig: 3,
+      newItemProm: 3,
       label: [{minWidth:30, text:formatYear}],
       panelLabel: formatYearCirca
     }],
@@ -184,7 +184,7 @@ export const tickSpec = new Map([
       cornerLabel: null,
       majorEvery: 10000,
       msPerTick: 86400000*365*1000,
-      newEventSig: 3,
+      newItemProm: 3,
       label: [{minWidth:30, text:formatYear}],
       panelLabel: formatYearCirca
     }]
@@ -207,7 +207,7 @@ export function startOfTick(t) {
   return spec.start(t);
 }
 
-export function formatEventDate(compoundDate) {
+export function formatItemDate(compoundDate) {
   // compoundDate = {ts, prec}
   const d = new Date(compoundDate.ts);  // date from the timestamp
   const spec = tickSpec.get(compoundDate.prec);  // tickSpec for that precision

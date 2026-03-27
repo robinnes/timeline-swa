@@ -1,7 +1,7 @@
 import {DRAW} from './constants.js';
 import {appState, draw} from './canvas.js';
-import {setSidebarEvent} from './panel.js';
-import {initializeEvent} from "./timeline.js";
+import {setSidebarItem} from './panel.js';
+import {initializeItem} from "./timeline.js";
 
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
@@ -101,16 +101,16 @@ imageModal.addEventListener('click', (e) => {
       // Encode thumbnail (WebP)
       const dataUrl = canvas32.toDataURL('image/webp', 0.9);
       
-      if (appState.selected?.event) {
-        const e = appState.selected.event;
+      if (appState.selected?.item) {
+        const e = appState.selected.item;
 
-        // Update the selected event
+        // Update the selected item
         e.thumbnail = dataUrl;
         appState.selected.timeline._dirty = true;
         
         // Update panel
-        setSidebarEvent(e);
-        initializeEvent(e);
+        setSidebarItem(e);
+        initializeItem(e);
         draw(true);
       }
 
@@ -120,10 +120,10 @@ imageModal.addEventListener('click', (e) => {
 });
 
 export function removeImageThumbnail() {
-  const event = appState.selected.event;
-  event.thumbnail = null;
-  event._timeline._dirty = true;
-  setSidebarEvent(event);
-  initializeEvent(event);
+  const item = appState.selected.item;
+  item.thumbnail = null;
+  item._timeline._dirty = true;
+  setSidebarItem(item);
+  initializeItem(item);
   draw(true);
 }

@@ -1,22 +1,22 @@
 import * as Util from './util.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
-import {initializeEvent} from './timeline.js';
-import {markDirty, formatEventDates} from './panel.js';
+import {initializeItem} from './timeline.js';
+import {markDirty, formatItemDates} from './panel.js';
 import {positionLabels} from './render.js';
 import {getTickSpec, startOfTick} from './ticks.js';
 
 export function startDragging() {
   // start dragging a handle
-  const e = appState.selected.event;
+  const i = appState.selected.item;
   appState.drag = {
     isDragging: true,
     attribute: screenElements[appState.highlighted.idx].subType,
     start: {
-      date: e.date,
-      dateFrom: e.dateFrom,
-      dateTo: e.dateTo,
-      fadeLeft: e.fadeLeft,
-      fadeRight: e.fadeRight,
+      date: i.date,
+      dateFrom: i.dateFrom,
+      dateTo: i.dateTo,
+      fadeLeft: i.fadeLeft,
+      fadeRight: i.fadeRight,
       dirty: appState.selected.timeline._dirty
     }
   };
@@ -28,38 +28,38 @@ export function stopDragging(revert = false) {
     setPointerCursor();  // as opposed to calling draw()
   } else {
     // cancel pan mode and revert to original value (this code should be in timeline.js...)
-    const e = appState.selected.event;
+    const i = appState.selected.item;
     const d = appState.drag;
     appState.drag.isDragging = false;
-    e.date = d.start.date;
-    e.dateFrom = d.start.dateFrom;
-    e.dateTo = d.start.dateTo;
-    e.fadeLeft = d.start.fadeLeft;
-    e.fadeRight = d.start.fadeRight;
+    i.date = d.start.date;
+    i.dateFrom = d.start.dateFrom;
+    i.dateTo = d.start.dateTo;
+    i.fadeLeft = d.start.fadeLeft;
+    i.fadeRight = d.start.fadeRight;
     markDirty(appState.selected.timeline);
-    initializeEvent(e);
-    document.getElementById('event-date-display').value = formatEventDates(e);
+    initializeItem(e);
+    document.getElementById('item-date-display').value = formatItemDates(e);
     positionLabels();
     draw();
   }
 }
 
-export function drag(e) {
-  // dragging a handle to change event dateTime
-  const se = appState.selected.event;
+export function drag(i) {
+  // dragging a handle to change item dateTime
+  const si = appState.selected.item;
   const attr = appState.drag.attribute;
-  const t = Util.pxToTime(e.clientX);  // timestamp in center of the window
+  const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
   const roundT = startOfTick(t);
   const prec = getTickSpec().mode;  // assume precision of the canvas
-  if (roundT === se[attr].ts) return;  // snap to tick
+  if (roundT === si[attr].ts) return;  // snap to tick
 
   const d = {ts:roundT, prec:prec};
-  if (attr === 'dateFrom' && se._fLeft === se._tFrom) se.fadeLeft = d; // move the 'fade' dates with from/to
-  if (attr === 'dateTo' && se._fRight === se._tTo) se.fadeRight = d;
-  se[attr] = d; // initializeEvent will handle limits
+  if (attr === 'dateFrom' && si._fLeft === si._tFrom) si.fadeLeft = d; // move the 'fade' dates with from/to
+  if (attr === 'dateTo' && si._fRight === si._tTo) si.fadeRight = d;
+  si[attr] = d; // initializeItem will handle limits
   
-  initializeEvent(se);
-  document.getElementById('event-date-display').value = formatEventDates(se);
+  initializeItem(si);
+  document.getElementById('item-date-display').value = formatItemDates(si);
   markDirty(appState.selected.timeline);
   positionLabels();
   draw();

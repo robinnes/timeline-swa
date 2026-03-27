@@ -54,10 +54,10 @@ import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
 
 export function debugVars() {
-  //if (!appState.selected.event) return;
+  //if (!appState.selected.item) return;
   
   const ctx = canvas.getContext('2d');
-  //const sig = appState.selected.event.significance;
+  //const sig = appState.selected.item.prominence;
   //const spec = zoomSpec(sig);
   const leftLabel = window.innerWidth - 300;
   const leftValue = window.innerWidth - 200;

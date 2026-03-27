@@ -380,10 +380,10 @@ function moveTag(tagId, delta) {
 }
 
 
-/* -------------------------- Select tags (Event Edit Tags subpanel) -------------------------- */
+/* -------------------------- Select tags (Item Edit Tags subpanel) -------------------------- */
 
 export function initTagPickerUI() {
-  pickerEl = document.getElementById('event-tag-tree');
+  pickerEl = document.getElementById('item-tag-tree');
   pickerHintEl = document.getElementById('tagpick-hint');
   if (!pickerEl) return;
 
@@ -393,22 +393,22 @@ export function initTagPickerUI() {
     if (!cb) return;
 
     const tagId = cb.dataset.tagId;
-    const event = appState.selected.event;
+    const item = appState.selected.item;
     const tl = appState.selected.timeline;
-    if (!event || !tl) return;
+    if (!item || !tl) return;
 
-    if (!event.tagIds) event.tagIds = [];
+    if (!item.tagIds) item.tagIds = [];
 
-    // the "include" checkbox controls event.include, not tags
+    // the "include" checkbox controls item.include, not tags
     if (tagId==="include") {
-      event.include = cb.checked;
+      item.include = cb.checked;
     } else {
-      // add/remove event.tagIds
+      // add/remove item.tagIds
       if (cb.checked) {
-        if (!event.tagIds.includes(tagId)) event.tagIds.push(tagId);
+        if (!item.tagIds.includes(tagId)) item.tagIds.push(tagId);
       } else {
-        const idx = event.tagIds.indexOf(tagId);
-        if (idx >= 0) event.tagIds.splice(idx, 1);
+        const idx = item.tagIds.indexOf(tagId);
+        if (idx >= 0) item.tagIds.splice(idx, 1);
       }
     }
     markDirty(tl);
@@ -416,7 +416,7 @@ export function initTagPickerUI() {
   });
 }
 
-export function renderTagPickerUI(tl, event) {
+export function renderTagPickerUI(tl, item) {
   if (!pickerEl) return;
 
   // no timeline or no tags -> show hint
@@ -426,9 +426,9 @@ export function renderTagPickerUI(tl, event) {
   if (pickerHintEl) pickerHintEl.hidden = hasTags;
   pickerEl.innerHTML = '';
 
-  if (!hasTags || !event) return;
+  if (!hasTags || !item) return;
 
-  if (!event.tagIds) event.tagIds = [];
+  if (!item.tagIds) item.tagIds = [];
 
   // Build parent -> children map
   const byParent = new Map();
@@ -442,16 +442,16 @@ export function renderTagPickerUI(tl, event) {
   }
 
   // Begin with 'Include in Base Timeline' checkbox
-  pickerEl.appendChild(renderIncludeNode(event));
+  pickerEl.appendChild(renderIncludeNode(item));
 
   // Render roots
   const root = byParent.get(null) ?? [];
   for (const t of root) {
-    pickerEl.appendChild(renderPickerNode(t, byParent, 0, event));
+    pickerEl.appendChild(renderPickerNode(t, byParent, 0, item));
   }
 }
 
-function renderPickerNode(tag, byParent, depth, event) {
+function renderPickerNode(tag, byParent, depth, item) {
   const li = document.createElement('li');
   li.style.paddingLeft = `${depth * 16}px`;
 
@@ -461,7 +461,7 @@ function renderPickerNode(tag, byParent, depth, event) {
   const cb = document.createElement('input');
   cb.type = 'checkbox';
   cb.dataset.tagId = tag.id;
-  cb.checked = !!event.tagIds?.includes(tag.id);
+  cb.checked = !!item.tagIds?.includes(tag.id);
 
   const text = document.createElement('div');
   text.className = 'tagpick__label';
@@ -475,14 +475,14 @@ function renderPickerNode(tag, byParent, depth, event) {
   if (kids.length) {
     const ul = document.createElement('ul');
     ul.className = 'tagpick__tree';
-    for (const c of kids) ul.appendChild(renderPickerNode(c, byParent, depth + 1, event));
+    for (const c of kids) ul.appendChild(renderPickerNode(c, byParent, depth + 1, item));
     li.appendChild(ul);
   }
   return li;
 }
 
-function renderIncludeNode(event) {
-  // hard-code 'Include in base timeline' node (event.include)
+function renderIncludeNode(item) {
+  // hard-code 'Include in base timeline' node (item.include)
   const li = document.createElement('li');
   li.style.paddingLeft = "0px";
   const row = document.createElement('label');
@@ -490,7 +490,7 @@ function renderIncludeNode(event) {
   const cb = document.createElement('input');
   cb.type = 'checkbox';
   cb.dataset.tagId = "include";
-  cb.checked = event.include;
+  cb.checked = item.include;
   const text = document.createElement('div');
   text.className = 'tagpick__label';
   text.textContent = "Include in base timeline";
