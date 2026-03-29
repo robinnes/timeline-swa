@@ -37,8 +37,8 @@ export function stopDragging(revert = false) {
     i.fadeLeft = d.start.fadeLeft;
     i.fadeRight = d.start.fadeRight;
     markDirty(appState.selected.timeline);
-    initializeItem(e);
-    document.getElementById('item-date-display').value = formatItemDates(e);
+    initializeItem(i);
+    document.getElementById('item-date-display').value = formatItemDates(i);
     positionLabels();
     draw();
   }

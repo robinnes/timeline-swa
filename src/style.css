@@ -610,12 +610,12 @@ h2.label {
 
 /********************************* Significance selecitons *********************************/
 
-/* Significance radio group (two rows of three) */
+/* Significance radio group (two rows of three) 
 .significance .significance-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px; /* 8px */
+  margin-bottom: 10px; /* 8px 
 }
 .significance-controls {
   display: flex;
@@ -627,20 +627,20 @@ h2.label {
   align-items: center;
   background: rgba(255,255,255,0.02);
    border: 1px solid rgba(255,255,255,0.04);
-  /* padding: 6px 8px; */
+  /* padding: 6px 8px; 
   border-radius: 6px;
   color: var(--fg);
   font-weight: 600;
   cursor: pointer;
-  /* min-width: 76px; */
-  /* height: 32px; */
+  /* min-width: 76px; 
+  /* height: 32px; 
   justify-content: center;
 }
 .sig-btn input[type="radio"] {
   display: none;
 }
 .sig-btn span {
-  padding: 0px 12px;  /* 6px */
+  padding: 0px 12px;  /* 6px 
   border-radius: 4px;
 }
 .sig-btn:hover {
@@ -651,9 +651,93 @@ h2.label {
   color: #0b0d17;
 }
 .sig-btn input[type="radio"]:checked + span {
-  /* indicate selected: invert background and text */
+  /* indicate selected: invert background and text 
   background: var(--accent);
   color: #0b0d17;
+}
+*/
+
+
+/********************************* Item type / date specification / prominence *********************************/
+
+/* shared toggle rows */
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
+  color: var(--fg);
+  font-weight: 600;
+  cursor: pointer;
+  justify-content: center;
+}
+
+.toggle-btn input[type="radio"] {
+  display: none;
+}
+
+.toggle-btn span {
+  padding: 0px 12px;
+  border-radius: 4px;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.toggle-btn input[type="radio"]:checked + span {
+  background: var(--accent);
+  color: #0b0d17;
+}
+
+.toggle-btn.is-disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.toggle-btn.is-disabled:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.toggle-btn input[type="radio"]:disabled + span {
+  opacity: 0.65;
+}
+
+/* prominence slider */
+.prominence-slider {
+  padding: 2px 2px 0 2px;
+}
+
+.prominence-slider input[type="range"] {
+  width: 100%;
+  margin: 0;
+}
+
+.prominence-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 2px 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Type + Date in one row */
+.type-date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* push date-spec to the right */
+.type-date-right {
+  margin-left: auto;
 }
 
 

@@ -13,10 +13,13 @@
     <div class="app-menu app-menu--floating" aria-label="Application menu">
       <button class="app-menu__button" id="app-menu-button" ...>⋯</button>
       <div class="app-menu__dropdown" id="app-menu-dropdown" role="menu" aria-hidden="true">
-        <button class="app-menu__item" role="menuitem" data-action="new-timeline" hidden>New timeline…</button>
-        <button class="app-menu__item" role="menuitem" data-action="open-timeline">Open timeline…</button>
+        <button class="app-menu__item" role="menuitem" data-action="new-timeline" hidden>New timeline
+</button>
+        <button class="app-menu__item" role="menuitem" data-action="open-timeline">Open timeline
+</button>
         <div class="app-menu__separator"></div>
-        <button class="app-menu__item" role="menuitem" data-action="auth">Sign in…</button>
+        <button class="app-menu__item" role="menuitem" data-action="auth">Sign in
+</button>
       </div>
     </div>
     <!-- Sidebar -->
@@ -74,7 +77,7 @@
                     <label for="item-date-display" class="control-label">Date</label>
                     <input id="item-date-display" class="edit-input" type="text" readonly>
                   </section>
-                  <section class="sidebar__section">
+                  <!--<section class="sidebar__section">
                     <div class="significance">
                       <div class="significance-row">
                         <label class="control-label">Point</label>
@@ -91,6 +94,54 @@
                           <label class="sig-btn"><input type="radio" name="item-significance" value="5" id="sig-5"><span>Normal</span></label>
                           <label class="sig-btn"><input type="radio" name="item-significance" value="6" id="sig-6"><span>Major</span></label>
                         </div>
+                      </div>
+                    </div>
+                  </section>-->
+                  <section class="sidebar__section">
+                    <label class="control-label">Type</label>
+
+                    <div class="type-date-row">
+                      <!-- Item Type (left) -->
+                      <div class="toggle-group" id="item-type-group">
+                        <label class="toggle-btn">
+                          <input type="radio" name="item-type" value="event" id="item-type-event">
+                          <span>Event</span>
+                        </label>
+                        <label class="toggle-btn">
+                          <input type="radio" name="item-type" value="period" id="item-type-period">
+                          <span>Period</span>
+                        </label>
+                      </div>
+
+                      <!-- Date Specification (right-aligned) -->
+                      <div class="toggle-group type-date-right" id="date-spec-group">
+                        <label class="toggle-btn">
+                          <input type="radio" name="date-spec" value="point" id="date-spec-point">
+                          <span>Point</span>
+                        </label>
+                        <label class="toggle-btn">
+                          <input type="radio" name="date-spec" value="range" id="date-spec-range">
+                          <span>Range</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Prominence Slider -->
+                    <label class="control-label" style="margin-top: 12px;">Prominence</label>
+                    <div class="prominence-slider">
+                      <input
+                        type="range"
+                        id="item-prominence"
+                        min="1"
+                        max="5"
+                        step="1"
+                      />
+                      <div class="prominence-labels">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                        <span>5</span>
                       </div>
                     </div>
                   </section>

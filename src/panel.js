@@ -29,11 +29,15 @@ const editItemLabel = document.getElementById('edit-item-label');
 const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
-const significanceButtons = Array.from(document.querySelectorAll('input[name="item-significance"]'));
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
 const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
+
+//const significanceButtons = Array.from(document.querySelectorAll('input[name="item-significance"]'));
+const itemTypeButtons = Array.from(document.querySelectorAll('input[name="item-type"]'));
+const dateSpecificationButtons = Array.from(document.querySelectorAll('input[name="date-spec"]'));
+const prominenceSlider = document.getElementById('item-prominence');
 
 /* ------------------- Sidebar -------------------- */
 
@@ -375,13 +379,11 @@ for (const txt of displayTextAreas) {
 
 /* ------------------- Open view/item -------------------- */
 
-export function formatItemDates(e) {
-  //const spec = zoomSpec(e.significance);
-  //if (spec.style === 'dot') return formatItemDate(e.date);  // Util.formatTextDate(e.date);
-  if (e.prominence <= 3) return formatItemDate(e.date);
+export function formatItemDates(item) {
+  if (item.dateSpecification==='point') return formatItemDate(item.date);
 
-  const from = formatItemDate(e.dateFrom); // Util.formatTextDate(e.dateFrom);
-  const to = formatItemDate(e.dateTo); // Util.formatTextDate(e.dateTo);
+  const from = formatItemDate(item.dateFrom); 
+  const to = formatItemDate(item.dateTo);
   return `${from ?? "?"} - ${to ?? "?"}`;
 }
 
@@ -439,7 +441,12 @@ export function setSidebarItem(item) {
   editItemDetails.value = item.details ?? '';
   $('item-date-display').value = formatItemDates(item);
 
-  updateSignificanceButton();
+  //updateSignificanceButton();
+  updateItemTypeButtons();
+  updateDateSpecificationButtons();
+  updateProminenceSlider();
+  updateDateSpecificationState();
+  
   updateColorSelectorState();
   updateColorButtons();
 
@@ -506,6 +513,7 @@ function setSidebarView(vw) {
 
 /* ------------------- Significance buttons -------------------- */
 
+/*
 // Significance change handler: update selected.item.significance and mark dirty
 for (const r of significanceButtons) {
   r.addEventListener('change', (e) => {
@@ -556,6 +564,137 @@ function updateColorSelectorState() {
     }
   });
 }
+*/
+
+
+/* ------------------- Item type / date specification / prominence -------------------- */
+
+for (const r of itemTypeButtons) {
+  r.addEventListener('change', (e) => {
+    const item = appState.selected.item;
+    const tl = appState.selected.timeline;
+    if (!item) return;
+
+    item.itemType = e.target.value;
+
+    if (item.itemType === 'period') {
+      item.dateSpecification = 'range';
+    }
+
+    initializeItem(item);
+    if (tl?._mode === 'edit') markDirty(tl);
+
+    updateItemTypeButtons();
+    updateDateSpecificationButtons();
+    updateProminenceSlider();
+    updateDateSpecificationState();
+    updateColorSelectorState();
+    updateColorButtons();
+    draw(true);
+  });
+}
+
+for (const r of dateSpecificationButtons) {
+  r.addEventListener('change', (e) => {
+    const item = appState.selected.item;
+    const tl = appState.selected.timeline;
+    if (!item) return;
+    if (item.itemType === 'period') return;
+
+    item.dateSpecification = e.target.value;
+
+    initializeItem(item);
+    if (tl?._mode === 'edit') markDirty(tl);
+
+    updateDateSpecificationButtons();
+    updateDateSpecificationState();
+    updateColorSelectorState();
+    updateColorButtons();
+    draw(true);
+  });
+}
+
+prominenceSlider?.addEventListener('input', (e) => {
+  const item = appState.selected.item;
+  const tl = appState.selected.timeline;
+  if (!item) return;
+
+  item.prominence = parseInt(e.target.value, 10);
+
+  initializeItem(item);
+  if (tl?._mode === 'edit') markDirty(tl);
+
+  updateProminenceSlider();
+  draw(true);
+});
+
+function updateItemTypeButtons() {
+  const item = appState.selected.item;
+  if (!item) return;
+
+  const value = item.itemType ?? 'event';
+  const el = document.querySelector(`input[name="item-type"][value="${value}"]`);
+  if (el) el.checked = true;
+}
+
+function updateDateSpecificationButtons() {
+  const item = appState.selected.item;
+  if (!item) return;
+
+  const value = item.dateSpecification ?? 'point';
+  const el = document.querySelector(`input[name="date-spec"][value="${value}"]`);
+  if (el) el.checked = true;
+}
+
+function updateProminenceSlider() {
+  const item = appState.selected.item;
+  if (!item || !prominenceSlider) return;
+  prominenceSlider.value = String(item.prominence ?? 3);
+}
+
+function updateDateSpecificationState() {
+  const item = appState.selected.item;
+  if (!item) return;
+
+  const disableDateSpec = item.itemType === 'period';
+
+  dateSpecificationButtons.forEach(radio => {
+    const label = radio.closest('.toggle-btn');
+    radio.disabled = disableDateSpec;
+
+    if (label) {
+      label.classList.toggle('is-disabled', disableDateSpec);
+      label.setAttribute('aria-disabled', disableDateSpec ? 'true' : 'false');
+    }
+
+    if (disableDateSpec && radio.value === 'range') {
+      radio.checked = true;
+    }
+  });
+}
+
+function updateColorSelectorState() {
+  const item = appState.selected.item;
+  if (!item) return;
+
+  const disableTargets = item.itemType === 'event';
+  const targetRadios = document.querySelectorAll('input[name="color-target"]');
+
+  targetRadios.forEach(radio => {
+    const label = radio.closest('.color-sel-btn');
+    radio.disabled = disableTargets;
+
+    if (label) {
+      label.classList.toggle('is-disabled', disableTargets);
+      label.setAttribute('aria-disabled', disableTargets ? 'true' : 'false');
+    }
+  });
+
+  if (disableTargets) {
+    const mainRadio = document.querySelector('input[name="color-target"][value="main"]');
+    if (mainRadio) mainRadio.checked = true;
+  }
+}
 
 
 /* ------------------- Color buttons -------------------- */
@@ -601,7 +740,8 @@ function getSelectedColorTarget() {
 function updateColorButtons() {
   const e = appState.selected.item;
   if (!e) return;
-  const target = getSelectedColorTarget();
+  //const target = getSelectedColorTarget();
+  const target = (e.itemType === 'event') ? 'main' : getSelectedColorTarget();
 
   // hide/show the 'black' swatch for left/right targets
   const blackBtn = document.querySelector('.color-btn[data-color="black"]');

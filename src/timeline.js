@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, draw} from './canvas.js';
-import {zoomSpec, positionViews} from './render.js';
+import {positionViews} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
@@ -17,17 +17,22 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    items: tl.items.map(({id, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
-                            id, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
+    items: tl.items.map(({id, itemType, dateSpecification, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
+                            id, itemType, dateSpecification, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
     }))
   };
   return JSON.stringify(txt, null, 2);
 }
 
 export function initializeItem(i) {
-  const spec = zoomSpec(i.prominence);
-  const style = spec.style;
-  
+  // backward compatibility
+  if (!i.itemType) {
+    let p = i.prominence;
+    i.itemType = p <= 3 ? 'event' : 'period';
+    i.dateSpecification = i.itemType==='event' ? 'point' : 'range';
+    i.prominence = i.itemType==='event' ? p + 1 : (p - 3) + 1;
+  }
+
   // Assign unique ID if not present
   if (i.id === undefined) i.id = Util.uuid();
 
@@ -46,7 +51,7 @@ export function initializeItem(i) {
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
-  if (style === 'line') {
+  if (i.dateSpecification === 'range') {
     // if switched from dot to line
     if (!i.dateFrom) i.dateFrom = {...i.date};
     if (!i.dateTo) i.dateTo = {...i.date};
@@ -54,7 +59,6 @@ export function initializeItem(i) {
     if (!i.fadeRight) i.fadeRight = {...i.dateTo};
 
     // adjust timestamp to center of tick (assume prec="day" for now)
-    //const msPerTick = tickSpec.get(i.date.prec).msPerTick;
     i._tFrom = i.dateFrom.ts + (tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
     i._tTo = i.dateTo.ts + (tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
     i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);

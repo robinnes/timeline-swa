@@ -132,7 +132,7 @@ export function setPointerCursor() {
 }
 
 export function draw(reposition){
-//  try {
+  try {
     if (reposition) positionLabels();
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -141,9 +141,9 @@ export function draw(reposition){
     appState.highlighted.linkIdx = -1;
     drawTicks();
     drawItems();
-//  } catch (err) {
-//    debugAppendText(err.stack);
-//  }
+  } catch (err) {
+    debugAppendText(err.stack);
+  }
   //Util.debugVars();
   //debugDisplay();
 }
@@ -531,7 +531,7 @@ function identifyPreviousItem(view, e) {
 
 function positionForItem(i) {
   const vp = getCanvasViewport();
-  const spec = zoomSpec(i.prominence);
+  const spec = zoomSpec(i.itemType, i.prominence);
   const width = i._tTo - i._tFrom;
     
   if (spec.style==="line") {
@@ -740,7 +740,7 @@ function addNewItem(viewIdx) {
   let prom = 3;
   // smallest prominence that will fully render
   for (let p = 3; p > 0; p--) {
-    if (zoomSpec(p).fade < 1) break;
+    if (zoomSpec('event', p).fade < 1) break;
     prom = p;
   }
 
@@ -751,6 +751,8 @@ function addNewItem(viewIdx) {
 
   var item = {
     id: Util.uuid(),
+    itemType: 'event',
+    dateSpecification: 'point',
     prominence: prom, 
     label: "New item", 
     date: {ts:ts, prec:prec}, 
