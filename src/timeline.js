@@ -51,7 +51,8 @@ export function initializeItem(i) {
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
-  if (i.dateSpecification === 'range') {
+  //if (i.dateSpecification === 'range') {
+  if (i.itemType === 'period') {
     // if switched from dot to line
     if (!i.dateFrom) i.dateFrom = {...i.date};
     if (!i.dateTo) i.dateTo = {...i.date};
@@ -75,16 +76,35 @@ export function initializeItem(i) {
     i._dateTime = (i._fRight + i._fLeft) / 2;
   
   } else {
-    // if switched from line to dot
-    if (!i.date) i.date = {...i.dateFrom}; // nothing fancy like finding middle of line vars...
+    if (i.dateSpecification === 'point') {
+      // if switched from line to dot
+      if (!i.date) i.date = {...i.dateFrom}; // nothing fancy like finding middle of line vars...
 
-    //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
-    const msPerTick = tickSpec.get(i.date.prec).msPerTick;
-    i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
-    i._tFrom = i._dateTime - Math.round(msPerTick * 0.4);
-    i._tTo = i._dateTime + Math.round(msPerTick * 0.4);
-    i._fLeft = i._tFrom + Math.round(msPerTick * 0.3);
-    i._fRight = i._tTo - Math.round(msPerTick * 0.3);
+      //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
+      const msPerTick = tickSpec.get(i.date.prec).msPerTick;
+      i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
+      i._tFrom = i._dateTime - Math.round(msPerTick * 0.5);
+      i._tTo = i._dateTime + Math.round(msPerTick * 0.5);
+      i._fLeft = i._tFrom + Math.round(msPerTick * 0.35);
+      i._fRight = i._tTo - Math.round(msPerTick * 0.35);
+
+    } else {
+      // if switched from dot to line
+      if (!i.dateFrom) i.dateFrom = {...i.date};
+      if (!i.dateTo) i.dateTo = {...i.date};
+
+      let msPerTick = tickSpec.get(i.dateFrom.prec).msPerTick;
+      i._dateFrom = i.dateFrom.ts + Math.round(msPerTick * 0.5)
+      i._tFrom = i.dateFrom.ts;
+      i._fLeft = i._tFrom + Math.round(msPerTick * 0.15);
+      
+      msPerTick = tickSpec.get(i.dateTo.prec).msPerTick;
+      i._dateTo = i.dateTo.ts + Math.round(msPerTick * 0.5);
+      i._tTo = i.dateTo.ts + Math.round(msPerTick * 1.0);
+      i._fRight = i._tTo - Math.round(msPerTick * 0.15);
+      
+      i._dateTime = (i._tFrom + i._tTo) / 2;
+    }
   }
 };
 

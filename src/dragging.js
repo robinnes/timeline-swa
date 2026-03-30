@@ -38,7 +38,7 @@ export function stopDragging(revert = false) {
     i.fadeRight = d.start.fadeRight;
     markDirty(appState.selected.timeline);
     initializeItem(i);
-    document.getElementById('item-date-display').value = formatItemDates(i);
+    document.getElementById('item-date-display').value = formatItemDates(e);
     positionLabels();
     draw();
   }
@@ -49,13 +49,19 @@ export function drag(i) {
   const si = appState.selected.item;
   const attr = appState.drag.attribute;
   const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
-  const roundT = startOfTick(t);
   const prec = getTickSpec().mode;  // assume precision of the canvas
+  let roundT = startOfTick(t);
   if (roundT === si[attr].ts) return;  // snap to tick
 
+  // check from/to date limits
+  if (attr==='dateFrom' && roundT > si.dateTo.ts) roundT = si.dateTo.ts;
+  if (attr==='dateTo' && roundT < si.dateFrom.ts) roundT = si.dateFrom.ts;
+  
   const d = {ts:roundT, prec:prec};
-  if (attr === 'dateFrom' && si._fLeft === si._tFrom) si.fadeLeft = d; // move the 'fade' dates with from/to
-  if (attr === 'dateTo' && si._fRight === si._tTo) si.fadeRight = d;
+
+  // move the 'fade' dates with from/to
+  if (attr==='dateFrom' && si._fLeft === si._tFrom) si.fadeLeft = d;
+  if (attr==='dateTo' && si._fRight === si._tTo) si.fadeRight = d;
   si[attr] = d; // initializeItem will handle limits
   
   initializeItem(si);

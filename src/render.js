@@ -189,7 +189,8 @@ function drawDateHandles(itemPos) {
 
   } else {
     // dateFrom (half-circle on the left)
-    let x = Util.timeToPx(item._tFrom);
+    const tFrom = item.itemType==='event' ? item._dateFrom : item._tFrom;
+    let x = Util.timeToPx(tFrom);
     let left = x - majorRadius
     let right = x;
     let top = y + majorHeight - majorRadius
@@ -207,7 +208,8 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // dateTo (half-circle on the right)
-    x = Util.timeToPx(item._tTo);
+    const tTo = item.itemType==='event' ? item._dateTo : item._tTo;
+    x = Util.timeToPx(tTo);
     left = x;
     right = x + majorRadius;
 

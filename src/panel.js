@@ -584,12 +584,13 @@ for (const r of itemTypeButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    updateItemTypeButtons();
+    /*updateItemTypeButtons();
     updateDateSpecificationButtons();
     updateProminenceSlider();
     updateDateSpecificationState();
     updateColorSelectorState();
-    updateColorButtons();
+    updateColorButtons();*/
+    setSidebarItem(item);
     draw(true);
   });
 }
@@ -606,10 +607,11 @@ for (const r of dateSpecificationButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    updateDateSpecificationButtons();
+    /*updateDateSpecificationButtons();
     updateDateSpecificationState();
     updateColorSelectorState();
-    updateColorButtons();
+    updateColorButtons();*/
+    setSidebarItem(item);
     draw(true);
   });
 }
