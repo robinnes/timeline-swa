@@ -48,22 +48,31 @@ export function drag(i) {
   // dragging a handle to change item dateTime
   const si = appState.selected.item;
   const attr = appState.drag.attribute;
-  const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
   const prec = getTickSpec().mode;  // assume precision of the canvas
+  const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
   let roundT = startOfTick(t);
+//console.log(new Date(roundT).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'}));
+
   if (roundT === si[attr].ts) return;  // snap to tick
 
+//if (attr==='dateFrom' && roundT >= si._tTo) {
+//  console.log("here");
+//}
   // check from/to date limits
-  if (attr==='dateFrom' && roundT > si.dateTo.ts) roundT = si.dateTo.ts;
-  if (attr==='dateTo' && roundT < si.dateFrom.ts) roundT = si.dateFrom.ts;
+  if (attr==='dateFrom' && roundT >= si._tTo) roundT = si._tFrom;
+  if (attr==='dateTo' && roundT < si._tFrom) roundT = si._tFrom;
   
   const d = {ts:roundT, prec:prec};
 
   // move the 'fade' dates with from/to
-  if (attr==='dateFrom' && si._fLeft === si._tFrom) si.fadeLeft = d;
-  if (attr==='dateTo' && si._fRight === si._tTo) si.fadeRight = d;
+  if (attr==='dateFrom' && si._fLeft===si._dateFrom) si.fadeLeft = {...d};
+  if (attr==='dateTo'   && si._fRight===si._dateTo)  si.fadeRight = {...d};
+ 
   si[attr] = d; // initializeItem will handle limits
-  
+/*
+const s = new Date(roundT).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'});
+console.log(attr + " = " + s);
+*/
   initializeItem(si);
   document.getElementById('item-date-display').value = formatItemDates(si);
   markDirty(appState.selected.timeline);

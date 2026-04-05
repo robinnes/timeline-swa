@@ -189,7 +189,8 @@ function drawDateHandles(itemPos) {
 
   } else {
     // dateFrom (half-circle on the left)
-    const tFrom = item.itemType==='event' ? item._dateFrom : item._tFrom;
+    //const tFrom = item.itemType==='event' ? item._dateFrom : item._tFrom;
+    const tFrom = item._dateFrom;
     let x = Util.timeToPx(tFrom);
     let left = x - majorRadius
     let right = x;
@@ -208,7 +209,8 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // dateTo (half-circle on the right)
-    const tTo = item.itemType==='event' ? item._dateTo : item._tTo;
+    //const tTo = item.itemType==='event' ? item._dateTo : item._tTo;
+    const tTo = item._dateTo;
     x = Util.timeToPx(tTo);
     left = x;
     right = x + majorRadius;
@@ -224,9 +226,10 @@ function drawDateHandles(itemPos) {
     screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateTo', item:item});
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
-    if (item.itemType === 'period') {
+//    if (item.itemType === 'period') {
       // fadeLeft
       x = Util.timeToPx(item._fLeft);
+      //x = Util.timeToPx(item.fadeLeft.ts);
       left = x;
       right = x + minorRadius;
       top = y + minorHeight - minorRadius
@@ -245,6 +248,7 @@ function drawDateHandles(itemPos) {
 
       // fadeRight
       x = Util.timeToPx(item._fRight);
+      //x = Util.timeToPx(item.fadeRight.ts);
       left = x - minorRadius;
       right = x;
 
@@ -258,7 +262,7 @@ function drawDateHandles(itemPos) {
 
       screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', item:item});
       if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
-    }
+//    }
   }
   
   ctx.restore();
@@ -537,11 +541,11 @@ function drawItemLine(ip, highlight) {
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
 
   ctx.save();
-  if (width >= 6 || i.itemType === 'period') {   // spec.style === 'line') {
+  //if (width >= 6 || i.itemType === 'period') {   // spec.style === 'line') {
     const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
     const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
      
-    if (i.itemType === 'period') {   // (spec.style === 'line') {
+    //if (i.itemType === 'period') {   // (spec.style === 'line') {
       const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
       const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
       let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
@@ -558,7 +562,7 @@ function drawItemLine(ip, highlight) {
         grad.addColorStop(gradRight, `rgba(${color},${fade})`);
         if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
         ctx.fillStyle = grad;
-    } else ctx.fillStyle = `rgba(${color}, ${fade})`;
+    //} else ctx.fillStyle = `rgba(${color}, ${fade})`;
 
     if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
 
@@ -583,7 +587,7 @@ function drawItemLine(ip, highlight) {
     }
     ctx.closePath();
     ctx.fill();
-  }
+  //}
 
   // dot - display dot while the line appears too narrow to smooth transition
   if ((xFadeRight - xFadeLeft) < height && spec.style === 'dot') {
@@ -747,8 +751,10 @@ function positionLabelsForVw(vw){
       if (!spec.displayLabel) { ip.yOffset = 0; return; }   // don't position if...
 
       // can we place label below? (will display wide enough)
-      const lineWidth = (Util.timeToPx(i._tTo) - Util.timeToPx(i._tFrom));
-      if (i._labelWidth + DRAW.EDGE_GAP*2 < lineWidth) { ip.yOffset = -1; return; }
+      if (i.itemType==='period') {
+        const lineWidth = (Util.timeToPx(i._tTo) - Util.timeToPx(i._tFrom));
+        if (i._labelWidth + DRAW.EDGE_GAP*2 < lineWidth) { ip.yOffset = -1; return; }
+      }
 
       const x = Util.timeToPx(i._dateTime);
       const left = x - i._parsedWidth/2 - DRAW.EDGE_GAP

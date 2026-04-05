@@ -51,60 +51,51 @@ export function initializeItem(i) {
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
-  //if (i.dateSpecification === 'range') {
-  if (i.itemType === 'period') {
-    // if switched from dot to line
-    if (!i.dateFrom) i.dateFrom = {...i.date};
-    if (!i.dateTo) i.dateTo = {...i.date};
-    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
-    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
-
-    // adjust timestamp to center of tick (assume prec="day" for now)
-    i._tFrom = i.dateFrom.ts + (tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
-    i._tTo = i.dateTo.ts + (tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
-    i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
-    i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
-
-    // sanity checks
-    if (i._tTo < i._tFrom)    { i.dateTo = {...i.dateFrom};    i._tTo = i._tFrom; }
-    if (i._fLeft > i._fRight) { i.fadeRight = {...i.fadeLeft}; i._fRight = i._fLeft; }
-    if (i._fLeft > i._tTo)    { i.fadeLeft = {...i.dateTo};    i._fLeft = i._tTo; }
-    if (i._fLeft < i._tFrom)  { i.fadeLeft = {...i.dateFrom};  i._fLeft = i._tFrom; }
-    if (i._fRight < i._tFrom) { i.fadeRight = {...i.dateFrom}; i._fRight = i._tFrom; }
-    if (i._fRight > i._tTo)   { i.fadeRight = {...i.dateTo};   i._fRight = i._tTo; }
-
-    i._dateTime = (i._fRight + i._fLeft) / 2;
-  
+  // Resolve single date vs date range
+  if (i.dateSpecification === 'point') {
+    if (!i.date) i.date = {...i.dateFrom};  // switched from line to dot
+    i.dateFrom = null;
+    i.dateTo = null;
+    i.fadeLeft = null;
+    i.fadeRight = null;
   } else {
-    if (i.dateSpecification === 'point') {
-      // if switched from line to dot
-      if (!i.date) i.date = {...i.dateFrom}; // nothing fancy like finding middle of line vars...
-
-      //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
-      const msPerTick = tickSpec.get(i.date.prec).msPerTick;
-      i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
-      i._tFrom = i._dateTime - Math.round(msPerTick * 0.5);
-      i._tTo = i._dateTime + Math.round(msPerTick * 0.5);
-      i._fLeft = i._tFrom + Math.round(msPerTick * 0.35);
-      i._fRight = i._tTo - Math.round(msPerTick * 0.35);
-
-    } else {
-      // if switched from dot to line
-      if (!i.dateFrom) i.dateFrom = {...i.date};
-      if (!i.dateTo) i.dateTo = {...i.date};
-
-      let msPerTick = tickSpec.get(i.dateFrom.prec).msPerTick;
-      i._dateFrom = i.dateFrom.ts + Math.round(msPerTick * 0.5)
-      i._tFrom = i.dateFrom.ts;
-      i._fLeft = i._tFrom + Math.round(msPerTick * 0.15);
-      
-      msPerTick = tickSpec.get(i.dateTo.prec).msPerTick;
-      i._dateTo = i.dateTo.ts + Math.round(msPerTick * 0.5);
-      i._tTo = i.dateTo.ts + Math.round(msPerTick * 1.0);
-      i._fRight = i._tTo - Math.round(msPerTick * 0.15);
-      
-      i._dateTime = (i._tFrom + i._tTo) / 2;
+    if (!i.dateFrom) {  // switched from dot to line
+      i.dateFrom = {...i.date};
+      i.dateTo = {...i.date};
+      i.fadeLeft = {...i.date};
+      i.fadeRight = {...i.date};
     }
+    i.date = null;
+  }
+
+  // Assign properties for rendering based on the dates
+  if (i.dateSpecification === 'point') {
+    //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
+    const msPerTick = tickSpec.get(i.date.prec).msPerTick;
+    i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
+    i._tFrom = i._dateTime - Math.round(msPerTick * 0.5);
+    i._tTo = i._dateTime + Math.round(msPerTick * 0.5);
+    i._fLeft = i._tFrom + Math.round(msPerTick * 0.35);
+    i._fRight = i._tTo - Math.round(msPerTick * 0.35);
+
+  } else {
+      // sanity checks
+       if (i.dateTo.ts < i.dateFrom.ts)    i.dateTo = {...i.dateFrom};
+      if (i.fadeLeft.ts > i.fadeRight.ts) i.fadeRight = {...i.fadeLeft};
+      if (i.fadeLeft.ts > i.dateTo.ts)    i.fadeLeft = {...i.dateTo};
+      if (i.fadeLeft.ts < i.dateFrom.ts)  i.fadeLeft = {...i.dateFrom};
+      if (i.fadeRight.ts < i.dateFrom.ts) i.fadeRight = {...i.dateFrom};
+      if (i.fadeRight.ts > i.dateTo.ts)   i.fadeRight = {...i.dateTo};   
+
+      // assign derived attributes for rendering
+      i._dateFrom = i.dateFrom.ts + Math.round(tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
+      i._tFrom = i.dateFrom.ts;
+      i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
+      i._dateTo = i.dateTo.ts + Math.round( tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
+      i._tTo = tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1);  // can't just add msPerTick
+      i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
+
+      i._dateTime = (i._tFrom + i._tTo) / 2;
   }
 };
 
