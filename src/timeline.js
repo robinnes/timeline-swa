@@ -59,12 +59,11 @@ export function initializeItem(i) {
     i.fadeLeft = null;
     i.fadeRight = null;
   } else {
-    if (!i.dateFrom) {  // switched from dot to line
-      i.dateFrom = {...i.date};
-      i.dateTo = {...i.date};
-      i.fadeLeft = {...i.date};
-      i.fadeRight = {...i.date};
-    }
+    // switched from dot to line
+    if (!i.dateFrom ) i.dateFrom = {...i.date};
+    if (!i.dateTo) i.dateTo = {...i.date};
+    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
+    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
     i.date = null;
   }
 
