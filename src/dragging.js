@@ -51,13 +51,8 @@ export function drag(i) {
   const prec = getTickSpec().mode;  // assume precision of the canvas
   const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
   let roundT = startOfTick(t);
-//console.log(new Date(roundT).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'}));
-
   if (roundT === si[attr].ts) return;  // snap to tick
 
-//if (attr==='dateFrom' && roundT >= si._tTo) {
-//  console.log("here");
-//}
   // check from/to date limits
   if (attr==='dateFrom' && roundT >= si._tTo) roundT = si._tFrom;
   if (attr==='dateTo' && roundT < si._tFrom) roundT = si._tFrom;
@@ -69,10 +64,7 @@ export function drag(i) {
   if (attr==='dateTo'   && si._fRight===si._dateTo)  si.fadeRight = {...d};
  
   si[attr] = d; // initializeItem will handle limits
-/*
-const s = new Date(roundT).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'});
-console.log(attr + " = " + s);
-*/
+
   initializeItem(si);
   document.getElementById('item-date-display').value = formatItemDates(si);
   markDirty(appState.selected.timeline);

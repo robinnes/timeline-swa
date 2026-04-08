@@ -37,9 +37,9 @@ export function zoomSpec(itemType, prominence){
     fade: (factor > z.threshold) ?
       Math.max((z.threshold + fadeIn - factor) * (z.maxBright / fadeIn), 0) :
       ((factor < z.threshold - persistence) && z.fadeNear) ? Math.max((factor - z.threshold + persistence + fadeOut) * (z.maxBright / fadeOut), 0) : z.maxBright,
-    displayLabel: ((factor - z.threshold + 1) < persistence),
-    fadeNear: z.fadeNear,
-    style: (z.fadeNear) ? 'line' : 'dot'
+    displayLabel: ((factor - z.threshold + 1) < persistence)
+    //fadeNear: z.fadeNear,
+    //style: (z.fadeNear) ? 'line' : 'dot'
   };
 }
 
@@ -541,56 +541,52 @@ function drawItemLine(ip, highlight) {
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
 
   ctx.save();
-  //if (width >= 6 || i.itemType === 'period') {   // spec.style === 'line') {
-    const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
-    const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
-     
-    //if (i.itemType === 'period') {   // (spec.style === 'line') {
-      const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
-      const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
-      let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
-      let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
+  const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
+  const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
+    
+  const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
+  const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
+  let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
+  let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
 
-      // check validity of gradiant parameters
-      if (!gradLeft || gradLeft < 0) gradLeft = 0;
-      if (!gradRight || gradRight > 1) gradRight = 1;
-      if (gradLeft > gradRight) gradLeft = gradRight;
+  // check validity of gradiant parameters
+  if (!gradLeft || gradLeft < 0) gradLeft = 0;
+  if (!gradRight || gradRight > 1) gradRight = 1;
+  if (gradLeft > gradRight) gradLeft = gradRight;
 
-      const grad = ctx.createLinearGradient(left, y, right, y);
-      if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
-        grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
-        grad.addColorStop(gradRight, `rgba(${color},${fade})`);
-        if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
-        ctx.fillStyle = grad;
-    //} else ctx.fillStyle = `rgba(${color}, ${fade})`;
+  const grad = ctx.createLinearGradient(left, y, right, y);
+  if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
+    grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
+    grad.addColorStop(gradRight, `rgba(${color},${fade})`);
+    if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
+    ctx.fillStyle = grad;
 
-    if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
+  if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
 
-    ctx.beginPath();
-    ctx.moveTo(xFadeLeft, top);
-    if (curveRight) {
-      ctx.lineTo(xFadeRight, top);
-      ctx.quadraticCurveTo(right, top, right, y);
-      ctx.quadraticCurveTo(right, bottom, xFadeRight, bottom);
-    } else {
-      ctx.lineTo(right, top);
-      ctx.lineTo(right, bottom);
-    }
-    if (curveLeft) {
-      ctx.lineTo(xFadeLeft, bottom);
-      ctx.quadraticCurveTo(left, bottom, left, y);
-      ctx.quadraticCurveTo(left, top, xFadeLeft, top);
-    } else {
-      ctx.lineTo(left, bottom);
-      ctx.lineTo(left, top);
-      ctx.lineTo(xFadeLeft, top);
-    }
-    ctx.closePath();
-    ctx.fill();
-  //}
+  ctx.beginPath();
+  ctx.moveTo(xFadeLeft, top);
+  if (curveRight) {
+    ctx.lineTo(xFadeRight, top);
+    ctx.quadraticCurveTo(right, top, right, y);
+    ctx.quadraticCurveTo(right, bottom, xFadeRight, bottom);
+  } else {
+    ctx.lineTo(right, top);
+    ctx.lineTo(right, bottom);
+  }
+  if (curveLeft) {
+    ctx.lineTo(xFadeLeft, bottom);
+    ctx.quadraticCurveTo(left, bottom, left, y);
+    ctx.quadraticCurveTo(left, top, xFadeLeft, top);
+  } else {
+    ctx.lineTo(left, bottom);
+    ctx.lineTo(left, top);
+    ctx.lineTo(xFadeLeft, top);
+  }
+  ctx.closePath();
+  ctx.fill();
 
   // dot - display dot while the line appears too narrow to smooth transition
-  if ((xFadeRight - xFadeLeft) < height && spec.style === 'dot') {
+  if ((xFadeRight - xFadeLeft) < height && i.itemType==='event') {
     ctx.fillStyle = `rgba(${color}, ${fade})`;
     ctx.beginPath();
     ctx.arc(x, y, (height/2), 0, Math.PI*2);
@@ -610,53 +606,56 @@ function registerItems(vw) {
   const rangeRight = vp.right + DRAW.MAX_LABEL_WIDTH / 2;
   const y = vw.yPos;
 
-  // iterate through items, highest prominence first to check the lowest ones for mouseover last
-  for (let prom = DRAW.MAX_SIGNIFICANCE; prom > 0; prom--) {
-    
-    // process each item (determined to be visible) of this prominence
-    vw.itemPos.filter(ip => ip.item.prominence === prom && ip.yOffset !== null).forEach(ip => {
-      const i = ip.item;
-      const spec = zoomSpec(i.itemType, i.prominence);
-      const height = spec.size;
-      const x = Util.timeToPx(i._dateTime);
-      let left = Math.round(Util.timeToPx(i._tFrom));
-      let right = Math.round(Util.timeToPx(i._tTo));
-      let top = Math.round(y - height / 2);
-      let bottom = Math.round(y + height / 2);
+  // process 'period' items then 'event' items
+  for (const iType of ['period', 'event']) {
 
-      if ((right < rangeLeft) || (left > rangeRight)) return;  // off-screen (horizontally)
+    // iterate through items, highest prominence first to check the lowest ones for mouseover last
+    for (let prom = DRAW.MAX_SIGNIFICANCE; prom > 0; prom--) {
       
-      // accommodate very small dots by expanding hit area
-      if (!spec.fadeNear) { 
-        left = Math.min(left, Math.round(x - DRAW.DOT_HOVER_PAD));
-        right = Math.max(right, Math.round(x + DRAW.DOT_HOVER_PAD));
-        top = Math.min(top, Math.round(y - DRAW.DOT_HOVER_PAD));
-        bottom = Math.max(bottom, Math.round(y + DRAW.DOT_HOVER_PAD));
-      }
+      // process each item (determined to be visible) of this prominence
+      vw.itemPos.filter(ip => ip.item.itemType===iType && ip.item.prominence===prom && ip.yOffset !== null).forEach(ip => {
+        const i = ip.item;
+        const spec = zoomSpec(i.itemType, i.prominence);
+        const height = spec.size;
+        const x = Util.timeToPx(i._dateTime);
+        let left = Math.round(Util.timeToPx(i._tFrom));
+        let right = Math.round(Util.timeToPx(i._tTo));
+        let top = Math.round(y - height / 2);
+        let bottom = Math.round(y + height / 2);
 
-      // register line/dot as a screen element that can be interacted with
-      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'line', itemPos:ip, view:vw});
-    
-      // check for mouseover
-      if (isMouseOver(left, right, top, bottom)) {
-        appState.highlighted.idx = screenElements.length - 1;
-        appState.highlighted.itemPos = ip;
-      }
+        if ((right < rangeLeft) || (left > rangeRight)) return;  // off-screen (horizontally)
+        
+        // accommodate very small dots by expanding hit area
+        if (i.itemType==='event') {
+          left = Math.min(left, Math.round(x - DRAW.DOT_HOVER_PAD));
+          right = Math.max(right, Math.round(x + DRAW.DOT_HOVER_PAD));
+          top = Math.min(top, Math.round(y - DRAW.DOT_HOVER_PAD));
+          bottom = Math.max(bottom, Math.round(y + DRAW.DOT_HOVER_PAD));
+        }
 
-      // process the label, if applicable
-      const p = getLabelPosition(ip, y);
-      if (p) {
-        // register label as a screen element that can be interacted with
-        screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:p.type, itemPos:ip, view:vw});
-
+        // register line/dot as a screen element that can be interacted with
+        screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'line', itemPos:ip, view:vw});
+      
         // check for mouseover
-        if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+        if (isMouseOver(left, right, top, bottom)) {
           appState.highlighted.idx = screenElements.length - 1;
           appState.highlighted.itemPos = ip;
         }
-      }
 
-    });
+        // process the label, if applicable
+        const p = getLabelPosition(ip, y);
+        if (p) {
+          // register label as a screen element that can be interacted with
+          screenElements.push({left:p.left, right:p.right, top:p.top, bottom:p.bottom, type:p.type, itemPos:ip, view:vw});
+
+          // check for mouseover
+          if (isMouseOver(p.left, p.right, p.top, p.bottom)) {
+            appState.highlighted.idx = screenElements.length - 1;
+            appState.highlighted.itemPos = ip;
+          }
+        }
+      });
+    }
   }
 }
 
