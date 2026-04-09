@@ -31,6 +31,27 @@ export const DRAW = {
   THUMB_LABEL_ROWS: 2    // the number of rows in labels needed to accommodate a thumbnail
 };
 
+export const ZOOM = {
+  SIZE_ADJ: 1,  // 3
+  PERSISTENCE: 1.3,
+  FADE_IN: 1.4,  // 0.4
+  FADE_OUT: 2,
+  EVENT_MASTER: [
+    { threshold:6, growth:1.5 },  // 5.5
+    { threshold:7, growth:1.5 },  // 6.5
+    { threshold:8, growth:1.5 },
+    { threshold:9, growth:1.5 },
+    { threshold:10, growth:1.5 }  // 10.5
+  ],
+  PERIOD_MASTER: [
+    { threshold:6, growth:7 },
+    { threshold:7, growth:7 },
+    { threshold:8.5, growth:9 },
+    { threshold:10, growth:11 },
+    { threshold:11, growth:12 }
+  ]
+}
+
 export const TICK = {
   //PUSHING_THRESHOLD: 200, // px distance from corner label to start "pushing"
   MAX_TICK_LABEL_BRIGHT: 0.85, // max brightness for tick labels

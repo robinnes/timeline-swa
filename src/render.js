@@ -1,3 +1,4 @@
+import {ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {DRAW, TICK} from './constants.js';
 import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw, getCanvasViewport} from './canvas.js';
@@ -6,40 +7,20 @@ const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement
 
 /***************************** Utilities *****************************/
 
-export function zoomSpec(itemType, prominence){
-  const sizeAdj = 3;
-  const persistence = 1.3;
-  const fadeIn = 0.4;
-  const fadeOut = 2;
-
-  const eventMaster = [
-    { threshold:5, growth:1.5, fadeNear:false, maxBright:1 },
-    { threshold:6.5, growth:1.5, fadeNear:false, maxBright:1 },
-    { threshold:8, growth:1.5, fadeNear:false, maxBright:1 },
-    { threshold:9.5, growth:1.5, fadeNear:false, maxBright:1 },
-    { threshold:11, growth:1.5, fadeNear:false, maxBright:1 }
-  ];
-
-  const periodMaster = [
-    { threshold:6, growth:7, fadeNear:true, maxBright:0.6 },
-    { threshold:7, growth:7, fadeNear:true, maxBright:0.6 },
-    { threshold:8.5, growth:9, fadeNear:true, maxBright:0.6 },
-    { threshold:10, growth:11, fadeNear:true, maxBright:0.6 },
-    { threshold:11, growth:12, fadeNear:true, maxBright:0.6 }
-  ];
-
+export function zoomSpec(i) {
   const factor = Math.log10(appState.msPerPx);
-  const z = itemType==='event' ? eventMaster[prominence-1] : periodMaster[prominence-1];
+  const fadeNear = (i.itemType==='period');  // periods fade when zoomed in
+  const maxBright = i.itemType==='event' ? 1 : 0.6;  // display events at max brightness
+  const z = i.itemType==='event' ? ZOOM.EVENT_MASTER[i.prominence-1] : ZOOM.PERIOD_MASTER[i.prominence-1];
+  const size = (Math.max((z.threshold + ZOOM.PERSISTENCE - factor), 0) * z.growth) + ZOOM.SIZE_ADJ;
+  const fade = (factor > z.threshold) ?
+      Math.max((z.threshold + ZOOM.FADE_IN - factor) * (maxBright / ZOOM.FADE_IN), 0) :
+      ((factor < z.threshold - ZOOM.PERSISTENCE) && fadeNear) ? Math.max((factor - z.threshold + ZOOM.PERSISTENCE + ZOOM.FADE_OUT) * (maxBright / ZOOM.FADE_OUT), 0) : maxBright;
+
   return {
-    zoomMaster: z,
-    factor,
-    size: (Math.max((z.threshold + persistence - factor), 0) * z.growth) + sizeAdj,
-    fade: (factor > z.threshold) ?
-      Math.max((z.threshold + fadeIn - factor) * (z.maxBright / fadeIn), 0) :
-      ((factor < z.threshold - persistence) && z.fadeNear) ? Math.max((factor - z.threshold + persistence + fadeOut) * (z.maxBright / fadeOut), 0) : z.maxBright,
-    displayLabel: ((factor - z.threshold + 1) < persistence)
-    //fadeNear: z.fadeNear,
-    //style: (z.fadeNear) ? 'line' : 'dot'
+    size: size,
+    fade: fade,
+    displayLabel: (factor < z.threshold)
   };
 }
 
@@ -447,7 +428,7 @@ function getLabelPosition(ip, y) {
 
   } else if (ip.yOffset === -1) {
     // label below y
-    const spec = zoomSpec(i.itemType, i.prominence);
+    const spec = zoomSpec(i);
     const thickness = spec.size;
     let xFrom = Math.round(Util.timeToPx(i._tFrom));
     let xTo = Math.round(Util.timeToPx(i._tTo));
@@ -482,7 +463,7 @@ function drawLabelAbove(ip, highlight) {
   const i = ip.item;
   const y = ip.yPos;
   const p = getLabelPosition(ip, y);
-  const spec = zoomSpec(i.itemType, i.prominence);
+  const spec = zoomSpec(i);
   const lineTop = y - (spec.size/2);
 
   // stem: from top of the item line/dot to bottom of label box
@@ -502,7 +483,7 @@ function drawLabelBelow(ip, highlight) {
   const i = ip.item;
   const y = ip.yPos;
   const p = getLabelPosition(ip, y);
-  const spec = zoomSpec(i.itemType, i.prominence);
+  const spec = zoomSpec(i);
   let zoomFade = spec.fade;
 
   if (highlight) zoomFade = DRAW.LABEL_BRIGHTNESS; // label text always bright when highlighted
@@ -518,7 +499,7 @@ function drawLabelBelow(ip, highlight) {
 function drawItemLine(ip, highlight) {
 
   const i = ip.item;
-  const spec = zoomSpec(i.itemType, i.prominence);
+  const spec = zoomSpec(i);
   const height = spec.size;
   const fade = spec.fade;
   const x = Util.timeToPx(i._dateTime);
@@ -544,8 +525,8 @@ function drawItemLine(ip, highlight) {
   const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
   const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
     
-  const alphaLeft = (curveLeft) ? 0 : fade; //(colorLeft === color) ? 0 : fade;
-  const alphaRight = (curveRight) ? 0 : fade; //(colorRight === color) ? 0 : fade;
+  const alphaLeft = (curveLeft) ? 0 : fade;
+  const alphaRight = (curveRight) ? 0 : fade;
   let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
   let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
 
@@ -615,7 +596,7 @@ function registerItems(vw) {
       // process each item (determined to be visible) of this prominence
       vw.itemPos.filter(ip => ip.item.itemType===iType && ip.item.prominence===prom && ip.yOffset !== null).forEach(ip => {
         const i = ip.item;
-        const spec = zoomSpec(i.itemType, i.prominence);
+        const spec = zoomSpec(i);
         const height = spec.size;
         const x = Util.timeToPx(i._dateTime);
         let left = Math.round(Util.timeToPx(i._tFrom));
@@ -740,12 +721,11 @@ function positionLabelsForVw(vw){
 
   // find a place for each item, if possible - most important first
   for (let prom = DRAW.MAX_SIGNIFICANCE; prom > 0; prom--) {
-    //let spec = zoomSpec(prom);
     
     // process each item of this prominence
     vw.itemPos.filter(ip => ip.item.prominence === prom).forEach(ip => {
       const i = ip.item;
-      const spec = zoomSpec(i.itemType, i.prominence);
+      const spec = zoomSpec(i);
       if (spec.fade === 0) return; // too small to display
       if (!spec.displayLabel) { ip.yOffset = 0; return; }   // don't position if...
 

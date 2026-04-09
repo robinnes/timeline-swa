@@ -1,7 +1,7 @@
 import * as Util from './util.js';
-import {TIME, TOUCH} from './constants.js';
+import {TIME, TOUCH, ZOOM} from './constants.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, zoomSpec} from './render.js';
+import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
 import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
@@ -145,7 +145,7 @@ export function draw(reposition){
     debugAppendText(err.stack);
   }
   //Util.debugVars();
-  //debugDisplay();
+  //debugDisplay();  // for mobile
 }
 
 export function identifyHoverElement() {
@@ -531,16 +531,16 @@ function identifyPreviousItem(view, e) {
 
 function positionForItem(i) {
   const vp = getCanvasViewport();
-  const spec = zoomSpec(i.itemType, i.prominence);
   const width = i._tTo - i._tFrom;
     
-  if (spec.style==="line") {
+  if (i.itemType==='period') {
     return {
       offsetMs: (i._tFrom - (width / 10)) - TIME.EPOCH,
       msPerPx: width / (vp.width / 1.2)
     };
   }
-  const msPerPx = Math.pow(10, spec.zoomMaster.threshold);
+  const zoomMaster = ZOOM.EVENT_MASTER[i.prominence-1];
+  const msPerPx = Math.pow(10, zoomMaster.threshold);  // select zoom level based on item prominence
   return {
     offsetMs: i._tFrom - (vp.width * msPerPx) / 2  - TIME.EPOCH,
     msPerPx: msPerPx
@@ -737,10 +737,11 @@ function addNewItem(viewIdx) {
   const vw = appState.views[viewIdx];
   const tl = timelineCache.get(vw.tlKey);
   
-  let prom = 3;
+  const factor = Math.log10(appState.msPerPx);
+  let prom = 1;
   // smallest prominence that will fully render
-  for (let p = 3; p > 0; p--) {
-    if (zoomSpec('event', p).fade < 1) break;
+  for (let p = 5; p > 0; p--) {
+    if (ZOOM.EVENT_MASTER[p-1].threshold < factor) break;
     prom = p;
   }
 
