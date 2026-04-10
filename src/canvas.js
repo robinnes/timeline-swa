@@ -141,6 +141,7 @@ export function draw(reposition){
     appState.highlighted.linkIdx = -1;
     drawTicks();
     drawItems();
+
   } catch (err) {
     debugAppendText(err.stack);
   }
@@ -405,8 +406,11 @@ canvas.addEventListener('wheel', (e)=>{
 canvas.addEventListener('keydown', function (e) {
 
   appState.zoom.isZooming = false; // stop any zooming in progress
+  const midX = getCanvasMidX();
+  const midT = Util.pxToTime(midX);
+  const itemNavMode = (appState.selected.item && appState.selected.view && sidebarIsOpen());
 
-  if (appState.selected.item && appState.selected.view && sidebarIsOpen()) {
+  if (itemNavMode && (e.key==='ArrowRight' || e.key==='ArrowLeft')) {
     if (e.key === 'ArrowRight') {
       const nextItem = identifyNextItem(appState.selected.view, appState.selected.item, 1);
       if (nextItem) {
@@ -426,10 +430,8 @@ canvas.addEventListener('keydown', function (e) {
     }
   } else if (appState.fixedPanMode)  { // navigate by whole units of time (month, year, etc.)
     
-    const midX = getCanvasMidX();
-    const midT = Util.pxToTime(midX);
-
     if (e.key === 'ArrowUp') {
+      console.log('canvas.keydown - ArrowUp');
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
       zoomToTick(appState.fixedPanMode.start(midT));
     } else if (e.key === 'ArrowDown') {

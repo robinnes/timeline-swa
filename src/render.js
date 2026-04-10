@@ -716,7 +716,6 @@ export function filterItemsForView(vw){
 }
 
 function positionLabelsForVw(vw){
-  // reset vw.itemPos array (this is where to filter the view by tags)
   filterItemsForView(vw);
 
   // find a place for each item, if possible - most important first
@@ -726,6 +725,7 @@ function positionLabelsForVw(vw){
     vw.itemPos.filter(ip => ip.item.prominence === prom).forEach(ip => {
       const i = ip.item;
       const spec = zoomSpec(i);
+
       if (spec.fade===0 && !(i===appState.selected.item)) return; // too small to display (except selected item)
       if (!spec.displayLabel) { ip.yOffset = 0; return; }   // don't position if...
 
@@ -745,32 +745,32 @@ function positionLabelsForVw(vw){
 
       scanUpwardLoop:
       while (top > -200 && !open) {
-        // Check each already place item (c) for overlap...
+        // Check each already placed item (c) for overlap...
         for (const itemPos of vw.itemPos) {
           const item = itemPos.item;
           if (item === i) continue; // self
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
           
-          const cX = Util.timeToPx(itemPos.item._dateTime);
-          const cLeft = cX - item._parsedWidth/2 - DRAW.EDGE_GAP;
-          const cRight = cX + item._parsedWidth/2 + DRAW.EDGE_GAP;
-          const cTop = 0 - itemPos.yOffset;
-          const cBot = cTop + Math.ceil(item._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
-
           // if c's bubble is over e's stem (x) then can't display
-          if (cLeft < x && cRight > x) { ip.yOffset = 0; break scanUpwardLoop; }
+          if (item._left < x && item._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
 
           // if c's bubble overlaps e's then move up and try again
-          if (cLeft < right && cRight > left && cTop < bot && cBot > top) { bot = cTop - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
+          if (item._left < right && item._right > left && item._top < bot && item._bot > top) { bot = item._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
           // if e's bubble would overlap c's stem then move up and try again
-          if (cBot < top && cX > left && cX < right) { bot = cTop - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
-          
+          if (item._bot < top && cX > left && cX < right) { bot = item._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
         }
         open = true;
       }
-      // place this item
-      if (open) ip.yOffset = 0 - top;
+      // place this item - record all position vars instead of calculating each time
+      if (open) {
+        ip.yOffset = 0 - top;
+        ip._x = Util.timeToPx(i._dateTime);
+        ip._left = ip._x - i._parsedWidth/2 - DRAW.EDGE_GAP;
+        ip._right = ip._x + i._parsedWidth/2 + DRAW.EDGE_GAP;
+        ip._top = 0 - ip.yOffset;
+        ip._bot = ip._top + Math.ceil(i._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+      }
     });
   }
 }
