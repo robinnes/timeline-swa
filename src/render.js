@@ -752,24 +752,24 @@ function positionLabelsForVw(vw){
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
           
           // if c's bubble is over e's stem (x) then can't display
-          if (item._left < x && item._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
+          if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
 
           // if c's bubble overlaps e's then move up and try again
-          if (item._left < right && item._right > left && item._top < bot && item._bot > top) { bot = item._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
+          if (itemPos._left < right && itemPos._right > left && itemPos._top < bot && itemPos._bot > top) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
           // if e's bubble would overlap c's stem then move up and try again
-          if (item._bot < top && cX > left && cX < right) { bot = item._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
+          if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
         }
         open = true;
       }
       // place this item - record all position vars instead of calculating each time
       if (open) {
         ip.yOffset = 0 - top;
-        ip._x = Util.timeToPx(i._dateTime);
-        ip._left = ip._x - i._parsedWidth/2 - DRAW.EDGE_GAP;
-        ip._right = ip._x + i._parsedWidth/2 + DRAW.EDGE_GAP;
-        ip._top = 0 - ip.yOffset;
-        ip._bot = ip._top + Math.ceil(i._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+        ip._x = x;
+        ip._left = left;
+        ip._right = right;
+        ip._top = top;
+        ip._bot = bot;
       }
     });
   }
