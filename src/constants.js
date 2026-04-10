@@ -44,11 +44,11 @@ export const ZOOM = {
     { threshold:10, growth:1.5 }  // 10.5
   ],
   PERIOD_MASTER: [
-    { threshold:6, growth:7 },
-    { threshold:7, growth:7 },
-    { threshold:8.5, growth:9 },
-    { threshold:10, growth:11 },
-    { threshold:11, growth:12 }
+    { threshold:6.5, growth:6.5 },
+    { threshold:7.5, growth:7.5 },  // 7, 7
+    { threshold:8.5, growth:8.5 },  // 8.5, 9
+    { threshold:9.5, growth:9.5 },  // 10, 11
+    { threshold:10.5, growth:10.5 }
   ]
 }
 

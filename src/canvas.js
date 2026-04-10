@@ -405,8 +405,6 @@ canvas.addEventListener('wheel', (e)=>{
 canvas.addEventListener('keydown', function (e) {
 
   appState.zoom.isZooming = false; // stop any zooming in progress
-  const midX = getCanvasMidX();
-  const midT = Util.pxToTime(midX);
 
   if (appState.selected.item && appState.selected.view && sidebarIsOpen()) {
     if (e.key === 'ArrowRight') {
@@ -414,7 +412,7 @@ canvas.addEventListener('keydown', function (e) {
       if (nextItem) {
         appState.selected.item = nextItem;
         openSelectedItem(false);
-        zoomToItem(appState.selected.item);
+        zoomToItem(appState.selected.item, false);
       }
 
     } else if (e.key === 'ArrowLeft') {
@@ -422,12 +420,15 @@ canvas.addEventListener('keydown', function (e) {
       if (previousItem) {
         appState.selected.item = previousItem;
         openSelectedItem(false);
-        zoomToItem(appState.selected.item);
+        zoomToItem(appState.selected.item, false);
       }
 
     }
-  } else if (appState.fixedPanMode)  // navigate by whole units of time (month, year, etc.)
-  {
+  } else if (appState.fixedPanMode)  { // navigate by whole units of time (month, year, etc.)
+    
+    const midX = getCanvasMidX();
+    const midT = Util.pxToTime(midX);
+
     if (e.key === 'ArrowUp') {
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
       zoomToTick(appState.fixedPanMode.start(midT));
@@ -561,9 +562,31 @@ function positionForView(vw) {
   };
 }
 
-function zoomToItem(i) {
-  const p = positionForItem(i);
-  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
+function zoomToItem(i, zoom) {
+  // if zoom is true, change magnification to match the item, otherwise just move horizontally
+  if (zoom) {
+    const p = positionForItem(i);
+    appState.zoom = {
+      isZooming:true,
+      origOffset:appState.offsetMs,
+      newOffset:p.offsetMs,
+      origMsPerPx:appState.msPerPx,
+      newMsPerPx:p.msPerPx
+    };
+
+  } else {
+    const vp = getCanvasViewport();  // need for canvas width
+    const ts = i.dateSpecification==='point' ? i._dateTime : i._tFrom;  // center on timestamp: center of point or left side of range
+    const newOffset = ts - (appState.msPerPx * (vp.width/2)) - TIME.EPOCH;  // center on canvas
+
+    appState.zoom = {
+      isZooming:true, 
+      origOffset:appState.offsetMs, 
+      newOffset:newOffset, 
+      origMsPerPx:appState.msPerPx,   // don't change zoom level
+      newMsPerPx:appState.msPerPx
+    };
+  }
 }
 
 export function zoomToView(view) {

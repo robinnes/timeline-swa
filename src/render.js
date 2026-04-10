@@ -726,7 +726,7 @@ function positionLabelsForVw(vw){
     vw.itemPos.filter(ip => ip.item.prominence === prom).forEach(ip => {
       const i = ip.item;
       const spec = zoomSpec(i);
-      if (spec.fade === 0) return; // too small to display
+      if (spec.fade===0 && !(i===appState.selected.item)) return; // too small to display (except selected item)
       if (!spec.displayLabel) { ip.yOffset = 0; return; }   // don't position if...
 
       // can we place label below? (will display wide enough)
