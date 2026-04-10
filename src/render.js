@@ -1,6 +1,5 @@
-import {ZOOM} from './constants.js';
+import {DRAW, TICK, ZOOM} from './constants.js';
 import * as Util from './util.js';
-import {DRAW, TICK} from './constants.js';
 import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw, getCanvasViewport} from './canvas.js';
 
 const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement

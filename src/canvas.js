@@ -1,5 +1,5 @@
-import * as Util from './util.js';
 import {TIME, TOUCH, ZOOM} from './constants.js';
+import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
 import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
@@ -145,7 +145,7 @@ export function draw(reposition){
   } catch (err) {
     debugAppendText(err.stack);
   }
-  //Util.debugVars();
+  Util.debugVars();
   //debugDisplay();  // for mobile
 }
 
@@ -288,6 +288,7 @@ canvas.addEventListener('click', function (e) {
 
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
+    console.log("canvas.click and highlighted.idx=-1")
     if (sidebarIsOpen()) closeSidebar();
     return;
   }
@@ -305,7 +306,9 @@ canvas.addEventListener('click', function (e) {
       appState.selected.timeline = appState.selected.item._timeline;
       appState.selected.view = elem.view;
       openSelectedItem(true);
+//console.log("Pre:" + appState.highlighted.idx);
       draw(false);
+//console.log("Post:" + appState.highlighted.idx);
   } else if (elem.type === 'view') {
     const vw = appState.views[elem.view];
     const tl = timelineCache.get(vw.tlKey)
@@ -411,6 +414,7 @@ canvas.addEventListener('keydown', function (e) {
   const itemNavMode = (appState.selected.item && appState.selected.view && sidebarIsOpen());
 
   if (itemNavMode && (e.key==='ArrowRight' || e.key==='ArrowLeft')) {
+    appState.fixedPanMode = null;
     if (e.key === 'ArrowRight') {
       const nextItem = identifyNextItem(appState.selected.view, appState.selected.item, 1);
       if (nextItem) {
@@ -431,7 +435,6 @@ canvas.addEventListener('keydown', function (e) {
   } else if (appState.fixedPanMode)  { // navigate by whole units of time (month, year, etc.)
     
     if (e.key === 'ArrowUp') {
-      console.log('canvas.keydown - ArrowUp');
       appState.fixedPanMode = tickSpec.get(appState.fixedPanMode.zoomIn);  // zoom in one level
       zoomToTick(appState.fixedPanMode.start(midT));
     } else if (e.key === 'ArrowDown') {

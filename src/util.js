@@ -71,19 +71,24 @@ export function debugVars() {
     top += 20;
   };
 
-  //const i = appState.selected.item;
-  const tl = timelineCache.values().next().value;
-  const i = tl?.items[0];
-  if (!i) return;
-  const spec = zoomSpec(i);
-  const factor = Math.log10(appState.msPerPx);
-
   ctx.save();
   ctx.font = DRAW.LABEL_FONT;
   ctx.fillStyle = 'rgba(9, 247, 49, 0.5)';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
+  display('fixedPanMode', appState.fixedPanMode?.mode);
+  display('isPanning', appState.pan.isPanning);
+  display('isZooming', appState.zoom.isZooming);
+  display('highlighted.idx', appState.highlighted.idx);
+  
+
+  /*
+  const tl = timelineCache.values().next().value;
+  const i = tl?.items[0];
+  if (!i) return;
+  const spec = zoomSpec(i);
+  const factor = Math.log10(appState.msPerPx);
   display('factor', round(factor));
   display('', '');
   display('itemType', i.itemType);
@@ -93,7 +98,7 @@ export function debugVars() {
   display('size', round(spec.size));
   display('fade', round(spec.fade));
   display('displayLabel', spec.displayLabel);
-  
+  */
 
 
 /*
