@@ -36,14 +36,16 @@ function setMousePosition(x, y) {
 function queueSyntheticClick(x, y) {
   setMousePosition(x, y);
   draw(false); // update highlight under the tap point first
-  setMousePosition(null, null);
-  
+
   canvas.dispatchEvent(new MouseEvent('click', {
     bubbles: true,
     cancelable: true,
     clientX: x,
     clientY: y
   }));
+
+  setMousePosition(null, null);
+  
 }
 
 function qualifiesAsTap(p) {

@@ -267,6 +267,7 @@ function getMomentum() {
 
 canvas.addEventListener('click', function (e) {
   if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
+  
   appState.isTouchScreen = (!e.pointerType);
   if (appState.pan.ignoreClick) return;
 
@@ -306,9 +307,8 @@ canvas.addEventListener('click', function (e) {
       appState.selected.timeline = appState.selected.item._timeline;
       appState.selected.view = elem.view;
       openSelectedItem(true);
-//console.log("Pre:" + appState.highlighted.idx);
       draw(false);
-//console.log("Post:" + appState.highlighted.idx);
+
   } else if (elem.type === 'view') {
     const vw = appState.views[elem.view];
     const tl = timelineCache.get(vw.tlKey)
