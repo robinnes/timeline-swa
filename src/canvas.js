@@ -289,7 +289,6 @@ canvas.addEventListener('click', function (e) {
 
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
-    console.log("canvas.click and highlighted.idx=-1")
     if (sidebarIsOpen()) closeSidebar();
     return;
   }

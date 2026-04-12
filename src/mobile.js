@@ -44,8 +44,7 @@ function queueSyntheticClick(x, y) {
     clientY: y
   }));
 
-  setMousePosition(null, null);
-  
+  setMousePosition(null, null); 
 }
 
 function qualifiesAsTap(p) {

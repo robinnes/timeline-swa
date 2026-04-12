@@ -207,12 +207,25 @@ export function startOfTick(t) {
   return spec.start(t);
 }
 
+/*
 export function formatItemDate(compoundDate) {
   // compoundDate = {ts, prec}
   const d = new Date(compoundDate.ts);  // date from the timestamp
   const spec = tickSpec.get(compoundDate.prec);  // tickSpec for that precision
   return spec.panelLabel(d);  // return result from the appropriate function
 }
+*/
+
+export function formatItemDate(compoundDate) {
+  // compoundDate = {ts, prec}
+  const d = new Date(compoundDate.ts);
+
+//console.log(Util.timestampToTemporal(compoundDate.ts));
+
+  const spec = tickSpec.get(compoundDate.prec);  // tickSpec for that precision
+  return spec.panelLabel(d);  // return result from the appropriate function
+}
+
 
 /* ------------------- Draw elements -------------------- */
 

@@ -46,6 +46,27 @@ export function uuid() {
   return crypto.randomUUID();
 }
 
+export function timestampToTemporal(t) {
+  const d = new Date(t);
+
+  const zeroPad = (st, digits) => {
+    return ('0000' + st).slice(digits * -1);
+  };
+
+  const year = zeroPad(d.toLocaleString(undefined, {year:'numeric', timeZone:'UTC'}), 4);
+  const month = zeroPad(d.toLocaleString(undefined, {month:'numeric', timeZone:'UTC'}), 2);
+  const day = zeroPad(d.toLocaleString(undefined, {day:'numeric', timeZone:'UTC'}), 2);
+  const min = zeroPad(d.toLocaleString(undefined, {minute:'numeric', timeZone:'UTC'}), 2);
+
+  // hour is trickier: "12 AM" -> "00", etc.
+  const hString = d.toLocaleString(undefined, {hour:'2-digit', timeZone:'UTC'}).split(" ");
+  const h = parseInt(hString[0]);  const ampm = hString[1];
+  const hInt = (h===12 && ampm==="AM") ? 0 : (ampm==="AM" || h===12) ? h : h + 12;
+  const hour = zeroPad(hInt.toString(), 2);
+
+  return `${year}-${month}-${day}T${hour}:${min}:00`;
+}
+
 // **********************************************************************************************************************
 
 import {DRAW} from './constants.js';
@@ -77,12 +98,6 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  display('fixedPanMode', appState.fixedPanMode?.mode);
-  display('isPanning', appState.pan.isPanning);
-  display('isZooming', appState.zoom.isZooming);
-  display('highlighted.idx', appState.highlighted.idx);
-  
-
   /*
   const tl = timelineCache.values().next().value;
   const i = tl?.items[0];
@@ -100,8 +115,18 @@ export function debugVars() {
   display('displayLabel', spec.displayLabel);
   */
 
+  const tl = timelineCache.values().next().value;
+  const i = tl?.items[0];
+  if (!i) return;
 
-/*
+  display('date', fmtDate(i.date.ts));
+  const st = timestampToTemporal(i.date.ts);
+  display('string', st);
+  const pdt = Temporal.PlainDateTime.from(st);
+  display('pdt', pdt.toLocaleString());
+
+
+  /*
   display('_dateTime', fmtDate(i._dateTime));
   display('_dateFrom', fmtDate(i._dateFrom));
   display('_dateTo', fmtDate(i._dateTo));
@@ -116,7 +141,8 @@ export function debugVars() {
   display('dateTo', fmtDate(i.dateTo?.ts));
   display('fadeLeft', fmtDate(i.fadeLeft?.ts));
   display('fadeRight', fmtDate(i.fadeRight?.ts));
-*/
+  */
+
   ctx.restore();
   
 };
