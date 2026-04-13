@@ -8,6 +8,6 @@ export async function initTimeAPI() {
 
 export function parsePlainDateTime(iso) {
   //hideGlobalBusyCursor();
-  if (!TemporalRef) initTimeAPI();
+  //if (!TemporalRef) initTimeAPI();
   return TemporalRef.PlainDateTime.from(iso);
 }
