@@ -71,6 +71,8 @@ export function timestampToTemporal(t) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
+import {parsePlainDateTime} from './timeAPI.js';
+
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
@@ -122,7 +124,8 @@ export function debugVars() {
   display('date', fmtDate(i.date.ts));
   const st = timestampToTemporal(i.date.ts);
   display('string', st);
-  const pdt = Temporal.PlainDateTime.from(st);
+  //const pdt = Temporal.PlainDateTime.from(st);
+  const pdt = parsePlainDateTime(st);
   display('pdt', pdt.toLocaleString());
 
 
