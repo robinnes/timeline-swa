@@ -1,10 +1,10 @@
 import {canvas, resize, tick, initialLoad} from './canvas.js';
 import {initTimeAPI} from './timeAPI.js';
 
-await initTimeAPI();
 
 resize();
 requestAnimationFrame(tick);
+await initTimeAPI();
 canvas.focus();
 initialLoad();
 
