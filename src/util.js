@@ -124,10 +124,13 @@ export function debugVars() {
   display('date', fmtDate(i.date.ts));
   const st = timestampToTemporal(i.date.ts);
   display('string', st);
-  //const pdt = Temporal.PlainDateTime.from(st);
-  const pdt = parsePlainDateTime(st);
-  display('pdt', pdt.toLocaleString());
-
+  
+  try {
+    const pdt = parsePlainDateTime(st);
+    display('pdt', pdt.toLocaleString());
+  } catch (err) {
+    display(err.stack);
+  }
 
   /*
   display('_dateTime', fmtDate(i._dateTime));
