@@ -129,7 +129,7 @@ export function debugVars() {
     const pdt = parsePlainDateTime(st);
     display('pdt', pdt.toLocaleString());
   } catch (err) {
-    display(err.stack);
+    ctx.fillText(err.stack, 0, top);
   }
 
   /*
