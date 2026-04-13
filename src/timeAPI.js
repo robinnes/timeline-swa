@@ -7,7 +7,8 @@ export async function initTimeAPI() {
 }
 
 export function parsePlainDateTime(iso) {
-  //hideGlobalBusyCursor();
-  if (!TemporalRef) initTimeAPI();
+  if (!TemporalRef) {
+    throw new Error('Temporal API not initialized');
+  }
   return TemporalRef.PlainDateTime.from(iso);
 }
