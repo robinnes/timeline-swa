@@ -10,9 +10,21 @@ export const pxToTime = x => {
 
 export const timeToPx = t => {
   const vp = getCanvasViewport();
-  //return vp.left + ((t - TIME.EPOCH - appState.offsetMs + (1000 * 60 * 60 * 12)) / appState.msPerPx);
   return vp.left + ((t - TIME.EPOCH - appState.offsetMs) / appState.msPerPx);
 };
+
+export const timeToPixel = t => {
+  const vp = getCanvasViewport();
+  const x = t.since(appState.offsetTime, {largestUnit:'millisecond'});  // ms from date at left edge
+  return vp.left + x.milliseconds / appState.msPerPx;
+}
+
+export const pixelToTime = x => {
+  const vp = getCanvasViewport();
+  const ms = Math.round((x - vp.left) * appState.msPerPx);
+  return appState.offsetTime.add({milliseconds:ms});
+}
+
 
 export function showGlobalBusyCursor() {
   const style = document.createElement('style');
@@ -47,6 +59,7 @@ export function uuid() {
 }
 
 export function timestampToTemporal(t) {
+  // convert timestamp integer t to ISO string representation e.g. "2021-07-01T12:34:56"
   const d = new Date(t);
 
   const zeroPad = (st, digits) => {
@@ -71,7 +84,7 @@ export function timestampToTemporal(t) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
-import {parsePlainDateTime} from './timeAPI.js';
+import {parsePlainDateTime, retrieveNow} from './timeAPI.js';
 
 
 export function debugVars() {
@@ -120,15 +133,21 @@ export function debugVars() {
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];
   if (!i) return;
+  //const ts = i._dateTime;
+  //display('date', fmtDate(ts));
 
-  const ts = i._dateTime;
-  display('date', fmtDate(ts));
-  const st = timestampToTemporal(ts);
-  display('string', st);
-  
+  //const st = timestampToTemporal(appState.offsetMs);
+  //const pdt = parsePlainDateTime(st);
+  appState.offsetTime = parsePlainDateTime(timestampToTemporal(appState.offsetMs + TIME.EPOCH));
+  display('offsetTime', appState.offsetTime.toLocaleString());
+
+  const itemPdt = parsePlainDateTime(timestampToTemporal(i._dateTime));
+  display('itemPdt', itemPdt.toLocaleString());
+  const x = timeToPixel(itemPdt);
+  display('timeToPixel', round(x));
+
   try {
-    const pdt = parsePlainDateTime(st);
-    display('pdt', pdt.toLocaleString());
+    display('pixelToTime', pixelToTime(x).toLocaleString());  
   } catch (err) {
     ctx.fillText(err, 0, top);
   }

@@ -8,6 +8,7 @@ import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
+import {retrieveNow} from './timeAPI.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -77,10 +78,14 @@ export async function initialLoad() {
   // open public timeline indicated param "tl" if present
   const params = new URLSearchParams(window.location.search);
   const tlParam = params.get("tl");
-  if (!tlParam) return;
 
-  const file = tlParam + ".json";
-  openTimeline(file, false);
+  if (tlParam) {
+    const file = tlParam + ".json";
+    openTimeline(file, false);
+    appState.offsetTime = retrieveNow().subtract({years: 7});
+  } else {
+    appState.offsetTime = retrieveNow().subtract({years: 7});
+  }
 }
 
 export function getCanvasViewport() {

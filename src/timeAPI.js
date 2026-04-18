@@ -1,3 +1,5 @@
+// TemporalRef is either the Temporal library (modern alternative to Date) or the
+// polyfill bridge for browsers that don't support Temporal yet.
 let TemporalRef = null;
 
 export async function initTimeAPI() {
@@ -19,6 +21,12 @@ export async function initTimeAPI() {
 }
 
 export function parsePlainDateTime(iso) {
-  if (!TemporalRef) throw new Error('Temporal API not initialized');
+  //if (!TemporalRef) throw new Error('Temporal API not initialized');
   return TemporalRef.PlainDateTime.from(iso);
 }
+
+export function retrieveNow() {
+  if (!TemporalRef) throw new Error('Temporal API not initialized');
+  return TemporalRef.Now.plainDateTimeISO();
+}
+
