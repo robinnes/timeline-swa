@@ -117,12 +117,13 @@ export function debugVars() {
   display('displayLabel', spec.displayLabel);
   */
 
-  const tl = timelineCache.values().next().value;
+  const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];
   if (!i) return;
 
-  display('date', fmtDate(i.date.ts));
-  const st = timestampToTemporal(i.date.ts);
+  const ts = i._dateTime;
+  display('date', fmtDate(ts));
+  const st = timestampToTemporal(ts);
   display('string', st);
   
   try {
