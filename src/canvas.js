@@ -8,7 +8,6 @@ import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
-import {retrieveNow} from './timeAPI.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -16,7 +15,6 @@ export const ctx = canvas.getContext('2d');
 export const appState = {
   msPerPx: TIME.MS_PER_DAY * 1,  // controls zoom; shifts timeline relative to EPOCH at x=0
   offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 1,  // date at left of the window; center near "now",
-  offsetTime: null,
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
   isTouchScreen: null,
   highlighted: {
@@ -82,9 +80,6 @@ export async function initialLoad() {
   if (tlParam) {
     const file = tlParam + ".json";
     openTimeline(file, false);
-    appState.offsetTime = retrieveNow().subtract({years: 7});
-  } else {
-    appState.offsetTime = retrieveNow().subtract({years: 7});
   }
 }
 
@@ -151,7 +146,7 @@ export function draw(reposition){
   } catch (err) {
     debugAppendText(err.stack);
   }
-  Util.debugVars();
+  //Util.debugVars();
   //debugDisplay();  // for mobile
 }
 

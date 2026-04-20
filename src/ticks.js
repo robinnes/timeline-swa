@@ -1,76 +1,8 @@
 import * as Util from './util.js';
-import {TIME, DRAW, TICK} from './constants.js';
+import * as Calendar from './calendar.js';
+import {DRAW, TICK} from './constants.js';
 import {appState, ctx, screenElements, getCanvasViewport} from './canvas.js';
 import {isMouseOver} from './render.js';
-
-
-/* ------------------- Helper functions -------------------- */
-
-function timeZoneNow(){
-  const now = new Date();
-  return Date.UTC(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    now.getHours(),
-    now.getMinutes(),
-    now.getSeconds(),
-    now.getMilliseconds()
-  );
-}
-
-function yearFloor(t, n) {
-  // return beginning of n-year period
-  const d = new Date(t);
-  const m = Math.floor(d.getUTCFullYear() / n) * n;
-  d.setUTCFullYear(m, 0, 1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function startOfMillenium(t) { return yearFloor(t, 1000); }
-function addMillenia(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*1000); return d.getTime(); }
-
-function startOfCentury(t) { return yearFloor(t, 100); }
-function addCenturies(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*100); return d.getTime(); }
-
-function startOfDecade(t) { return yearFloor(t, 10); }
-function addDecades(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+ n*10); return d.getTime(); }
-
-function startOfYear(t){ const d = new Date(t); d.setUTCMonth(0,1); d.setUTCHours(0,0,0,0); return d.getTime(); }
-function addYears(t, n){ const d = new Date(t); d.setUTCFullYear(d.getUTCFullYear()+n); return d.getTime(); }
-
-function startOfMonth(t){ const d = new Date(t); d.setUTCDate(1); d.setUTCHours(0,0,0,0); return d.getTime(); }
-function addMonths(t, n){ const d = new Date(t); d.setUTCMonth(d.getUTCMonth()+n); return d.getTime(); }
-
-function startOfDay(t){ const d = new Date(t); d.setUTCHours(0,0,0,0); return d.getTime(); }
-function addDays(t, n){ return t + n * TIME.MS_PER_DAY; }
-
-function startOfHour(t){ const d = new Date(t); d.setUTCMinutes(0,0,0); return d.getTime(); }
-function addHours(t, n){return t + n * 1000 * 60 * 60; }
-
-function startOfMinute(t){ const d = new Date(t); d.setUTCSeconds(0,0); return d.getTime(); }
-function addMinutes(t, n){return t + n * 1000 * 60; }
-
-
-function formatYear(t){ return new Date(t).getUTCFullYear().toString(); }
-function formatYearCirca(t){ return 'c ' + new Date(t).getUTCFullYear().toString(); }
-
-function formatMonthYear(t){ return new Date(t).toLocaleString(undefined,{month:'short', year:'numeric', timeZone:'UTC'}); }
-function formatMonth(t){ return new Date(t).toLocaleString(undefined,{month:'short', timeZone:'UTC'}); }
-
-function formatDay(t){ return new Date(t).toLocaleString(undefined,{day:'numeric', timeZone:'UTC'}); }
-function formatDayFull(t){ return new Date(t).toLocaleString(undefined,{year:'numeric', month:'short', day:'numeric', timeZone:'UTC'}); }
-function formatWeekday(t){ return new Date(t).toLocaleString('en-GB',{weekday:'short', day:'numeric', timeZone:'UTC'}); }
-function formatWeekdayFull(t){ return new Date(t).toLocaleString(undefined,{weekday:'short', year:'numeric', month:'short', day:'numeric', timeZone:'UTC'}); }
-
-function formatHour(t){ return new Date(t).toLocaleString(undefined,{hour:'numeric', timeZone:'UTC'}); }
-//function formatHourFull(t){ return new Date(t).toLocaleString(undefined,{year:'numeric', month:'short', day:'numeric', hour:'numeric', timeZone:'UTC'}); }
-
-function formatMinute(t){ const m = "0" + new Date(t).toLocaleString(undefined, {minute:'2-digit', timeZone:'UTC'}); return m.slice(-2); }
-function formatMinuteLong(t){ return new Date(t).toLocaleString(undefined, {hour:'numeric', minute:'2-digit', timeZone:'UTC'}); }
-function formatMinuteWeekday(t){ return new Date(t).toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'UTC'}); }
-function formatMinuteFull(t){ return new Date(t).toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'numeric', timeZone:'UTC'}); }
 
 
 /* ------------------- Time hierarchy logic -------------------- */
@@ -80,113 +12,113 @@ export const tickSpec = new Map([
       mode: 'minute', 
       zoomOut: 'hour', 
       zoomIn: null, 
-      start: startOfMinute, 
-      step: addMinutes, 
-      majorLabel: formatMinuteLong, 
-      cornerLabel: formatMinuteWeekday, 
+      start: Calendar.startOfMinute, 
+      step: Calendar.addMinutes, 
+      majorLabel: Calendar.formatMinuteLong, 
+      cornerLabel: Calendar.formatMinuteWeekday, 
       majorEvery: 60, 
       msPerTick: 1000*60, 
       newItemProm: 1,
-      label: [{minWidth:20, text:formatMinute}],
-      panelLabel: formatMinuteFull
+      label: [{minWidth:20, text:Calendar.formatMinute}],
+      panelLabel: Calendar.formatMinuteFull
       }],
   ['hour', { 
       mode: 'hour', 
       zoomOut: 'day', 
       zoomIn: 'minute', 
-      start: startOfHour, 
-      step: addHours, 
-      majorLabel: formatWeekday, 
-      cornerLabel: formatWeekdayFull, 
+      start: Calendar.startOfHour, 
+      step: Calendar.addHours, 
+      majorLabel: Calendar.formatWeekday, 
+      cornerLabel: Calendar.formatWeekdayFull, 
       majorEvery: 24, 
       msPerTick: 1000*60*60, 
       newItemProm: 1,
-      label: [{minWidth:30, text:formatHour}],
-      panelLabel: formatMinuteFull 
+      label: [{minWidth:30, text:Calendar.formatHour}],
+      panelLabel: Calendar.formatMinuteFull 
       }],
   ['day', {
       mode: 'day',
       zoomOut: 'month',
       zoomIn: 'day', 
-      start: startOfDay,
-      step: addDays,
-      majorLabel: formatMonth,
-      cornerLabel: formatMonthYear,
+      start: Calendar.startOfDay,
+      step: Calendar.addDays,
+      majorLabel: Calendar.formatMonth,
+      cornerLabel: Calendar.formatMonthYear,
       majorEvery: 30,
       msPerTick: 86400000,
       newItemProm: 1,
-      label: [{minWidth:60, text:formatWeekday}, {minWidth:20, text:formatDay}],
-      panelLabel: formatDayFull
+      label: [{minWidth:60, text:Calendar.formatWeekday}, {minWidth:20, text:Calendar.formatDay}],
+      panelLabel: Calendar.formatDayFull
       }],
   ['month', {
       mode: 'month',
       zoomOut: 'year',
       zoomIn: 'day',
-      start: startOfMonth,
-      step: addMonths,
-      majorLabel: formatYear,
-      cornerLabel: formatYear,
+      start: Calendar.startOfMonth,
+      step: Calendar.addMonths,
+      majorLabel: Calendar.formatYear,
+      cornerLabel: Calendar.formatYear,
       majorEvery: 12,
       msPerTick: 86400000*30,
       newItemProm: 2,
-      label: [{minWidth:30, text:formatMonth}],
-      panelLabel: formatMonthYear
+      label: [{minWidth:30, text:Calendar.formatMonth}],
+      panelLabel: Calendar.formatMonthYear
     }],
   ['year', { 
       mode: 'year',
       zoomOut: 'decade',
       zoomIn: 'month',
-      start: startOfYear, 
-      step: addYears, 
-      majorLabel: formatYear, 
+      start: Calendar.startOfYear, 
+      step: Calendar.addYears, 
+      majorLabel: Calendar.formatYear, 
       cornerLabel: null, 
       majorEvery: 10, 
       msPerTick: 86400000*365, 
       newItemProm: 3,
-      label: [{minWidth:40, text:formatYear}],
-      panelLabel: formatYear
+      label: [{minWidth:40, text:Calendar.formatYear}],
+      panelLabel: Calendar.formatYear
     }],
   ['decade', {
       mode: 'decade',
       zoomOut: 'century',
       zoomIn: 'year',
-      start: startOfDecade,
-      step: addDecades,
-      majorLabel: formatYear,
+      start: Calendar.startOfDecade,
+      step: Calendar.addDecades,
+      majorLabel: Calendar.formatYear,
       cornerLabel: null,
       majorEvery: 100,
       msPerTick: 86400000*365*10,
       newItemProm: 3,
-      label: [{minWidth:30, text:formatYear}],
-      panelLabel: formatYearCirca
+      label: [{minWidth:30, text:Calendar.formatYear}],
+      panelLabel: Calendar.formatYearCirca
     }],
   ['century', {
       mode: 'century',
       zoomOut: 'millenium',
       zoomIn: 'decade',
-      start: startOfCentury,
-      step: addCenturies,
-      majorLabel: formatYear,
+      start: Calendar.startOfCentury,
+      step: Calendar.addCenturies,
+      majorLabel: Calendar.formatYear,
       cornerLabel: null,
       majorEvery: 1000,
       msPerTick: 86400000*365*100,
       newItemProm: 3,
-      label: [{minWidth:30, text:formatYear}],
-      panelLabel: formatYearCirca
+      label: [{minWidth:30, text:Calendar.formatYear}],
+      panelLabel: Calendar.formatYearCirca
     }],
   ['millenium', {
       mode: 'millenium',
       zoomOut: 'millenium',
       zoomIn: 'century',
-      start: startOfMillenium,
-      step: addMillenia,
-      majorLabel: formatYear,
+      start: Calendar.startOfMillenium,
+      step: Calendar.addMillenia,
+      majorLabel: Calendar.formatYear,
       cornerLabel: null,
       majorEvery: 10000,
       msPerTick: 86400000*365*1000,
       newItemProm: 3,
-      label: [{minWidth:30, text:formatYear}],
-      panelLabel: formatYearCirca
+      label: [{minWidth:30, text:Calendar.formatYear}],
+      panelLabel: Calendar.formatYearCirca
     }]
 ]);
 
@@ -205,16 +137,6 @@ export function getTickSpec() {
 export function startOfTick(t) {
   const spec = getTickSpec();
   return spec.start(t);
-}
-
-export function formatItemDate(compoundDate) {
-  // compoundDate = {ts, prec}
-  const d = new Date(compoundDate.ts);
-
-//console.log(Util.timestampToTemporal(compoundDate.ts));
-
-  const spec = tickSpec.get(compoundDate.prec);  // tickSpec for that precision
-  return spec.panelLabel(d);  // return result from the appropriate function
 }
 
 
@@ -375,7 +297,7 @@ export function drawTicks() {
   }
 
   // Current date/time blue line
-  const nowX = Util.timeToPx(timeZoneNow());
+  const nowX = Util.timeToPx(Calendar.timeZoneNow());
   if (nowX >= 0 && nowX <= vp.right) {
     drawTickLine(nowX, 2, TICK.NOW_LINE_COLOR);
   }

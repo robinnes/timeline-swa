@@ -13,19 +13,6 @@ export const timeToPx = t => {
   return vp.left + ((t - TIME.EPOCH - appState.offsetMs) / appState.msPerPx);
 };
 
-export const timeToPixel = t => {
-  const vp = getCanvasViewport();
-  const x = t.since(appState.offsetTime, {largestUnit:'millisecond'});  // ms from date at left edge
-  return vp.left + x.milliseconds / appState.msPerPx;
-}
-
-export const pixelToTime = x => {
-  const vp = getCanvasViewport();
-  const ms = Math.round((x - vp.left) * appState.msPerPx);
-  return appState.offsetTime.add({milliseconds:ms});
-}
-
-
 export function showGlobalBusyCursor() {
   const style = document.createElement('style');
   style.id = 'global-busy-cursor';
@@ -43,12 +30,7 @@ export function htmlToPlainText(html) {
   d.innerHTML = html || '';
   return d.innerText;
 }
-/*
-export function formatTextDate(txtDate) {
-  const d = new Date(txtDate); // adjusts for TZ, so must also be undone with timeZone:"UTC"
-  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric", timeZone:"UTC"});
-}
-*/
+
 export async function isLocalEnv() {
   const isLocal = (location.hostname === "127.0.0.1");
   return isLocal;
@@ -84,8 +66,6 @@ export function timestampToTemporal(t) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
-import {parsePlainDateTime, retrieveNow} from './timeAPI.js';
-
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
@@ -133,26 +113,7 @@ export function debugVars() {
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];
   if (!i) return;
-  //const ts = i._dateTime;
-  //display('date', fmtDate(ts));
 
-  //const st = timestampToTemporal(appState.offsetMs);
-  //const pdt = parsePlainDateTime(st);
-  appState.offsetTime = parsePlainDateTime(timestampToTemporal(appState.offsetMs + TIME.EPOCH));
-  display('offsetTime', appState.offsetTime.toLocaleString());
-
-  const itemPdt = parsePlainDateTime(timestampToTemporal(i._dateTime));
-  display('itemPdt', itemPdt.toLocaleString());
-  const x = timeToPixel(itemPdt);
-  display('timeToPixel', round(x));
-
-  try {
-    display('pixelToTime', pixelToTime(x).toLocaleString());  
-  } catch (err) {
-    ctx.fillText(err, 0, top);
-  }
-
-  /*
   display('_dateTime', fmtDate(i._dateTime));
   display('_dateFrom', fmtDate(i._dateFrom));
   display('_dateTo', fmtDate(i._dateTo));
@@ -167,7 +128,6 @@ export function debugVars() {
   display('dateTo', fmtDate(i.dateTo?.ts));
   display('fadeLeft', fmtDate(i.fadeLeft?.ts));
   display('fadeRight', fmtDate(i.fadeRight?.ts));
-  */
 
   ctx.restore();
   
