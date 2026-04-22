@@ -3,7 +3,7 @@ import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeItem} from './timeline.js';
 import {markDirty, formatItemDates} from './panel.js';
 import {positionLabels} from './render.js';
-import {getTickSpec, startOfTick} from './ticks.js';
+import {getTickSpec, startOfTick, nextTick} from './ticks.js';
 
 export function startDragging() {
   // start dragging a handle
@@ -51,11 +51,14 @@ export function drag(i) {
   const prec = getTickSpec().mode;  // assume precision of the canvas
   const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
   let roundT = startOfTick(t);
+  if (attr==='dateTo' || attr==='fadeRight') roundT = nextTick(roundT);  // treat dateTo as one tick to the right
   if (roundT === si[attr].ts) return;  // snap to tick
 
   // check from/to date limits
-  if (attr==='dateFrom' && roundT >= si._tTo) roundT = si._tFrom;
-  if (attr==='dateTo' && roundT < si._tFrom) roundT = si._tFrom;
+  if (attr==='dateFrom' && roundT >= si._dateTo) return;
+  if (attr==='dateTo' && roundT < si._dateFrom) return;
+  if (attr==='fadeLeft' && (roundT >= si._dateTo || roundT < si.dateFrom.ts || roundT > si._fRight)) return;
+  if (attr==='fadeRight' && (roundT < si._dateFrom || roundT > si.dateTo.ts || roundT < si._fLeft)) return;
   
   const d = {ts:roundT, prec:prec};
 

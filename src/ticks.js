@@ -139,6 +139,10 @@ export function startOfTick(t) {
   return spec.start(t);
 }
 
+export function nextTick(t) {
+  const spec = getTickSpec();
+  return spec.step(t, 1);
+}
 
 /* ------------------- Draw elements -------------------- */
 

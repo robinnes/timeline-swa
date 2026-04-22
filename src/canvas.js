@@ -66,7 +66,6 @@ export const appState = {
   views:[]
 }
 
-export const timelines = [];
 export const timelineCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 

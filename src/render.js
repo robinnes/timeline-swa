@@ -169,7 +169,6 @@ function drawDateHandles(itemPos) {
 
   } else {
     // dateFrom (half-circle on the left)
-    //const tFrom = item.itemType==='event' ? item._dateFrom : item._tFrom;
     const tFrom = item._dateFrom;
     let x = Util.timeToPx(tFrom);
     let left = x - majorRadius
@@ -189,7 +188,6 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // dateTo (half-circle on the right)
-    //const tTo = item.itemType==='event' ? item._dateTo : item._tTo;
     const tTo = item._dateTo;
     x = Util.timeToPx(tTo);
     left = x;
@@ -206,43 +204,39 @@ function drawDateHandles(itemPos) {
     screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'dateTo', item:item});
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
-//    if (item.itemType === 'period') {
-      // fadeLeft
-      x = Util.timeToPx(item._fLeft);
-      //x = Util.timeToPx(item.fadeLeft.ts);
-      left = x;
-      right = x + minorRadius;
-      top = y + minorHeight - minorRadius
-      bottom = y + minorHeight + minorRadius;
+    // fadeLeft
+    x = Util.timeToPx(item._fLeft);
+    left = x;
+    right = x + minorRadius;
+    top = y + minorHeight - minorRadius
+    bottom = y + minorHeight + minorRadius;
 
-      ctx.beginPath();  // stem down
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, top + minorRadius * 2);
-      ctx.stroke();
-      ctx.beginPath();  // half circle at bottom
-      ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 1.5, Math.PI * 0.5);
-      ctx.stroke();
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + minorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.stroke();
 
-      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeLeft', item:item});
-      if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeLeft', item:item});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
-      // fadeRight
-      x = Util.timeToPx(item._fRight);
-      //x = Util.timeToPx(item.fadeRight.ts);
-      left = x - minorRadius;
-      right = x;
+    // fadeRight
+    x = Util.timeToPx(item._fRight);
+    left = x - minorRadius;
+    right = x;
 
-      ctx.beginPath();  // stem down
-      ctx.moveTo(x, y);
-      ctx.lineTo(x, top + minorRadius * 2);
-      ctx.stroke();
-      ctx.beginPath();  // half circle at bottom
-      ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 0.5, Math.PI * 1.5);
-      ctx.stroke();
+    ctx.beginPath();  // stem down
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, top + minorRadius * 2);
+    ctx.stroke();
+    ctx.beginPath();  // half circle at bottom
+    ctx.arc(x, y + minorHeight, minorRadius, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.stroke();
 
-      screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', item:item});
-      if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
-//    }
+    screenElements.push({left:left, right:right, top:top, bottom:bottom, type:'handle', subType:'fadeRight', item:item});
+    if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
   }
   
   ctx.restore();

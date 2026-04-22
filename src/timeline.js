@@ -53,65 +53,11 @@ function timelineString(tl) {
         include: item.include
       }
     })
-/*
-    items: tl.items.map((
-      {
-        id, 
-        itemType,
-        dateSpecification,
-        prominence,
-        label,
-        date,
-        dateFrom,
-        dateTo,
-        fadeLeft,
-        fadeRight,
-        color,
-        colorLeft,
-        colorRight,
-        details,
-        thumbnail,
-        tagIds,
-        include
-      }) => (
-      {
-        id,
-        itemType,
-        dateSpecification,
-        prominence,
-        label,
-        date,
-        dateFrom,
-        dateTo,
-        fadeLeft,
-        fadeRight,
-        color,
-        colorLeft,
-        colorRight,
-        details,
-        thumbnail,
-        tagIds,
-        include
-      }))
-*/
   };
   return JSON.stringify(txt, null, 2);
 }
 
 export function initializeItem(i) {
-
-  /*
-  // backward compatibility
-   if (!i.itemType) {
-    let p = i.prominence;
-    i.itemType = p <= 3 ? 'event' : 'period';
-    i.dateSpecification = i.itemType==='event' ? 'point' : 'range';
-    i.prominence = i.itemType==='event' ? p + 1 : (p - 3) + 1;
-  }
-
-  // Assign unique ID if not present
-  if (i.id === undefined) i.id = Util.uuid();
-  */
 
   // Initialize tags selection
   if (!Array.isArray(i.tagIds)) i.tagIds = [];
@@ -138,26 +84,21 @@ export function initializeItem(i) {
     i.fadeRight = null;
   } else {
     // switched from dot to line
-    if (!i.dateFrom ) i.dateFrom = {...i.date};
-    if (!i.dateTo) i.dateTo = {...i.date};
-    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
-    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
+    if (!i.dateFrom ) {
+      i.dateFrom = {...i.date};
+      i.fadeLeft = {...i.dateFrom};
+    }
+    if (!i.dateTo) {
+      // make dateTo one tick to the right
+      i.dateTo = {ts:tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1), prec:i.dateFrom.prec};
+      i.fadeRight = {...i.dateTo};
+    }
     i.date = null;
   }
 
-  /*
-  // Convert ISO representations of dates to timestamps if necessary
-  if (typeof i.date?.ts == 'string') i.date.ts = Calendar.ISOStringToTs(i.date.ts);
-  if (typeof i.dateFrom?.ts == 'string') i.dateFrom.ts = Calendar.ISOStringToTs(i.dateFrom.ts);
-  if (typeof i.dateTo?.ts == 'string') i.dateTo.ts = Calendar.ISOStringToTs(i.dateTo.ts);
-  if (typeof i.fadeLeft?.ts == 'string') i.fadeLeft.ts = Calendar.ISOStringToTs(i.fadeLeft.ts);
-  if (typeof i.fadeRight?.ts == 'string') i.fadeRight.ts = Calendar.ISOStringToTs(i.fadeRight.ts);
-  */
-
   // Assign properties for rendering based on the dates
   if (i.dateSpecification === 'point') {
-//i.date.ts = Calendar.ISOStringToTs(i.date.ts);  ////1735689600000
-//console.log(new Date(i.date.ts).toISOString().replace(/\.\d{3}Z$/, 'Z'));
+
     //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
     const msPerTick = tickSpec.get(i.date.prec).msPerTick;
     i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
@@ -168,22 +109,14 @@ export function initializeItem(i) {
 
   } else {
 
-    // sanity checks
-    if (i.dateTo.ts < i.dateFrom.ts)    i.dateTo = {...i.dateFrom};
-    if (i.fadeLeft.ts > i.fadeRight.ts) i.fadeRight = {...i.fadeLeft};
-    if (i.fadeLeft.ts > i.dateTo.ts)    i.fadeLeft = {...i.dateTo};
-    if (i.fadeLeft.ts < i.dateFrom.ts)  i.fadeLeft = {...i.dateFrom};
-    if (i.fadeRight.ts < i.dateFrom.ts) i.fadeRight = {...i.dateFrom};
-    if (i.fadeRight.ts > i.dateTo.ts)   i.fadeRight = {...i.dateTo};   
-
     // assign derived attributes for rendering
     i._dateFrom = i.dateFrom.ts + Math.round(tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
     i._tFrom = i.dateFrom.ts;
     i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
-    i._dateTo = i.dateTo.ts + Math.round( tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
-    i._tTo = tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1);  // can't just add msPerTick
-    i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
-
+    i._dateTo = i.dateTo.ts - Math.round(tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
+    i._tTo = i.dateTo.ts;
+    i._fRight = i.fadeRight.ts - (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
+    
     i._dateTime = (i._tFrom + i._tTo) / 2;
   }
 };

@@ -71,7 +71,7 @@ export function debugVars() {
   const ctx = canvas.getContext('2d');
   const leftLabel = window.innerWidth - 300;
   const leftValue = window.innerWidth - 200;
-  let top = window.innerHeight - 180;
+  let top = window.innerHeight - 240;
 
   const round = (value) => {
     return Math.round(value*1000)/1000;    // need to test
@@ -114,20 +114,23 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
-  display('_dateTime', fmtDate(i._dateTime));
+  //display('date', fmtDate(i.date?.ts));
+  display('dateFrom', fmtDate(i.dateFrom?.ts));
+  display('fadeLeft', fmtDate(i.fadeLeft?.ts));
+  display('fadeRight', fmtDate(i.fadeRight?.ts));
+  display('dateTo', fmtDate(i.dateTo?.ts));
+  display('', '');
+  
+  //display('_dateTime', fmtDate(i._dateTime));
   display('_dateFrom', fmtDate(i._dateFrom));
   display('_dateTo', fmtDate(i._dateTo));
   display('', '');
-  
+
   display('_tFrom', fmtDate(i._tFrom));
   display('_fLeft', fmtDate(i._fLeft));
   display('_fRight', fmtDate(i._fRight));
   display('_tTo', fmtDate(i._tTo));
   
-  display('dateFrom', fmtDate(i.dateFrom?.ts));
-  display('dateTo', fmtDate(i.dateTo?.ts));
-  display('fadeLeft', fmtDate(i.fadeLeft?.ts));
-  display('fadeRight', fmtDate(i.fadeRight?.ts));
 
   ctx.restore();
   
