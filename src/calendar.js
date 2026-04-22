@@ -78,3 +78,10 @@ export function formatItemDate(compoundDate) {
   return spec.panelLabel(d);  // return result from the appropriate function
 }
 
+export function tsToIsoString(ts) {
+  return new Date(ts).toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+export function isoStringToTs(st) {
+  return new Date(st).getTime();
+}

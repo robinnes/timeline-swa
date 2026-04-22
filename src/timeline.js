@@ -1,4 +1,5 @@
 import * as Util from './util.js';
+import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
@@ -6,7 +7,21 @@ import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 
+function serializeCompoundDate(d) {
+  if (!d) return d;
+  return {
+    ...d,
+    ts: typeof d.ts === 'number' ? Calendar.tsToIsoString(d.ts) : d.ts
+  };
+}
 
+function deserializeCompoundDate(d) {
+  if (!d) return d;
+  return {
+    ...d,
+    ts: typeof d.ts === 'string' ? Calendar.isoStringToTs(d.ts) : d.ts
+  };
+}
 function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
@@ -17,16 +32,77 @@ function timelineString(tl) {
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),
-    items: tl.items.map(({id, itemType, dateSpecification, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include}) => ({
-                            id, itemType, dateSpecification, prominence, label, date, dateFrom, dateTo, fadeLeft, fadeRight, color, colorLeft, colorRight, details, thumbnail, tagIds, include
-    }))
+    items: tl.items.map(item => {
+      return {
+        id: item.id,
+        itemType: item.itemType,
+        dateSpecification: item.dateSpecification,
+        prominence: item.prominence,
+        label: item.label,
+        date: serializeCompoundDate(item.date),
+        dateFrom: serializeCompoundDate(item.dateFrom),
+        dateTo: serializeCompoundDate(item.dateTo),
+        fadeLeft: serializeCompoundDate(item.fadeLeft),
+        fadeRight: serializeCompoundDate(item.fadeRight),
+        color: item.color,
+        colorLeft: item.colorLeft,
+        colorRight: item.colorRight,
+        details: item.details,
+        thumbnail: item.thumbnail,
+        tagIds: item.tagIds,
+        include: item.include
+      }
+    })
+/*
+    items: tl.items.map((
+      {
+        id, 
+        itemType,
+        dateSpecification,
+        prominence,
+        label,
+        date,
+        dateFrom,
+        dateTo,
+        fadeLeft,
+        fadeRight,
+        color,
+        colorLeft,
+        colorRight,
+        details,
+        thumbnail,
+        tagIds,
+        include
+      }) => (
+      {
+        id,
+        itemType,
+        dateSpecification,
+        prominence,
+        label,
+        date,
+        dateFrom,
+        dateTo,
+        fadeLeft,
+        fadeRight,
+        color,
+        colorLeft,
+        colorRight,
+        details,
+        thumbnail,
+        tagIds,
+        include
+      }))
+*/
   };
   return JSON.stringify(txt, null, 2);
 }
 
 export function initializeItem(i) {
+
+  /*
   // backward compatibility
-  if (!i.itemType) {
+   if (!i.itemType) {
     let p = i.prominence;
     i.itemType = p <= 3 ? 'event' : 'period';
     i.dateSpecification = i.itemType==='event' ? 'point' : 'range';
@@ -35,6 +111,7 @@ export function initializeItem(i) {
 
   // Assign unique ID if not present
   if (i.id === undefined) i.id = Util.uuid();
+  */
 
   // Initialize tags selection
   if (!Array.isArray(i.tagIds)) i.tagIds = [];
@@ -50,6 +127,7 @@ export function initializeItem(i) {
   i._parsedWidth = parsed.multiWidth;
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
+
 
   // Resolve single date vs date range
   if (i.dateSpecification === 'point') {
@@ -67,8 +145,19 @@ export function initializeItem(i) {
     i.date = null;
   }
 
+  /*
+  // Convert ISO representations of dates to timestamps if necessary
+  if (typeof i.date?.ts == 'string') i.date.ts = Calendar.ISOStringToTs(i.date.ts);
+  if (typeof i.dateFrom?.ts == 'string') i.dateFrom.ts = Calendar.ISOStringToTs(i.dateFrom.ts);
+  if (typeof i.dateTo?.ts == 'string') i.dateTo.ts = Calendar.ISOStringToTs(i.dateTo.ts);
+  if (typeof i.fadeLeft?.ts == 'string') i.fadeLeft.ts = Calendar.ISOStringToTs(i.fadeLeft.ts);
+  if (typeof i.fadeRight?.ts == 'string') i.fadeRight.ts = Calendar.ISOStringToTs(i.fadeRight.ts);
+  */
+
   // Assign properties for rendering based on the dates
   if (i.dateSpecification === 'point') {
+//i.date.ts = Calendar.ISOStringToTs(i.date.ts);  ////1735689600000
+//console.log(new Date(i.date.ts).toISOString().replace(/\.\d{3}Z$/, 'Z'));
     //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
     const msPerTick = tickSpec.get(i.date.prec).msPerTick;
     i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
@@ -78,23 +167,24 @@ export function initializeItem(i) {
     i._fRight = i._tTo - Math.round(msPerTick * 0.35);
 
   } else {
-      // sanity checks
-       if (i.dateTo.ts < i.dateFrom.ts)    i.dateTo = {...i.dateFrom};
-      if (i.fadeLeft.ts > i.fadeRight.ts) i.fadeRight = {...i.fadeLeft};
-      if (i.fadeLeft.ts > i.dateTo.ts)    i.fadeLeft = {...i.dateTo};
-      if (i.fadeLeft.ts < i.dateFrom.ts)  i.fadeLeft = {...i.dateFrom};
-      if (i.fadeRight.ts < i.dateFrom.ts) i.fadeRight = {...i.dateFrom};
-      if (i.fadeRight.ts > i.dateTo.ts)   i.fadeRight = {...i.dateTo};   
 
-      // assign derived attributes for rendering
-      i._dateFrom = i.dateFrom.ts + Math.round(tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
-      i._tFrom = i.dateFrom.ts;
-      i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
-      i._dateTo = i.dateTo.ts + Math.round( tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
-      i._tTo = tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1);  // can't just add msPerTick
-      i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
+    // sanity checks
+    if (i.dateTo.ts < i.dateFrom.ts)    i.dateTo = {...i.dateFrom};
+    if (i.fadeLeft.ts > i.fadeRight.ts) i.fadeRight = {...i.fadeLeft};
+    if (i.fadeLeft.ts > i.dateTo.ts)    i.fadeLeft = {...i.dateTo};
+    if (i.fadeLeft.ts < i.dateFrom.ts)  i.fadeLeft = {...i.dateFrom};
+    if (i.fadeRight.ts < i.dateFrom.ts) i.fadeRight = {...i.dateFrom};
+    if (i.fadeRight.ts > i.dateTo.ts)   i.fadeRight = {...i.dateTo};   
 
-      i._dateTime = (i._tFrom + i._tTo) / 2;
+    // assign derived attributes for rendering
+    i._dateFrom = i.dateFrom.ts + Math.round(tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
+    i._tFrom = i.dateFrom.ts;
+    i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
+    i._dateTo = i.dateTo.ts + Math.round( tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
+    i._tTo = tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1);  // can't just add msPerTick
+    i._fRight = i.fadeRight.ts + (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
+
+    i._dateTime = (i._tFrom + i._tTo) / 2;
   }
 };
 
@@ -132,6 +222,13 @@ export async function loadTimeline(file) {
   if (tl.tags) tl.tags.forEach(initializeTag);
   
   for (const item of tl.items) {
+    // convert string dates loaded from storage to timestamps
+    item.date = deserializeCompoundDate(item.date);
+    item.dateFrom = deserializeCompoundDate(item.dateFrom);
+    item.dateTo = deserializeCompoundDate(item.dateTo);
+    item.fadeLeft = deserializeCompoundDate(item.fadeLeft);
+    item.fadeRight = deserializeCompoundDate(item.fadeRight);
+
     item._timeline = tl;
     initializeItem(item);
   }
