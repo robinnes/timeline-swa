@@ -1,4 +1,5 @@
 import * as Util from './util.js';
+import * as Calendar from './calendar.js';
 import {TIME} from './constants.js';
 import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
@@ -7,7 +8,6 @@ import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
-import {formatItemDate} from './calendar.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -379,14 +379,6 @@ for (const txt of displayTextAreas) {
 
 /* ------------------- Open view/item -------------------- */
 
-export function formatItemDates(item) {
-  if (item.dateSpecification==='point') return formatItemDate(item.date);
-
-  const from = formatItemDate(item.dateFrom); 
-  const to = formatItemDate(item.dateTo);
-  return `${from ?? "?"} - ${to ?? "?"}`;
-}
-
 export function openSelectedView(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
@@ -429,7 +421,7 @@ export function setSidebarItem(item) {
   //$("item-label").textContent = e.label ?? '';
   $("item-label").innerHTML = item.label;
 
-  $("item-date").innerHTML = formatItemDates(item);;
+  $("item-date").innerHTML = Calendar.formatItemDates(item);;
 
   // if details looks like HTML, show as HTML; otherwise plain-text
   const isHtml = /<[a-z][\s\S]*>/i.test(item.details);  // necessary?
@@ -439,7 +431,7 @@ export function setSidebarItem(item) {
   // edit item panel
   editItemLabel.value = item.label ?? '';
   editItemDetails.value = item.details ?? '';
-  $('item-date-display').value = formatItemDates(item);
+  $('item-date-display').value = Calendar.formatItemDates(item);
 
   //updateSignificanceButton();
   updateItemTypeButtons();
@@ -509,62 +501,6 @@ function setSidebarView(vw) {
   renderTagsUI(tl);
   updateSaveButton?.();
 }
-
-
-/* ------------------- Significance buttons -------------------- */
-
-/*
-// Significance change handler: update selected.item.significance and mark dirty
-for (const r of significanceButtons) {
-  r.addEventListener('change', (e) => {
-    const v = parseInt(e.target.value, 10);
-    const item = appState.selected.item;
-    const tl = appState.selected.timeline;
-    if (!item) return;
-    item.prominence = v;
-    initializeItem(item);
-    if (tl._mode === 'edit') markDirty(tl);  // mark timeline dirty when item changed
-    updateColorSelectorState();
-    updateColorButtons(); // significance switch can change color
-    draw(true);  // may need to reposition labels
-  });
-}
-
-function updateSignificanceButton() {
-  // set significance radio based on selected.item.significance (if present)
-  const sig = appState.selected.item.prominence ?? null;
-  if (sig != null) {
-    const el = document.querySelector(`input[name="item-significance"][value="${sig}"]`);
-    if (el) el.checked = true;
-  } else {
-    // default to normal point (value 2)
-    const el = document.querySelector('input[name="item-significance"][value="2"]');
-    if (el) el.checked = true;
-  }
-}
-
-function updateColorSelectorState() {
-  // color options depend on prominence: no left/right for Point items, etc.
-  const e = appState.selected.item;
-  if (!e) return;
-  const isPoint = e.prominence <= 3;
-  const leftRightSelectors = document.querySelectorAll('input[name="color-target"][value="left"], input[name="color-target"][value="right"]');
-  
-  leftRightSelectors.forEach(radio => {
-    const label = radio.closest('.color-sel-btn');
-    radio.disabled = isPoint;
-    if (label) {
-      label.classList.toggle('is-disabled', isPoint);
-      label.setAttribute('aria-disabled', isPoint);
-    }
-    // If a disabled option is selected, switch to 'main'
-    if (isPoint && radio.checked) {
-      const mainRadio = document.querySelector('input[name="color-target"][value="main"]');
-      if (mainRadio) mainRadio.checked = true;   
-    }
-  });
-}
-*/
 
 
 /* ------------------- Item type / date specification / prominence -------------------- */

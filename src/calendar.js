@@ -78,6 +78,21 @@ export function formatItemDate(compoundDate) {
   return spec.panelLabel(d);  // return result from the appropriate function
 }
 
+export function formatItemDates(item) {
+  if (item.dateSpecification==='point') return formatItemDate(item.date);
+
+  const fFrom = formatItemDate(item.dateFrom);
+  let fTo = formatItemDate(item.dateTo);
+  
+  // look for opportunities to not repeat date portion
+  if (['hour', 'minute'].includes(item.dateTo.prec) && 
+      ['hour', 'minute'].includes(item.dateFrom.prec) && 
+      formatDayFull(item.dateTo.ts)===formatDayFull(item.dateFrom.ts))
+    fTo = formatMinuteLong(item.dateTo.ts);
+  
+  return `${fFrom ?? "?"} - ${fTo ?? "?"}`;
+}
+
 export function tsToIsoString(ts) {
   return new Date(ts).toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
