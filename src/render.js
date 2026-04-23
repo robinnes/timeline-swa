@@ -524,8 +524,8 @@ function drawItemLine(ip, highlight) {
   let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
 
   // check validity of gradiant parameters
-  if (!gradLeft || gradLeft < 0) gradLeft = 0;
-  if (!gradRight || gradRight > 1) gradRight = 1;
+  gradLeft = Math.max(Math.min(gradLeft, 1), 0);
+  gradRight = Math.max(Math.min(gradRight, 1), 0);
   if (gradLeft > gradRight) gradLeft = gradRight;
 
   const grad = ctx.createLinearGradient(left, y, right, y);
