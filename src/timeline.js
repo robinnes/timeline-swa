@@ -84,15 +84,14 @@ export function initializeItem(i) {
     i.fadeRight = null;
   } else {
     // switched from dot to line
-    if (!i.dateFrom ) {
-      i.dateFrom = {...i.date};
-      i.fadeLeft = {...i.dateFrom};
-    }
+    if (!i.dateFrom ) i.dateFrom = {...i.date};
+    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
     if (!i.dateTo) {
       // make dateTo one tick to the right
       i.dateTo = {ts:tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1), prec:i.dateFrom.prec};
-      i.fadeRight = {...i.dateTo};
     }
+    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
+
     i.date = null;
   }
 
