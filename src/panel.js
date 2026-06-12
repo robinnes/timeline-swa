@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
-import {TIME} from './constants.js';
+import {TIME, DRAW} from './constants.js';
 import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
@@ -289,9 +289,11 @@ for (const tabsEl of subpanelTabs) {
     e.preventDefault();
     if (btn.disabled) return;
 
-    const targetId = btn.dataset.target;
+    const targetId = btn.dataset.target;  
     if (!targetId) return;
 
+    showSubpanel(targetId);
+    /*
     const panelEl = tabsEl.closest('.panel');
     if (!panelEl) return;
 
@@ -311,9 +313,28 @@ for (const tabsEl of subpanelTabs) {
       sp.toggleAttribute('hidden', !isActive);
       sp.toggleAttribute('inert', !isActive);
     }
+    */
   });
 }
 
+function showSubpanel(targetId) {
+
+  const targetEl = document.getElementById(targetId);  // the tab to show
+  const panelEl = targetEl.closest('.panel');  // the edit item or timeline panel
+
+  for (const b of panelEl.querySelectorAll('.subtab-btn')) {  // iterate subpanel buttons on the panel
+    const isTarget = b.dataset.target === targetId;
+    b.classList.toggle('is-active', isTarget);
+    b.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  }
+
+  for (const sp of panelEl.querySelectorAll('.subpanel')) {  // iterate subpanels on the panel
+    const isActive = sp === targetEl;
+    sp.toggleAttribute('hidden', !isActive);
+    sp.toggleAttribute('inert', !isActive);
+  }
+
+}
 
 /* ------------------- Edit item panel -------------------- */
 
@@ -396,7 +417,7 @@ export function openSelectedView(display) {
   if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
-export function openSelectedItem(display) {
+export function openSelectedItem(forceMainSubpanel) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   const editMode = (tl._mode==="edit");
@@ -408,9 +429,10 @@ export function openSelectedItem(display) {
   showPanel(panel);
   setActiveEditTab('item');
 
-  if (display) openSidebar();
+  if (forceMainSubpanel) showSubpanel('subpanel-edit-item-main');  // go to main subtab for new item
 
-  if (editMode && !appState.isTouchScreen) editItemLabel.focus(); 
+  openSidebar();
+  if (editMode && forceMainSubpanel && !appState.isTouchScreen) editItemLabel.focus(); 
 }
 
 export function setSidebarItem(item) {
@@ -515,17 +537,16 @@ for (const r of itemTypeButtons) {
 
     if (item.itemType === 'period') {
       item.dateSpecification = 'range';
+      item.color = DRAW.DEFAULT_LINE_COLOR;
+    } else {
+      item.color = 'white';
+      item.colorLeft = 'black';
+      item.colorRight = 'black';
     }
 
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    /*updateItemTypeButtons();
-    updateDateSpecificationButtons();
-    updateProminenceSlider();
-    updateDateSpecificationState();
-    updateColorSelectorState();
-    updateColorButtons();*/
     setSidebarItem(item);
     draw(true);
   });

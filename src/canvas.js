@@ -305,7 +305,7 @@ canvas.addEventListener('click', function (e) {
       appState.selected.item = elem.itemPos.item; // appState.highlighted.itemPos.item;
       appState.selected.timeline = appState.selected.item._timeline;
       appState.selected.view = elem.view;
-      openSelectedItem(true);
+      openSelectedItem(false);
       draw(false);
 
   } else if (elem.type === 'view') {
