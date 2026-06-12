@@ -7,7 +7,7 @@ import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 
-export function serializeCompoundDate(d) {
+function serializeCompoundDate(d) {
   if (!d) return d;
   return {
     ts: typeof d.ts === 'number' ? Calendar.tsToIsoString(d.ts) : d.ts,
@@ -34,24 +34,39 @@ function timelineString(tl) {
                         id, label, parentId, order
     })),
     items: tl.items.map(item => {
-      return {
-        id: item.id,
-        itemType: item.itemType,
-        dateSpecification: item.dateSpecification,
-        prominence: item.prominence,
-        label: item.label,
-        date: serializeCompoundDate(item.date),
-        dateFrom: serializeCompoundDate(item.dateFrom),
-        dateTo: serializeCompoundDate(item.dateTo),
-        fadeLeft: serializeCompoundDate(item.fadeLeft),
-        fadeRight: serializeCompoundDate(item.fadeRight),
-        color: item.color,
-        colorLeft: item.colorLeft,
-        colorRight: item.colorRight,
-        details: item.details,
-        thumbnail: item.thumbnail,
-        tagIds: item.tagIds,
-        include: item.include
+      if (item.date) {
+        return {
+          id: item.id,
+          itemType: item.itemType,
+          dateSpecification: item.dateSpecification,
+          prominence: item.prominence,
+          label: item.label,
+          date: serializeCompoundDate(item.date),
+          color: item.color,
+          details: item.details,
+          thumbnail: item.thumbnail,
+          tagIds: item.tagIds,
+          include: item.include
+        } 
+      } else {
+        return {
+          id: item.id,
+          itemType: item.itemType,
+          dateSpecification: item.dateSpecification,
+          prominence: item.prominence,
+          label: item.label,
+          dateFrom: serializeCompoundDate(item.dateFrom),
+          dateTo: serializeCompoundDate(item.dateTo),
+          fadeLeft: serializeCompoundDate(item.fadeLeft),
+          fadeRight: serializeCompoundDate(item.fadeRight),
+          color: item.color,
+          colorLeft: item.colorLeft,
+          colorRight: item.colorRight,
+          details: item.details,
+          thumbnail: item.thumbnail,
+          tagIds: item.tagIds,
+          include: item.include
+        }
       }
     })
   };

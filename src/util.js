@@ -66,7 +66,6 @@ export function timestampToTemporal(t) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
-import {serializeCompoundDate} from './timeline.js';
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
@@ -98,7 +97,6 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
-  display('dateFrom', JSON.stringify(serializeCompoundDate(i.dateFrom)));
 
 /*
   display('date', fmtDate(i.date?.ts));
