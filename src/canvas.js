@@ -296,8 +296,8 @@ canvas.addEventListener('click', function (e) {
   const elem = screenElements[appState.highlighted.idx];
   if (elem.type === 'tick') {
     // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-    const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
-    appState.fixedPanMode = tickSpec.get(m);
+    //const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
+    appState.fixedPanMode = tickSpec.get(elem.mode);
     zoomToTick(elem.t);
 
     // if clicked on the highlighted bubble/line/label then open it in the side panel
@@ -580,7 +580,7 @@ function zoomToItem(i, zoom) {
 
   } else {
     const vp = getCanvasViewport();  // need for canvas width
-    const ts = i.dateSpecification==='point' ? i._dateTime : i._tFrom;  // center on timestamp: center of point or left side of range
+    const ts = i.dateSpecification==='point' ? i._date : i._tFrom;  // center on timestamp: center of point or left side of range
     const newOffset = ts - (appState.msPerPx * (vp.width/2)) - TIME.EPOCH;  // center on canvas
 
     appState.zoom = {

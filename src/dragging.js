@@ -4,7 +4,7 @@ import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeItem} from './timeline.js';
 import {markDirty} from './panel.js';
 import {positionLabels} from './render.js';
-import {getTickSpec, startOfTick, nextTick} from './ticks.js';
+import {getTickSpec, startOfTick, nextTick, tickSpec} from './ticks.js';
 
 export function startDragging() {
   // start dragging a handle
@@ -45,31 +45,38 @@ export function stopDragging(revert = false) {
   }
 }
 
-export function drag(i) {
-  // dragging a handle to change item dateTime
+export function drag(e) {
+
   const si = appState.selected.item;
   const attr = appState.drag.attribute;
   const prec = getTickSpec().mode;  // assume precision of the canvas
-  const t = Util.pxToTime(i.clientX);  // timestamp in center of the window
-  let roundT = startOfTick(t);
-  if (attr==='dateTo' || attr==='fadeRight') roundT = nextTick(roundT);  // treat dateTo as one tick to the right
-  if (roundT === si[attr].ts) return;  // snap to tick
+  const t = Util.pxToTime(e.clientX);  // timestamp in center of the window
+  const inclusive = tickSpec.get(prec).inclusive;  // whether lines s/b inclusive of right-hand dates
+  const pointerT = startOfTick(t);  // left of tick currently under the pointer
+  const pointerMid = Math.round((pointerT + nextTick(pointerT)) / 2);  // middle of tick currently under the pointer
 
-  // check from/to date limits
-  if (attr==='dateFrom' && roundT >= si._dateTo) return;
-  if (attr==='dateTo' && roundT < si._dateFrom) return;
-  if (attr==='fadeLeft' && (roundT >= si._dateTo || roundT < si.dateFrom.ts || roundT > si._fRight)) return;
-  if (attr==='fadeRight' && (roundT < si._dateFrom || roundT > si.dateTo.ts || roundT < si._fLeft)) return;
+  if (pointerMid === si[attr]._mid) return; // only continue if the handle will move
+
+  const d = {ts:(!inclusive && (attr === 'dateTo' || attr === 'fadeRight')) ? nextTick(pointerT) : pointerT, prec:prec};
+
+  if (attr === 'dateFrom') {
+    if (pointerMid > si.dateTo._mid) si.dateTo = {ts:inclusive ? pointerT : nextTick(pointerT), prec:prec};
+    if (si.fadeLeft._mid <= si.dateFrom._mid) si.fadeLeft = {...d};
+    if (si.fadeRight._mid < pointerMid) si.fadeRight = {ts:inclusive ? pointerT : nextTick(pointerT), prec:prec};
+  } 
+
+  if (attr === 'dateTo') {
+    if (pointerMid < si.dateFrom._mid) si.dateFrom = {ts:pointerT, prec:prec};
+    if (si.fadeRight._mid >= si.dateTo._mid) si.fadeRight = {...d};
+    if (si.fadeLeft._mid > pointerMid) si.fadeLeft = {ts:pointerT, prec:prec};
+  } 
+
+  if (attr === 'fadeLeft' && (pointerMid < si.dateFrom._mid || pointerMid > si.fadeRight._mid)) return;
+  if (attr === 'fadeRight' && (pointerMid > si.dateTo._mid || pointerMid < si.fadeLeft._mid)) return;
   
-  const d = {ts:roundT, prec:prec};
-
-  // move the 'fade' dates with from/to
-  if (attr==='dateFrom' && si._fLeft===si._dateFrom) si.fadeLeft = {...d};
-  if (attr==='dateTo'   && si._fRight===si._dateTo)  si.fadeRight = {...d};
- 
-  si[attr] = d; // initializeItem will handle limits
-
+  si[attr] = d;
   initializeItem(si);
+
   document.getElementById('item-date-display').value = Calendar.formatItemDates(si);
   markDirty(appState.selected.timeline);
   positionLabels();

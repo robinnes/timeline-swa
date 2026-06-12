@@ -74,50 +74,49 @@ export function initializeItem(i) {
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
   if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
-
   // Resolve single date vs date range
   if (i.dateSpecification === 'point') {
-    if (!i.date) i.date = {...i.dateFrom};  // switched from line to dot
-    i.dateFrom = null;
-    i.dateTo = null;
-    i.fadeLeft = null;
-    i.fadeRight = null;
-  } else {
-    // switched from dot to line
-    if (!i.dateFrom ) i.dateFrom = {...i.date};
-    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
-    if (!i.dateTo) {
-      // make dateTo one tick to the right
-      i.dateTo = {ts:tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1), prec:i.dateFrom.prec};
+    if (!i.date) {  // switched from line to dot
+      i.date = {...i.dateFrom};  
+      i.dateFrom = null;
+      i.dateTo = null;
+      i.fadeLeft = null;
+      i.fadeRight = null;
     }
-    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
 
-    i.date = null;
-  }
-
-  // Assign properties for rendering based on the dates
-  if (i.dateSpecification === 'point') {
-
-    //convert to a small span in the middle of that day; extend all 'spanning' items to noon on either side
+    // derived attributes for rendering
     const msPerTick = tickSpec.get(i.date.prec).msPerTick;
-    i._dateTime = i.date.ts + Math.round(msPerTick * 0.5);
-    i._tFrom = i._dateTime - Math.round(msPerTick * 0.5);
-    i._tTo = i._dateTime + Math.round(msPerTick * 0.5);
+    i._date = i.date.ts + Math.round(msPerTick * 0.5);
+    
+    i._tFrom = i.date.ts;
+    i._tTo = tickSpec.get(i.date.prec).step(i.date.ts, 1)
     i._fLeft = i._tFrom + Math.round(msPerTick * 0.35);
     i._fRight = i._tTo - Math.round(msPerTick * 0.35);
-
-  } else {
-
-    // assign derived attributes for rendering
-    i._dateFrom = i.dateFrom.ts + Math.round(tickSpec.get(i.dateFrom.prec).msPerTick * 0.5);
-    i._tFrom = i.dateFrom.ts;
-    i._fLeft = i.fadeLeft.ts + (tickSpec.get(i.fadeLeft.prec).msPerTick * 0.5);
-    i._dateTo = i.dateTo.ts - Math.round(tickSpec.get(i.dateTo.prec).msPerTick * 0.5);
-    i._tTo = i.dateTo.ts;
-    i._fRight = i.fadeRight.ts - (tickSpec.get(i.fadeRight.prec).msPerTick * 0.5);
+    i.date._mid = Math.round((i._tFrom + i._tTo) / 2);
+    i._date = i.date._mid;
     
-    i._dateTime = (i._tFrom + i._tTo) / 2;
+  } else {
+    if (i.date) { // switched from dot to line
+      i.dateFrom = {...i.date};
+      i.fadeLeft = {...i.date};
+      i.dateTo = tickSpec.get(i.date.prec).inclusive ? {...i.date} : {ts:tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1), prec:i.dateFrom.prec};
+      i.fadeRight = {...i.dateTo};
+      i.date = null;
+    }
+
+    i.dateFrom._mid = Math.round((i.dateFrom.ts + tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1)) / 2);
+    i.fadeLeft._mid = Math.round((i.fadeLeft.ts + tickSpec.get(i.fadeLeft.prec).step(i.fadeLeft.ts, 1)) / 2);
+    i.fadeRight._mid = Math.round((i.fadeRight.ts + tickSpec.get(i.fadeRight.prec).step(i.fadeRight.ts, tickSpec.get(i.fadeRight.prec).inclusive ? 1 : -1)) / 2); 
+    i.dateTo._mid = Math.round((i.dateTo.ts + tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, tickSpec.get(i.dateTo.prec).inclusive ? 1 : -1)) / 2);
+
+    i._tFrom = i.dateFrom.ts;
+    i._fLeft = i.fadeLeft._mid;
+    i._fRight = i.fadeRight._mid;
+    i._tTo = tickSpec.get(i.dateTo.prec).inclusive ? tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1) : i.dateTo.ts;
+
+    i._date = Math.round((i._tFrom + i._tTo) / 2);
   }
+
 };
 
 export function initializeTitle(tl) {

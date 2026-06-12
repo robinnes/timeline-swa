@@ -20,7 +20,8 @@ export const tickSpec = new Map([
       msPerTick: 1000*60, 
       newItemProm: 1,
       label: [{minWidth:20, text:Calendar.formatMinute}],
-      panelLabel: Calendar.formatMinuteFull
+      panelLabel: Calendar.formatMinuteFull,
+      inclusive: false
       }],
   ['hour', { 
       mode: 'hour', 
@@ -34,7 +35,8 @@ export const tickSpec = new Map([
       msPerTick: 1000*60*60, 
       newItemProm: 1,
       label: [{minWidth:30, text:Calendar.formatHour}],
-      panelLabel: Calendar.formatMinuteFull 
+      panelLabel: Calendar.formatMinuteFull,
+      inclusive: false
       }],
   ['day', {
       mode: 'day',
@@ -48,7 +50,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000,
       newItemProm: 1,
       label: [{minWidth:60, text:Calendar.formatWeekday}, {minWidth:20, text:Calendar.formatDay}],
-      panelLabel: Calendar.formatDayFull
+      panelLabel: Calendar.formatDayFull,
+      inclusive: true
       }],
   ['month', {
       mode: 'month',
@@ -62,7 +65,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000*30,
       newItemProm: 2,
       label: [{minWidth:30, text:Calendar.formatMonth}],
-      panelLabel: Calendar.formatMonthYear
+      panelLabel: Calendar.formatMonthYear,
+      inclusive: true
     }],
   ['year', { 
       mode: 'year',
@@ -76,7 +80,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000*365, 
       newItemProm: 3,
       label: [{minWidth:40, text:Calendar.formatYear}],
-      panelLabel: Calendar.formatYear
+      panelLabel: Calendar.formatYear,
+      inclusive: true
     }],
   ['decade', {
       mode: 'decade',
@@ -90,7 +95,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000*365*10,
       newItemProm: 3,
       label: [{minWidth:30, text:Calendar.formatYear}],
-      panelLabel: Calendar.formatYearCirca
+      panelLabel: Calendar.formatYearCirca,
+      inclusive: true
     }],
   ['century', {
       mode: 'century',
@@ -104,7 +110,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000*365*100,
       newItemProm: 3,
       label: [{minWidth:30, text:Calendar.formatYear}],
-      panelLabel: Calendar.formatYearCirca
+      panelLabel: Calendar.formatYearCirca,
+      inclusive: true
     }],
   ['millenium', {
       mode: 'millenium',
@@ -118,7 +125,8 @@ export const tickSpec = new Map([
       msPerTick: 86400000*365*1000,
       newItemProm: 3,
       label: [{minWidth:30, text:Calendar.formatYear}],
-      panelLabel: Calendar.formatYearCirca
+      panelLabel: Calendar.formatYearCirca,
+      inclusive: true
     }]
 ]);
 

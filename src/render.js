@@ -150,7 +150,7 @@ function drawDateHandles(itemPos) {
 
   if (item.dateSpecification === 'point') {
     // single date handle
-    let x = Util.timeToPx(item._dateTime);
+    let x = Util.timeToPx(item._date);
     let left = x - majorRadius
     let right = x + majorRadius
     let top = y + majorHeight - majorRadius
@@ -169,7 +169,7 @@ function drawDateHandles(itemPos) {
 
   } else {
     // dateFrom (half-circle on the left)
-    const tFrom = item._dateFrom;
+    const tFrom = item.dateFrom._mid;
     let x = Util.timeToPx(tFrom);
     let left = x - majorRadius
     let right = x;
@@ -188,7 +188,7 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // dateTo (half-circle on the right)
-    const tTo = item._dateTo;
+    const tTo = item.dateTo._mid;
     x = Util.timeToPx(tTo);
     left = x;
     right = x + majorRadius;
@@ -205,7 +205,7 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // fadeLeft
-    x = Util.timeToPx(item._fLeft);
+    x = Util.timeToPx(item.fadeLeft._mid);  // Util.timeToPx(item._fLeft);
     left = x;
     right = x + minorRadius;
     top = y + minorHeight - minorRadius
@@ -223,7 +223,7 @@ function drawDateHandles(itemPos) {
     if (isMouseOver(left, right, top, bottom)) appState.highlighted.idx = screenElements.length - 1;
 
     // fadeRight
-    x = Util.timeToPx(item._fRight);
+    x = Util.timeToPx(item.fadeRight._mid); // Util.timeToPx(item._fRight);
     left = x - minorRadius;
     right = x;
 
@@ -406,7 +406,7 @@ function drawLabelHover(i, x, y) {
 function getLabelPosition(ip, y) {
   // return coordinates of label for itemPos ip
   const i = ip.item;
-  const x = Util.timeToPx(i._dateTime);
+  const x = Util.timeToPx(i._date);
   const vp = getCanvasViewport();
 
   if (ip.yOffset > 0) {
@@ -495,7 +495,7 @@ function drawItemLine(ip, highlight) {
   const spec = zoomSpec(i);
   const height = spec.size;
   const fade = spec.fade;
-  const x = Util.timeToPx(i._dateTime);
+  const x = Util.timeToPx(i._date);
   const y = ip.yPos;
   const left = Math.round(Util.timeToPx(i._tFrom));
   const right = Math.round(Util.timeToPx(i._tTo));
@@ -591,7 +591,7 @@ function registerItems(vw) {
         const i = ip.item;
         const spec = zoomSpec(i);
         const height = spec.size;
-        const x = Util.timeToPx(i._dateTime);
+        const x = Util.timeToPx(i._date);
         let left = Math.round(Util.timeToPx(i._tFrom));
         let right = Math.round(Util.timeToPx(i._tTo));
         let top = Math.round(y - height / 2);
@@ -669,13 +669,13 @@ export function drawItems() {
       // if selected item displays to small for a label then show hover
       const sel = vw.itemPos.find((ip) => ip.item===appState.selected.item);
       if (sel?.yOffset===0)
-        drawLabelHover(sel.item, Util.timeToPx(sel.item._dateTime), sel.yPos);
+        drawLabelHover(sel.item, Util.timeToPx(sel.item._date), sel.yPos);
     }
   }
 
   // draw hover bubble over dot too small for above label
   const h = appState.highlighted.itemPos;
-  if (h?.yOffset===0) drawLabelHover(h.item, Util.timeToPx(h.item._dateTime), h.yPos);
+  if (h?.yOffset===0) drawLabelHover(h.item, Util.timeToPx(h.item._date), h.yPos);
 
   // change pointer
   setPointerCursor();
@@ -728,7 +728,7 @@ function positionLabelsForVw(vw){
         if (i._labelWidth + DRAW.EDGE_GAP*2 < lineWidth) { ip.yOffset = -1; return; }
       }
 
-      const x = Util.timeToPx(i._dateTime);
+      const x = Util.timeToPx(i._date);
       const left = x - i._parsedWidth/2 - DRAW.EDGE_GAP
       const right = x + i._parsedWidth/2 + DRAW.EDGE_GAP;
       const height = Math.ceil(i._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;

@@ -114,16 +114,14 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
-  //display('date', fmtDate(i.date?.ts));
+  display('date', fmtDate(i.date?.ts));
+  display('_date', fmtDate(i._date));
+  display('', '');
+  
   display('dateFrom', fmtDate(i.dateFrom?.ts));
   display('fadeLeft', fmtDate(i.fadeLeft?.ts));
   display('fadeRight', fmtDate(i.fadeRight?.ts));
   display('dateTo', fmtDate(i.dateTo?.ts));
-  display('', '');
-  
-  //display('_dateTime', fmtDate(i._dateTime));
-  display('_dateFrom', fmtDate(i._dateFrom));
-  display('_dateTo', fmtDate(i._dateTo));
   display('', '');
 
   display('_tFrom', fmtDate(i._tFrom));
