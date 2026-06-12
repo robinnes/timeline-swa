@@ -7,11 +7,11 @@ import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 
-function serializeCompoundDate(d) {
+export function serializeCompoundDate(d) {
   if (!d) return d;
   return {
-    ...d,
-    ts: typeof d.ts === 'number' ? Calendar.tsToIsoString(d.ts) : d.ts
+    ts: typeof d.ts === 'number' ? Calendar.tsToIsoString(d.ts) : d.ts,
+    prec: d.prec
   };
 }
 
@@ -22,6 +22,7 @@ function deserializeCompoundDate(d) {
     ts: typeof d.ts === 'string' ? Calendar.isoStringToTs(d.ts) : d.ts
   };
 }
+
 function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
@@ -94,7 +95,7 @@ export function initializeItem(i) {
     i._fRight = i._tTo - Math.round(msPerTick * 0.35);
     i.date._mid = Math.round((i._tFrom + i._tTo) / 2);
     i._date = i.date._mid;
-    
+
   } else {
     if (i.date) { // switched from dot to line
       i.dateFrom = {...i.date};

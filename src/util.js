@@ -66,11 +66,12 @@ export function timestampToTemporal(t) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
+import {serializeCompoundDate} from './timeline.js';
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
-  const leftLabel = window.innerWidth - 300;
-  const leftValue = window.innerWidth - 200;
+  const leftLabel = window.innerWidth - 600;
+  const leftValue = window.innerWidth - 500;
   let top = window.innerHeight - 240;
 
   const round = (value) => {
@@ -93,6 +94,29 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
+  const tl = timelineCache.values().next().value;  // the first timeline in the cache
+  const i = tl?.items[0];
+  if (!i) return;
+
+  display('dateFrom', JSON.stringify(serializeCompoundDate(i.dateFrom)));
+
+/*
+  display('date', fmtDate(i.date?.ts));
+  display('_date', fmtDate(i._date));
+  display('', '');
+  
+  display('dateFrom', fmtDate(i.dateFrom?.ts));
+  display('fadeLeft', fmtDate(i.fadeLeft?.ts));
+  display('fadeRight', fmtDate(i.fadeRight?.ts));
+  display('dateTo', fmtDate(i.dateTo?.ts));
+  display('', '');
+
+  display('_tFrom', fmtDate(i._tFrom));
+  display('_fLeft', fmtDate(i._fLeft));
+  display('_fRight', fmtDate(i._fRight));
+  display('_tTo', fmtDate(i._tTo));
+  */
+
   /*
   const tl = timelineCache.values().next().value;
   const i = tl?.items[0];
@@ -109,26 +133,6 @@ export function debugVars() {
   display('fade', round(spec.fade));
   display('displayLabel', spec.displayLabel);
   */
-
-  const tl = timelineCache.values().next().value;  // the first timeline in the cache
-  const i = tl?.items[0];
-  if (!i) return;
-
-  display('date', fmtDate(i.date?.ts));
-  display('_date', fmtDate(i._date));
-  display('', '');
-  
-  display('dateFrom', fmtDate(i.dateFrom?.ts));
-  display('fadeLeft', fmtDate(i.fadeLeft?.ts));
-  display('fadeRight', fmtDate(i.fadeRight?.ts));
-  display('dateTo', fmtDate(i.dateTo?.ts));
-  display('', '');
-
-  display('_tFrom', fmtDate(i._tFrom));
-  display('_fLeft', fmtDate(i._fLeft));
-  display('_fRight', fmtDate(i._fRight));
-  display('_tTo', fmtDate(i._tTo));
-  
 
   ctx.restore();
   
