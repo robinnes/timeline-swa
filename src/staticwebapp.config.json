@@ -9,7 +9,7 @@
               "clientSecretSettingName": "AUTH0_CLIENT_SECRET"
             },
             "openIdConnectConfiguration": {
-              "wellKnownOpenIdConfiguration": "login.opentl.app/.well-known/openid-configuration"
+              "wellKnownOpenIdConfiguration": "https://login.opentl.app/.well-known/openid-configuration"
             }
           },
           "login": {
