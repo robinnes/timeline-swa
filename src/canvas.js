@@ -74,7 +74,7 @@ export const screenElements = [];  // Elements currently rendered on screen that
 
 export async function initialLoad() {
 
-  const userId = getAuthState();
+  const userId = await getAuthState();
   appState.authentication.userId = userId;
 
   // if there is a user session underway then restore
