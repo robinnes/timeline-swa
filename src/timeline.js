@@ -7,6 +7,8 @@ import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 
+/******************************* Serialization *******************************/
+
 function serializeCompoundDate(d) {
   if (!d) return d;
   return {
@@ -23,7 +25,7 @@ function deserializeCompoundDate(d) {
   };
 }
 
-function timelineString(tl) {
+export function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
   const txt = {
@@ -72,6 +74,8 @@ function timelineString(tl) {
   };
   return JSON.stringify(txt, null, 2);
 }
+
+/******************************* Initialization *******************************/
 
 export function initializeItem(i) {
 
@@ -149,21 +153,14 @@ export function initializeTag(tag) {
   tag._labelWidth = ctx.measureText(tag.label).width;
 }
 
-export async function loadTimeline(file) {
+export function initializeTimeline(tl) {
 
-  // if file does not include a slash ("/") then it's private, otherwise public
-  const scope = file.includes('/') ? 'public' : 'private';  
-  const tl = await getTimeline(scope, file);  // retrieve from storage
-
-  if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
   const tlKey = JSON.stringify({  // id/scope necessary to distinguish private/public copies of same tl
     id: tl.id,
-    scope: scope
+    scope: tl.scope
   });
   tl._key = tlKey;
-  tl._file = file,
-  tl._scope = scope,
-  tl._mode = 'view';
+
   initializeTitle(tl);
 
   if (tl.tags) tl.tags.forEach(initializeTag);
@@ -180,7 +177,24 @@ export async function loadTimeline(file) {
     initializeItem(item);
   }
 
-  timelineCache.set(tlKey, tl);
+}
+
+/******************************* Timeline management *******************************/
+
+export async function loadTimeline(file) {
+
+  // if file does not include a slash ("/") then it's private, otherwise public
+  const scope = file.includes('/') ? 'public' : 'private';  
+  const tl = await getTimeline(scope, file);  // retrieve from storage
+
+  if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
+  tl._file = file,
+  tl._scope = scope,
+  tl._mode = 'view';
+
+  initializeTimeline(tl);
+
+  timelineCache.set(tl._key, tl);
 
   return tl;
 }
@@ -254,3 +268,4 @@ export async function publishTimeline(tl)
 export function closeTimeline(tlKey) {
   timelineCache.delete(tlKey);
 }
+

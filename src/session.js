@@ -1,7 +1,7 @@
 import * as Util from './util.js';
-import {appState, timelineCache} from './canvas.js';
-import {loadTimeline} from './timeline.js';
-
+import {appState, timelineCache, draw, zoomToView} from './canvas.js';
+import {loadTimeline, timelineString, initializeTimeline} from './timeline.js';
+import {positionViews} from './render.js';
 
 /******************************* Authentication *******************************/
 
@@ -26,41 +26,46 @@ export async function getAuthState() {
 
 /******************************* Session management *******************************/
 
-export function saveSessionState() {
+export function saveSessionState(complete = false) {
+  
+  const userId = appState.authentication.userId;
+  const openViews = appState.views.map(v => {
+    return {
+      tlKey: v.tlKey, 
+      file: v.file,
+      scope: v.scope,
+      tagFilter: v.tagFilter
+    }
+  })
+  let state;
 
-  const state = {
-    userId: appState.authentication.userId,
-    cachedTimelines: Array.from(timelineCache.values(), tl => tl._file),
-    openViews: appState.views.map(v => {
-      return {
-        tlKey: v.tlKey, 
-        file: v.file,
-        scope: v.scope,
-        tagFilter: v.tagFilter
-      }
-    }),
-  };
-console.log({userId: state.userId, timelines: state.cachedTimelines.length, views: state.openViews.length});
-
-  sessionStorage.setItem("timelineSession", JSON.stringify(state));
-
-
-/*
-  const dirty = [];
-
-  for (const tl of timelineCache.values()) {
-    if (tl._dirty) {
-      dirty.push({
-        file: tl._file,
-        data: timelineString(tl)
-      });
+  if (!complete) {  
+    // persist only basic session info (which timelines are loaded and views displayed)
+    state = {
+      userId: userId,
+      openTimelines: Array.from(timelineCache.values(), tl => tl._file),
+      openViews: openViews
+    };
+  } else {
+    // persist timeline data and canvas state, too
+    state = {
+      userId: userId,
+      cachedTimelines: Array.from(timelineCache.values(), tl => {
+        return {
+          file: tl._file,
+          scope: tl._scope,
+          mode: tl._mode,
+          dirty: tl._dirty,
+          timeline: timelineString(tl)
+        }
+      }),
+      openViews: openViews,
+      msPerPx: appState.msPerPx,
+      offsetMs: appState.offsetMs
     }
   }
-
-  sessionStorage.setItem("dirtyTimelines", JSON.stringify(dirty));
-  */
+  sessionStorage.setItem("timelineSession", JSON.stringify(state));
 }
-
 
 export async function restoreSessionState() {
 
@@ -68,15 +73,35 @@ export async function restoreSessionState() {
   if (!raw) return;
   const state = JSON.parse(raw);
 
-  await getAuthState();
-console.log({userId: appState.authentication.userId, savedUserId: state.userId, timelines: state.cachedTimelines.length, views: state.openViews.length});
+  await getAuthState();  // establishes userId
 
-  if (appState.authentication.userId != state.userId) return;
+  // ignore if different user; don't persist saved session
+  if (appState.authentication.userId != state.userId) {
+    sessionStorage.setItem("timelineSession", null);
+    return;
+  };
 
-  for (const file of state.cachedTimelines) {
-    await loadTimeline(file);
+  // reload openTimelines from database
+  if (state.openTimelines) {
+    for (const file of state.openTimelines) {
+      await loadTimeline(file);
+    }
   }
-
+    
+  // restore cachedTimelines from session
+  if (state.cachedTimelines) {
+    for (const tl of state.cachedTimelines) {
+      const timeline = JSON.parse(tl.timeline);
+      timeline._file = tl.file;
+      timeline._scope = tl.scope;
+      timeline._mode = tl.mode;
+      timeline._dirty = tl.dirty;
+      initializeTimeline(timeline);
+      timelineCache.set(timeline._key, timeline);
+    }
+  }
+  
+  // restore views (including tag-filtered timelines)
   state.openViews.forEach(v => {
     const view = {
       tlKey: v.tlKey,
@@ -87,5 +112,17 @@ console.log({userId: appState.authentication.userId, savedUserId: state.userId, 
     appState.views.push(view);
   });
 
-  // restore selection, zoom, etc...
+  // restore canvas state
+  if (state.msPerPx && state.offsetMs) {
+    appState.msPerPx = state.msPerPx;
+    appState.offsetMs = state.offsetMs;
+    positionViews(false);
+    draw(true);
+    
+  } else {
+    positionViews(false);
+    draw(true);
+    if (appState.views.length > 0) zoomToView(appState.views[appState.views.length-1]);
+  }
+
 }

@@ -5,6 +5,7 @@ import {appState, zoomToView, openTimeline} from './canvas.js';
 import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
+import {saveSessionState} from './session.js';
 
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
@@ -268,6 +269,7 @@ async function handleOpenTimelineConfirm() {
     appState.selected.timeline._file = filename;
 
     saveTimeline(appState.selected.timeline).then(() => {
+      saveSessionState();
       updateSaveButton();
     });
 

@@ -2,7 +2,7 @@ import * as Util from './util.js';
 import {addNewTimeline} from './timeline.js';
 import {appState, canvas} from './canvas.js';
 import {openOpenTimelineDialog} from './fileDialog.js';
-import {getAuthState} from './session.js';
+import {getAuthState, saveSessionState} from './session.js';
 
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
@@ -57,7 +57,10 @@ export async function updateAppMenu() {
   } else {
     authMenuItem.textContent = 'Sign in';
     authMenuItem.onclick = () => {
-      window.location.href = '/.auth/login/auth0';
+      if (!isAuthenticated()) {
+        saveSessionState(true);
+        window.location.href = '/.auth/login/auth0';
+      }
     };
   }
 }

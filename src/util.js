@@ -97,6 +97,9 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
+  display('msPerPx', Math.round(appState.msPerPx));
+  display('offsetMs', Math.round(appState.offsetMs));
+  
 
 /*
   display('date', fmtDate(i.date?.ts));

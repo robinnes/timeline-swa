@@ -76,11 +76,13 @@ export async function initialLoad() {
 
   // if there is a user session underway then restore
   await restoreSessionState();
+/*
   if (appState.views.length > 0) {
     positionViews(false);
     draw(true);
     zoomToView(appState.views[appState.views.length-1]);
   }
+*/
 
 /* disable for now...
   // open public timeline indicated param "tl" if present
@@ -704,7 +706,7 @@ export async function openTimeline(file, zoom, sourceView) {
     const tlKey = existingVw.tlKey;
     const existingTL = timelineCache.get(tlKey);
     // check before reloading timeline that's being edited
-    if (existingTL._dirty) {
+    if (existingTL?._dirty) {
       const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
       if (!ok) return;  // consider returning a false here and not closing fileDialog
     }
