@@ -57,7 +57,7 @@ export async function updateAppMenu() {
   } else {
     authMenuItem.textContent = 'Sign in';
     authMenuItem.onclick = () => {
-      if (!isAuthenticated()) {
+      if (!isAuthenticated) {
         saveSessionState(true);
         window.location.href = '/.auth/login/auth0';
       }
