@@ -2,6 +2,7 @@ import * as Util from './util.js';
 import {addNewTimeline} from './timeline.js';
 import {appState, canvas} from './canvas.js';
 import {openOpenTimelineDialog} from './fileDialog.js';
+import {getAuthState} from './session.js';
 
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
@@ -23,6 +24,7 @@ appMenuButton.addEventListener('click', () => {
 });
 
 function openAppMenu() {
+
   updateAppMenu();
   appMenu.classList.add('is-open');
   appMenuButton.setAttribute('aria-expanded', 'true');
@@ -50,7 +52,7 @@ export async function updateAppMenu() {
   if (isAuthenticated) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
-      window.location.href = `/.auth/logout`;
+      window.location.href = '/.auth/logout';
     };
   } else {
     authMenuItem.textContent = 'Sign in';
@@ -73,26 +75,6 @@ openTimelineItem.addEventListener('click', () => {
   openOpenTimelineDialog();
 });
 
-/******************************* Authentication *******************************/
-
-async function getAuthState() {
-
-  // simulate logged-in state if running locally
-  if (await Util.isLocalEnv()) {
-    appState.authentication.userId = "simulated";
-    return true;
-  }
-
-  // retrieve identity block from the ./auth/me URL 
-  const res = await fetch('/.auth/me', {cache:'no-store'});
-  if (!res.ok) return false;
-
-  const data = await res.json();
-  appState.authentication.userId = data?.clientPrincipal?.userId;
-  const isAuthenticated = !!appState.authentication.userId;
-
-  return isAuthenticated;
-}
 
 /******************************* Modal helpers *******************************/
 

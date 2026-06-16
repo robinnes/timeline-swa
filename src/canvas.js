@@ -8,6 +8,7 @@ import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
+import {saveSessionState, restoreSessionState} from './session.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -72,6 +73,16 @@ export const screenElements = [];  // Elements currently rendered on screen that
 /* ------------------- Functions -------------------- */
 
 export async function initialLoad() {
+
+  // if there is a user session underway then restore
+  await restoreSessionState();
+  if (appState.views.length > 0) {
+    positionViews(false);
+    draw(true);
+    zoomToView(appState.views[appState.views.length-1]);
+  }
+
+/* disable for now...
   // open public timeline indicated param "tl" if present
   const params = new URLSearchParams(window.location.search);
   const tlParam = params.get("tl");
@@ -80,6 +91,7 @@ export async function initialLoad() {
     const file = tlParam + ".json";
     openTimeline(file, false);
   }
+*/
 }
 
 export function getCanvasViewport() {
@@ -657,6 +669,7 @@ function linkToTag(origVw, tagID) {
   filterItemsForView(newVw);  // establish min/max dates
 
   appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
+  saveSessionState();
   //positionViews(false);
   zoomToView(newVw);
 
@@ -717,6 +730,7 @@ export async function openTimeline(file, zoom, sourceView) {
 
   if (!sourceView) appState.views.push(view);
   else appState.views.splice(sourceView, 0, view);  // insert above currently selected view
+  saveSessionState();
   positionViews(false);
 
   if (!zoom) {
@@ -747,6 +761,7 @@ async function closeView(viewIdx) {
   }
   // Remove view from the array
   appState.views.splice(viewIdx, 1);
+  saveSessionState();
   if (appState.views.length === 0) {
     closeSidebar();
     draw(false);
