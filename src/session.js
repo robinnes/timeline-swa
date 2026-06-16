@@ -19,11 +19,9 @@ export async function getAuthState() {
 
   const data = await res.json();
   const userId = data?.clientPrincipal?.userId;
-  //appState.authentication.userId = data?.clientPrincipal?.userId;
   const isAuthenticated = !!appState.authentication.userId;
 
   return userId;
-  //return isAuthenticated;
 }
 
 /******************************* Session management *******************************/
@@ -127,4 +125,6 @@ export async function restoreSessionState() {
     if (appState.views.length > 0) zoomToView(appState.views[appState.views.length-1]);
   }
 
+  // leave sessionStorage with light session profile
+  saveSessionState();
 }
