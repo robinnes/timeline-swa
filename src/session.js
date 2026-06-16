@@ -18,7 +18,7 @@ export async function getAuthState() {
   if (!res.ok) return false;
 
   const data = await res.json();
-  const userId = data?.clienPrincipal?.userId;
+  const userId = data?.clientPrincipal?.userId;
   //appState.authentication.userId = data?.clientPrincipal?.userId;
   const isAuthenticated = !!appState.authentication.userId;
 
