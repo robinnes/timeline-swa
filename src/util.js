@@ -69,8 +69,8 @@ import {zoomSpec} from './render.js';
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
-  const leftLabel = window.innerWidth - 600;
-  const leftValue = window.innerWidth - 500;
+  const leftLabel = window.innerWidth - 300;
+  const leftValue = window.innerWidth - 200;
   let top = window.innerHeight - 240;
 
   const round = (value) => {
@@ -97,9 +97,7 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
-  display('msPerPx', Math.round(appState.msPerPx));
-  display('offsetMs', Math.round(appState.offsetMs));
-  
+  display('userId', appState.authentication.userId); 
 
 /*
   display('date', fmtDate(i.date?.ts));

@@ -39,17 +39,17 @@ export function closeAppMenu() {
 }
 
 export async function updateAppMenu() {
-  const isAuthenticated = await getAuthState();
+  const userId = await getAuthState();
 
   // Display "New timeline" only if authenticated
-  if (isAuthenticated) {
+  if (userId) {
     newTimelineItem.removeAttribute('hidden');
   } else {
     newTimelineItem.setAttribute('hidden', '');
   }
 
   // Update Sign In/Out item
-  if (isAuthenticated) {
+  if (userId) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
       window.location.href = '/.auth/logout';
@@ -57,10 +57,8 @@ export async function updateAppMenu() {
   } else {
     authMenuItem.textContent = 'Sign in';
     authMenuItem.onclick = () => {
-      if (!isAuthenticated) {
-        saveSessionState(true);
-        window.location.href = '/.auth/login/auth0';
-      }
+      saveSessionState(true);
+      window.location.href = '/.auth/login/auth0';
     };
   }
 }

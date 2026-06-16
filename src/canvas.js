@@ -8,7 +8,7 @@ import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
-import {saveSessionState, restoreSessionState} from './session.js';
+import {getAuthState, saveSessionState, restoreSessionState} from './session.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -73,6 +73,9 @@ export const screenElements = [];  // Elements currently rendered on screen that
 /* ------------------- Functions -------------------- */
 
 export async function initialLoad() {
+
+  const userId = getAuthState();
+  appState.authentication.userId = userId;
 
   // if there is a user session underway then restore
   await restoreSessionState();
@@ -159,7 +162,7 @@ export function draw(reposition){
   } catch (err) {
     debugAppendText(err.stack);
   }
-  //Util.debugVars();
+  Util.debugVars();
   //debugDisplay();  // for mobile
 }
 

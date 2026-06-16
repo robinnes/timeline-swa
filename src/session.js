@@ -18,10 +18,12 @@ export async function getAuthState() {
   if (!res.ok) return false;
 
   const data = await res.json();
-  appState.authentication.userId = data?.clientPrincipal?.userId;
+  const userId = data?.clienPrincipal?.userId;
+  //appState.authentication.userId = data?.clientPrincipal?.userId;
   const isAuthenticated = !!appState.authentication.userId;
 
-  return isAuthenticated;
+  return userId;
+  //return isAuthenticated;
 }
 
 /******************************* Session management *******************************/
