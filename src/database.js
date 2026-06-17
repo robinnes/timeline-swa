@@ -19,23 +19,8 @@ function formatURL(file, url, container, sasKey) {
 
 /******************* Blob storage functions *******************/
 
-/*
-async function acquireSasToken() {
-  try {
-    const response = await fetch("/api/credentials");
-    const {url, sasKey} = await response.json();
-    return {url, sasKey};
-
-  } catch (err) {
-    throw new Error(`Failed to aquire SAS token: ${err.message}`);
-  }
-}
-*/
-
 async function acquireBlobSas(scope, file, mode) {
   try {
-    //const scopeFlag = scope === "public" ? "&public" : "";
-    //const url = `/api/getBlobSas?name=${encodeURIComponent(file)}&mode=${mode}${scopeFlag}`;
     const url = `/api/getBlobSas?scope=${scope}&name=${encodeURIComponent(file)}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
@@ -49,6 +34,8 @@ async function acquireBlobSas(scope, file, mode) {
     throw new Error(`Failed to aquire SAS token: ${err.message}`);
   }
 }
+
+/******************* Timeline management *******************/
 
 async function loadTimelineFromStorage(scope, file) {
   try {
@@ -72,8 +59,7 @@ async function loadTimelineFromStorage(scope, file) {
 export async function saveTimelineToStorage(scope, file, text) {
   try {
     const {url, sasKey} = await acquireBlobSas(scope, file, "write");
-    //const blobUrl = formatURL(file, url, container, sasKey);
-
+  
     const resp = await fetch(url, {
       method: 'PUT',
       headers: {
@@ -120,56 +106,6 @@ export async function getTimeline(scope, file) {
 
 /******************* Timeline list *******************/
 
-/*
-export async function listTimelinesInContainer(container) {
-  try {
-    const { url, sasKey } = await acquireSasToken();
-
-    // Get base container URL with SAS
-    const containerUrl = formatURL('', url, container, sasKey);
-    const listUrl = containerUrl.includes('?')
-      ? `${containerUrl}&restype=container&comp=list`
-      : `${containerUrl}?restype=container&comp=list`;
-
-    const resp = await fetch(listUrl);
-    if (!resp.ok) {
-      throw new Error(`Failed to list blobs: ${resp.status} ${resp.statusText}`);
-    }
-
-    const xmlText = await resp.text();
-
-    // Parse XML response
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'application/xml');
-
-    const blobNodes = Array.from(doc.getElementsByTagName('Blob'));
-
-    const blobs = blobNodes.map((blobNode) => {
-      const name = blobNode.getElementsByTagName('Name')[0]?.textContent || '';
-
-      const props = blobNode.getElementsByTagName('Properties')[0];
-      const lastModified = props?.getElementsByTagName('Last-Modified')[0]?.textContent || null;
-      const etag = props?.getElementsByTagName('Etag')[0]?.textContent || null;
-      const contentLength = props?.getElementsByTagName('Content-Length')[0]?.textContent || null;
-      const contentType = props?.getElementsByTagName('Content-Type')[0]?.textContent || null;
-
-      return {
-        name,
-        url: formatURL(name, url, container, sasKey),
-        lastModified,
-        etag,
-        contentLength: contentLength ? Number(contentLength) : null,
-        contentType
-      };
-    });
-
-    return blobs;
-  } catch (e) {
-    throw new Error(`Failed to list blobs in container '${container}': ${e.message}`);
-  }
-}
-*/
-
 export async function getTimelineList(scope) {
   Util.showGlobalBusyCursor();
   try {
@@ -182,5 +118,66 @@ export async function getTimelineList(scope) {
   } catch (err) {
     Util.hideGlobalBusyCursor();
     throw new Error(`Failed to aquire list of timelines: ${err.message}`);
+  }
+}
+
+/******************* Item images *******************/
+
+function itemImageFile(timelineFile, itemId) {
+  return `${timelineFile}/${encodeURIComponent(itemId)}_thumb.webp`;
+}
+
+export async function saveItemImageToStorage(scope, timelineFile, itemId, blob) {
+  try {
+    const file = itemImageFile(timelineFile, itemId);
+    const {url} = await acquireBlobSas(scope, file, "write");
+
+    const resp = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': 'image/webp'
+      },
+      body: blob
+    });
+
+    if (!resp.ok) throw new Error(`Failed to upload image blob: ${resp.status} ${resp.statusText}`);
+
+    // Store this relative name in item.image.url, not the SAS URL.
+    return file;
+
+  } catch (e) {
+    throw new Error(`Failed to save item image for ${timelineFile}/${itemId}: ${e.message}`);
+  }
+}
+
+export async function loadItemImageFromStorage(scope, imageFile) {
+  try {
+    if (!imageFile) return null;
+
+    const {url} = await acquireBlobSas(scope, imageFile, "read");
+
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`Failed to fetch image blob: ${resp.status} ${resp.statusText}`);
+
+    return await resp.blob();
+
+  } catch (e) {
+    throw new Error(`Failed to load item image ${imageFile}: ${e.message}`);
+  }
+}
+
+export async function getItemImageUrl(scope, imageFile) {
+  try {
+    if (!imageFile) return null;
+
+    const {url} = await acquireBlobSas(scope, imageFile, "read");
+
+    // For <img src>, return the temporary browser-readable SAS URL.
+    // Do not persist this value in JSON.
+    return url;
+
+  } catch (e) {
+    throw new Error(`Failed to get item image URL ${imageFile}: ${e.message}`);
   }
 }

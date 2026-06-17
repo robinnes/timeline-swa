@@ -9,6 +9,7 @@ import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
+import {getItemImageUrl} from './database.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -486,22 +487,47 @@ export function setSidebarItem(item) {
   updateColorSelectorState();
   updateColorButtons();
 
-  // item thumbnail (on view and edit panels)
-  const thumb = item.thumbnail;
-  const imgs = [
-    $('item-thumb-edit-img'),
-    $('item-thumb-view-img')
-  ];
-  for (const img of imgs) {
-    if (thumb) {
-      img.src = thumb;
-      img.hidden = false;
-      closeThumbnailBtn.removeAttribute("hidden");
-    } else {
-      img.removeAttribute('src');
-      img.hidden = true;
-      closeThumbnailBtn.setAttribute("hidden", "");
-    }
+  // item image / thumbnail
+  const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
+  const imageUrl = item.image?.url ?? null;
+
+  const editImg = $('item-thumb-edit-img');
+  const viewImg = $('item-thumb-view-img');
+
+  if (thumb) {
+    editImg.src = thumb;
+    editImg.hidden = false;
+    closeThumbnailBtn.removeAttribute("hidden");
+  } else {
+    editImg.removeAttribute('src');
+    editImg.hidden = true;
+    closeThumbnailBtn.setAttribute("hidden", "");
+  }
+
+  if (imageUrl) {
+    viewImg.hidden = false;
+    viewImg.removeAttribute('src');
+
+    getItemImageUrl(item._timeline._scope, imageUrl)
+      .then((src) => {
+        // Avoid stale async result if user clicked another item meanwhile.
+        if (appState.selected.item === item && src) {
+          viewImg.src = src;
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (thumb) viewImg.src = thumb;
+        else viewImg.hidden = true;
+      });
+
+  } else if (thumb) {
+    viewImg.src = thumb;
+    viewImg.hidden = false;
+
+  } else {
+    viewImg.removeAttribute('src');
+    viewImg.hidden = true;
   }
 
   renderTagPickerUI(appState.selected.timeline, item);

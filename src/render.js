@@ -70,7 +70,7 @@ function roundedRectPath(x, y, w, h, r) {
 function drawLabelThumb(i, left, top) {
   // The encoded thumbnail on i can sometimes not finish decoding in time, and img.src = thumbnail won't render.
   // Cached encoded thumbnails in a map, and when necessary wait for them to load then invoke draw() again.
-  const key = i.thumbnail;
+  const key = i.image.thumbnail;
   if (!key) return;
 
   let img = thumbCache.get(key);
