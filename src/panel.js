@@ -230,7 +230,8 @@ async function cancelTimelineEdit() {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
-
+  trySaveTimeline();
+  /*
   // check/ensure session is still active
   if (!checkSessionBeforeSave()) return;
 
@@ -243,18 +244,30 @@ timelineSaveBtn.addEventListener('click', (e) => {
       updateSaveButton();
     });
   }
+  */
 });
 
-async function checkSessionBeforeSave() {
+async function trySaveTimeline() {
+  // check/ensure session is still active
   const userId = await getAuthState();
   if (!userId) {
     const ok = await showModalDialog({message: 'Session timeout.  Click OK to sign in.'});
     if (ok) {
       saveSessionState(true);
       window.location.href = '/.auth/login/auth0';
-    } else return(false);
+    };
+    return;
   }
-  return(true);
+
+  const tl = appState.selected.timeline;
+  if (!tl._file) {
+    // new timeline... open dialog
+    openSaveAsTimelineDialog('');
+  } else {
+    saveTimeline(tl).then(() => {
+      updateSaveButton();
+    });
+  }
 }
 
 export function updateSaveButton() {
