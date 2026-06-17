@@ -46,7 +46,7 @@ export function timelineString(tl) {
           date: serializeCompoundDate(item.date),
           color: item.color,
           details: item.details,
-          thumbnail: item.thumbnail,
+          image: item.image,
           tagIds: item.tagIds,
           include: item.include
         } 
@@ -65,7 +65,7 @@ export function timelineString(tl) {
           colorLeft: item.colorLeft,
           colorRight: item.colorRight,
           details: item.details,
-          thumbnail: item.thumbnail,
+          image: item.image,
           tagIds: item.tagIds,
           include: item.include
         }
@@ -86,13 +86,14 @@ export function initializeItem(i) {
   if (i.include===undefined || i.tagIds.length===0) i.include = true;
   
   // Establish properties for positioning labels
-  const parsed = parseLabel(i.label, i.thumbnail);
+  const thumbnail = !!i?.image?.thumbnail;  // whether i has an image.thumbnail
+  const parsed = parseLabel(i.label, thumbnail);
   i._labelSingle = parsed.singleRow;
   i._labelWidth = parsed.singleWidth;
   i._parsedLabel = parsed.multiRow;
   i._parsedWidth = parsed.multiWidth;
   i._parsedRows = parsed.multiRow[parsed.multiRow.length-1].row + 1;
-  if (i.thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
+  if (thumbnail && i._parsedRows < DRAW.THUMB_LABEL_ROWS) i._parsedRows = DRAW.THUMB_LABEL_ROWS;
 
   // Resolve single date vs date range
   if (i.dateSpecification === 'point') {

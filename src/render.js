@@ -389,7 +389,7 @@ function drawLabelBubble(i, left, width, top, height, highlight) {
   ctx.stroke();
 
   drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
-  if (i.thumbnail) drawLabelThumb(i, left, top);
+  if (i.image?.thumbnail) drawLabelThumb(i, left, top);
   ctx.restore();
 }
 
