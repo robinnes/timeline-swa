@@ -249,7 +249,7 @@ async function checkSessionBeforeSave() {
   const userId = await getAuthState();
   if (!userId) {
     const ok = await showModalDialog({message: 'Session timeout.  Click OK to sign in.'});
-    if (OK) {
+    if (ok) {
       saveSessionState(true);
       window.location.href = '/.auth/login/auth0';
     } else return(false);
