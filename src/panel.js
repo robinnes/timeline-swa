@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, draw, followHyperlink, zoomToView, timelineCache, getCanvasViewport} from './canvas.js';
+import {appState, draw, followHyperlink, zoomToView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -486,50 +486,7 @@ export function setSidebarItem(item) {
   updateColorSelectorState();
   updateColorButtons();
 
-  // item image / thumbnail
   updateImageThumbnail(item);
-  /*
-  const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
-  const imageUrl = item.image?.url ?? null;
-
-  const editImg = $('item-thumb-edit-img');
-  const viewImg = $('item-thumb-view-img');
-
-  if (thumb) {
-    editImg.src = thumb;
-    editImg.hidden = false;
-    closeThumbnailBtn.removeAttribute("hidden");
-  } else {
-    editImg.removeAttribute('src');
-    editImg.hidden = true;
-    closeThumbnailBtn.setAttribute("hidden", "");
-  }
-
-  if (imageUrl) {
-    viewImg.hidden = false;
-    viewImg.removeAttribute('src');
-
-  getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
-  .then((src) => {
-    if (appState.selected.item === item && src) {
-      viewImg.src = src;
-    }
-  })
-  .catch((err) => {
-    if (!Util.isLocalEnv) console.error(err);
-    if (thumb) viewImg.src = thumb;
-    else viewImg.hidden = true;
-  });
-
-  } else if (thumb) {  // put the thumbnail in view panel
-    viewImg.src = thumb;
-    viewImg.hidden = false;
-
-  } else {
-    viewImg.removeAttribute('src');
-    viewImg.hidden = true;
-  }
-  */
 
   renderTagPickerUI(appState.selected.timeline, item);
 
@@ -776,8 +733,6 @@ function updateColorButtons() {
 
 /* ------------------- Image/thumbnail -------------------- */
 
-const itemImageBlobCache = new Map();
-
 function itemImageCacheKey(scope, imageUrl) {
   return `${scope}:${imageUrl}`;
 }
@@ -797,13 +752,13 @@ async function getCachedItemImageObjectUrl(scope, imageUrl) {
 }
 
 export function clearItemImageBlobCache(scope, imageUrl) {
+  if (!imageUrl) return;
+
   const key = itemImageCacheKey(scope, imageUrl);
   const objectUrl = itemImageBlobCache.get(key);
 
-  if (objectUrl) {
-    URL.revokeObjectURL(objectUrl);
-    itemImageBlobCache.delete(key);
-  }
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  itemImageBlobCache.delete(key);
 }
 
 function updateImageThumbnail(item) {

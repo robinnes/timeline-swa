@@ -1,6 +1,6 @@
 import {DRAW} from './constants.js';
 import {appState, draw} from './canvas.js';
-import {setSidebarItem} from './panel.js';
+import {setSidebarItem, clearItemImageBlobCache} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveItemImageToStorage} from './database.js';
 
@@ -124,8 +124,12 @@ imageModal.addEventListener('click', (e) => {
       try {
         const url = await saveItemImageToStorage(tl._scope, tl._file, item.id, blob);
 
+        // clear cached image if present
+        const oldImageUrl = item.image?.url ?? null;
+        if (oldImageUrl) clearItemImageBlobCache(tl._scope, oldImageUrl);
+
         item.image = { thumbnail, url };
-        delete item.thumbnail; // optional backward cleanup
+        //delete item.thumbnail; // optional backward cleanup
 
         tl._dirty = true;
 
@@ -146,8 +150,13 @@ export function removeImageThumbnail() {
   const item = appState.selected.item;
   if (!item) return;
 
+  const oldImageUrl = item.image?.url ?? null;
+  if (oldImageUrl) {
+    clearItemImageBlobCache(item._timeline._scope, oldImageUrl);
+  }
+
   item.image = null;
-  delete item.thumbnail; // optional backward cleanup
+  delete item.thumbnail;
 
   item._timeline._dirty = true;
 
