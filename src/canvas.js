@@ -79,13 +79,6 @@ export async function initialLoad() {
 
   // if there is a user session underway then restore
   await restoreSessionState();
-/*
-  if (appState.views.length > 0) {
-    positionViews(false);
-    draw(true);
-    zoomToView(appState.views[appState.views.length-1]);
-  }
-*/
 
 /* disable for now...
   // open public timeline indicated param "tl" if present

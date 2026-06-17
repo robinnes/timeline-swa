@@ -8,6 +8,7 @@ import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
+import {getAuthState, saveSessionState} from './session.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -229,6 +230,10 @@ async function cancelTimelineEdit() {
 
 timelineSaveBtn.addEventListener('click', (e) => {
   e.preventDefault();
+
+  // check/ensure session is still active
+  if (!checkSessionBeforeSave()) return;
+
   const tl = appState.selected.timeline;
   if (!tl._file) {
     // new timeline... open dialog
@@ -239,6 +244,18 @@ timelineSaveBtn.addEventListener('click', (e) => {
     });
   }
 });
+
+async function checkSessionBeforeSave() {
+  const userId = await getAuthState();
+  if (!userId) {
+    const ok = await showModalDialog({message: 'Session timeout.  Click OK to sign in.'});
+    if (OK) {
+      saveSessionState(true);
+      window.location.href = '/.auth/login/auth0';
+    } else return(false);
+  }
+  return(true);
+}
 
 export function updateSaveButton() {
   // Enable the Save button when selected timeline is dirty
