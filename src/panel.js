@@ -9,7 +9,7 @@ import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
-import {getItemImageUrl} from './database.js';
+import {loadItemImageFromStorage} from './database.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
@@ -478,7 +478,6 @@ export function setSidebarItem(item) {
   editItemDetails.value = item.details ?? '';
   $('item-date-display').value = Calendar.formatItemDates(item);
 
-  //updateSignificanceButton();
   updateItemTypeButtons();
   updateDateSpecificationButtons();
   updateProminenceSlider();
@@ -488,6 +487,8 @@ export function setSidebarItem(item) {
   updateColorButtons();
 
   // item image / thumbnail
+  updateImageThumbnail(item);
+  /*
   const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
   const imageUrl = item.image?.url ?? null;
 
@@ -508,20 +509,19 @@ export function setSidebarItem(item) {
     viewImg.hidden = false;
     viewImg.removeAttribute('src');
 
-    getItemImageUrl(item._timeline._scope, imageUrl)
-      .then((src) => {
-        // Avoid stale async result if user clicked another item meanwhile.
-        if (appState.selected.item === item && src) {
-          viewImg.src = src;
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        if (thumb) viewImg.src = thumb;
-        else viewImg.hidden = true;
-      });
+  getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
+  .then((src) => {
+    if (appState.selected.item === item && src) {
+      viewImg.src = src;
+    }
+  })
+  .catch((err) => {
+    if (!Util.isLocalEnv) console.error(err);
+    if (thumb) viewImg.src = thumb;
+    else viewImg.hidden = true;
+  });
 
-  } else if (thumb) {
+  } else if (thumb) {  // put the thumbnail in view panel
     viewImg.src = thumb;
     viewImg.hidden = false;
 
@@ -529,6 +529,7 @@ export function setSidebarItem(item) {
     viewImg.removeAttribute('src');
     viewImg.hidden = true;
   }
+  */
 
   renderTagPickerUI(appState.selected.timeline, item);
 
@@ -770,6 +771,84 @@ function updateColorButtons() {
     }
     btn.classList.toggle('is-active', isActive);
   }
+}
+
+
+/* ------------------- Image/thumbnail -------------------- */
+
+const itemImageBlobCache = new Map();
+
+function itemImageCacheKey(scope, imageUrl) {
+  return `${scope}:${imageUrl}`;
+}
+
+async function getCachedItemImageObjectUrl(scope, imageUrl) {
+  if (!imageUrl) return null;
+
+  const key = itemImageCacheKey(scope, imageUrl);
+  const cached = itemImageBlobCache.get(key);
+  if (cached) return cached;
+
+  const blob = await loadItemImageFromStorage(scope, imageUrl);
+  const objectUrl = URL.createObjectURL(blob);
+
+  itemImageBlobCache.set(key, objectUrl);
+  return objectUrl;
+}
+
+export function clearItemImageBlobCache(scope, imageUrl) {
+  const key = itemImageCacheKey(scope, imageUrl);
+  const objectUrl = itemImageBlobCache.get(key);
+
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl);
+    itemImageBlobCache.delete(key);
+  }
+}
+
+function updateImageThumbnail(item) {
+
+  const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
+  const imageUrl = item.image?.url ?? null;
+
+  const editImg = document.getElementById('item-thumb-edit-img');
+  const viewImg = document.getElementById('item-thumb-view-img');
+
+  if (thumb) {
+    editImg.src = thumb;
+    editImg.hidden = false;
+    closeThumbnailBtn.removeAttribute("hidden");
+  } else {
+    editImg.removeAttribute('src');
+    editImg.hidden = true;
+    closeThumbnailBtn.setAttribute("hidden", "");
+  }
+
+  if (imageUrl) {
+    viewImg.hidden = false;
+    viewImg.removeAttribute('src');
+
+  getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
+  .then((src) => {
+    if (appState.selected.item === item && src) {
+      viewImg.src = src;
+    }
+  })
+  .catch((err) => {
+    if (!Util.isLocalEnv) console.error(err);
+    if (thumb) viewImg.src = thumb;
+    else viewImg.hidden = true;
+  });
+
+  } else if (thumb) {  // put the thumbnail in view panel
+    viewImg.src = thumb;
+    viewImg.hidden = false;
+
+  } else {
+    viewImg.removeAttribute('src');
+    viewImg.hidden = true;
+  }
+
 }
 
 
