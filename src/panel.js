@@ -185,6 +185,9 @@ timelineCancelBtn.addEventListener('click', (e) => {
 });
 
 async function cancelTimelineEdit() {
+  // check/ensure session is still active
+  if (!await checkSession()) return;
+
   const tl = appState.selected.timeline;
 
   if (!tl._file) {
@@ -235,18 +238,7 @@ timelineSaveBtn.addEventListener('click', (e) => {
 
 async function trySaveTimeline() {
   // check/ensure session is still active
-  /*
-  const userId = await getAuthState();
-  if (!userId) {
-    const ok = await showModalDialog({message: 'Session timeout.  Click OK to sign in.'});
-    if (ok) {
-      saveSessionState(true);
-      window.location.href = '/.auth/login/auth0';
-    };
-    return;
-  }
-  */
-if (await checkSession()) {
+  if (!await checkSession()) return;
 
   const tl = appState.selected.timeline;
   if (!tl._file) {
@@ -257,8 +249,6 @@ if (await checkSession()) {
       updateSaveButton();
     });
   }
-
-}
 }
 
 async function checkSession() {
