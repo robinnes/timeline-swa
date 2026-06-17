@@ -76,7 +76,8 @@ export async function restoreSessionState() {
 
   // ignore if different user; don't persist saved session
   console.log({appState:appState.authentication.userId, session:state.userId});
-  if (appState.authentication.userId != state.userId) {
+  if (appState.authentication.userId !== undefined &&
+      appState.authentication.userId !== state.userId) {
     sessionStorage.setItem("timelineSession", null);
     return;
   };
