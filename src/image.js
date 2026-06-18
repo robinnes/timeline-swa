@@ -1,3 +1,4 @@
+import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
 import {setSidebarItem} from './panel.js';

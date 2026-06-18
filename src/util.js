@@ -41,6 +41,7 @@ export function uuid() {
 }
 
 export function timelineStem(file) {
+  // remove '.json' extension from filename
   return String(file || '').replace(/\.json$/i, '');
 }
 
