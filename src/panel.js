@@ -739,7 +739,6 @@ function updateImageThumbnail(item) {
   // Thumb on the Edit tab
   if (thumb) {
     editImg.src = thumb;
-  viewImg.src = thumb;
     editImg.hidden = false;
     closeThumbnailBtn.removeAttribute("hidden");
   } else {
@@ -753,7 +752,7 @@ function updateImageThumbnail(item) {
     viewImg.hidden = false;
     viewImg.removeAttribute('src');
 
-    getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
+    getCachedItemImageObjectUrl(item._timeline._scope, imageUrl, thumb)
     .then((src) => {
       if (appState.selected.item === item && src) {
         viewImg.src = src;

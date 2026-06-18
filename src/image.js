@@ -172,12 +172,15 @@ function itemImageCacheKey(scope, imageUrl) {
   return `${scope}:${imageUrl}`;
 }
 
-export async function getCachedItemImageObjectUrl(scope, imageUrl) {
+export async function getCachedItemImageObjectUrl(scope, imageUrl, thumb) {
   if (!imageUrl) return null;
 
   const key = itemImageCacheKey(scope, imageUrl);
   const cached = itemImageBlobCache.get(key);  // first, check cache
   if (cached) return cached;
+document.getElementById('item-thumb-view-img').src=thumb;
+document.getElementById('item-thumb-view-img').height=128;
+document.getElementById('item-thumb-view-img').width=128;
 
   const blob = await loadItemImageFromStorage(scope, imageUrl);  // retrieve the image blob from storage
   const objectUrl = URL.createObjectURL(blob);  // store in memory; get local URL
