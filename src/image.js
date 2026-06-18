@@ -1,5 +1,5 @@
 import {DRAW} from './constants.js';
-import {appState, draw} from './canvas.js';
+import {appState, draw, itemImageBlobCache} from './canvas.js';
 import {setSidebarItem} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveItemImageToStorage} from './database.js';
