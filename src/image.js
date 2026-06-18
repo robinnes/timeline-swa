@@ -185,6 +185,8 @@ export function getImageObjectUrlfromCache(scope, imageUrl) {
 export async function getImageObjectUrlfromStorage(scope, imageUrl) {
   if (!imageUrl) return null;
 
+  const key = itemImageCacheKey(scope, imageUrl);
+  
   const blob = await loadItemImageFromStorage(scope, imageUrl);  // retrieve the image blob from storage
   const objectUrl = URL.createObjectURL(blob);  // store in memory; get local URL
 
