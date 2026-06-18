@@ -198,7 +198,7 @@ function clearItemImageBlobCache(scope, imageUrl) {
 
 export function clearCachedImagesForTimeline(tl) {
 
-  //const prefix = `${tl._scope}:${Util.timelineStem(tl._file)}/`;
+  // iterate cache keys and delete rows matching tl
   const prefix = itemImageCacheKey(tl._scope, Util.timelineStem(tl._file));
 
   for (const [key, objectUrl] of itemImageBlobCache) {

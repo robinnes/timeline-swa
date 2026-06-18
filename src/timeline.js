@@ -86,6 +86,8 @@ export function initializeItem(i) {
   // Check 'include' flag if not present or no tags are selected (force visibility)
   if (i.include===undefined || i.tagIds.length===0) i.include = true;
   
+  if (i.thumbnail) i.image = {thumbnail: i.thumbnail};  // backward compatibility
+
   // Establish properties for positioning labels
   const thumbnail = !!i?.image?.thumbnail;  // whether i has an image.thumbnail
   const parsed = parseLabel(i.label, thumbnail);
