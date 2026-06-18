@@ -569,10 +569,6 @@ for (const r of dateSpecificationButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    /*updateDateSpecificationButtons();
-    updateDateSpecificationState();
-    updateColorSelectorState();
-    updateColorButtons();*/
     setSidebarItem(item);
     draw(true);
   });
@@ -740,8 +736,10 @@ function updateImageThumbnail(item) {
   const editImg = document.getElementById('item-thumb-edit-img');
   const viewImg = document.getElementById('item-thumb-view-img');
 
+  // Thumb on the Edit tab
   if (thumb) {
     editImg.src = thumb;
+  viewImg.src = thumb;
     editImg.hidden = false;
     closeThumbnailBtn.removeAttribute("hidden");
   } else {
@@ -750,21 +748,22 @@ function updateImageThumbnail(item) {
     closeThumbnailBtn.setAttribute("hidden", "");
   }
 
+  // Image on the View tab
   if (imageUrl) {
     viewImg.hidden = false;
     viewImg.removeAttribute('src');
 
-  getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
-  .then((src) => {
-    if (appState.selected.item === item && src) {
-      viewImg.src = src;
-    }
-  })
-  .catch((err) => {
-    if (!Util.isLocalEnv) console.error(err);
-    if (thumb) viewImg.src = thumb;
-    else viewImg.hidden = true;
-  });
+    getCachedItemImageObjectUrl(item._timeline._scope, imageUrl)
+    .then((src) => {
+      if (appState.selected.item === item && src) {
+        viewImg.src = src;
+      }
+    })
+    .catch((err) => {
+      if (!Util.isLocalEnv) console.error(err);
+      if (thumb) viewImg.src = thumb;
+      else viewImg.hidden = true;
+    });
 
   } else if (thumb) {  // put the thumbnail in view panel
     viewImg.src = thumb;
