@@ -1,6 +1,6 @@
 import {DRAW} from './constants.js';
 import {appState, draw} from './canvas.js';
-import {setSidebarItem, clearItemImageBlobCache} from './panel.js';
+import {setSidebarItem} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveItemImageToStorage} from './database.js';
 
@@ -163,4 +163,47 @@ export function removeImageThumbnail() {
   setSidebarItem(item);
   initializeItem(item);
   draw(true);
+}
+
+/******************* Image/thumbnail cache *******************/
+
+function itemImageCacheKey(scope, imageUrl) {
+  return `${scope}:${imageUrl}`;
+}
+
+export async function getCachedItemImageObjectUrl(scope, imageUrl) {
+  if (!imageUrl) return null;
+
+  const key = itemImageCacheKey(scope, imageUrl);
+  const cached = itemImageBlobCache.get(key);  // first, check cache
+  if (cached) return cached;
+
+  const blob = await loadItemImageFromStorage(scope, imageUrl);  // retrieve the image blob from storage
+  const objectUrl = URL.createObjectURL(blob);  // store in memory; get local URL
+
+  itemImageBlobCache.set(key, objectUrl);  // cache it
+  return objectUrl;
+}
+
+function clearItemImageBlobCache(scope, imageUrl) {
+  if (!imageUrl) return;
+
+  const key = itemImageCacheKey(scope, imageUrl);
+  const objectUrl = itemImageBlobCache.get(key);
+
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  itemImageBlobCache.delete(key);
+}
+
+export function clearCachedImagesForTimeline(tl) {
+
+  //const prefix = `${tl._scope}:${Util.timelineStem(tl._file)}/`;
+  const prefix = itemImageCacheKey(tl._scope, Util.timelineStem(tl._file));
+
+  for (const [key, objectUrl] of itemImageBlobCache) {
+    if (!key.startsWith(prefix)) continue;
+
+    URL.revokeObjectURL(objectUrl);
+    itemImageBlobCache.delete(key);
+  }
 }

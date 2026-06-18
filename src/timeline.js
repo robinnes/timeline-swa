@@ -1,11 +1,12 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, timelineCache, draw} from './canvas.js';
+import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
 import {getTimeline, saveTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
+import {clearCachedImagesForTimeline} from './image.js';
 
 /******************************* Serialization *******************************/
 
@@ -267,6 +268,11 @@ export async function publishTimeline(tl)
 }
 
 export function closeTimeline(tlKey) {
+  const tl = timelineCache.get(tlKey);
+  if (!tl) return;
+
+  clearCachedImagesForTimeline(tl);
+
   timelineCache.delete(tlKey);
 }
 

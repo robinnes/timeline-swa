@@ -123,12 +123,8 @@ export async function getTimelineList(scope) {
 
 /******************* Item images *******************/
 
-function timelineStem(file) {
-  return String(file || '').replace(/\.json$/i, '');
-}
-
 function itemImageFile(timelineFile, itemId) {
-  return `${timelineStem(timelineFile)}/${encodeURIComponent(itemId)}_thumb.webp`;
+  return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(itemId)}_thumb.webp`;
 }
 
 export async function saveItemImageToStorage(scope, timelineFile, itemId, blob) {

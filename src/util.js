@@ -40,27 +40,10 @@ export function uuid() {
   return crypto.randomUUID();
 }
 
-export function timestampToTemporal(t) {
-  // convert timestamp integer t to ISO string representation e.g. "2021-07-01T12:34:56"
-  const d = new Date(t);
-
-  const zeroPad = (st, digits) => {
-    return ('0000' + st).slice(digits * -1);
-  };
-
-  const year = zeroPad(d.toLocaleString(undefined, {year:'numeric', timeZone:'UTC'}), 4);
-  const month = zeroPad(d.toLocaleString(undefined, {month:'numeric', timeZone:'UTC'}), 2);
-  const day = zeroPad(d.toLocaleString(undefined, {day:'numeric', timeZone:'UTC'}), 2);
-  const min = zeroPad(d.toLocaleString(undefined, {minute:'numeric', timeZone:'UTC'}), 2);
-
-  // hour is trickier: "12 AM" -> "00", etc.
-  const hString = d.toLocaleString(undefined, {hour:'2-digit', timeZone:'UTC'}).split(" ");
-  const h = parseInt(hString[0]);  const ampm = hString[1];
-  const hInt = (h===12 && ampm==="AM") ? 0 : (ampm==="AM" || h===12) ? h : h + 12;
-  const hour = zeroPad(hInt.toString(), 2);
-
-  return `${year}-${month}-${day}T${hour}:${min}:00`;
+export function timelineStem(file) {
+  return String(file || '').replace(/\.json$/i, '');
 }
+
 
 // **********************************************************************************************************************
 

@@ -6,7 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail} from './image.js';
+import {getImageThumbnail, removeImageThumbnail, getCachedItemImageObjectUrl} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 import {loadItemImageFromStorage} from './database.js';
@@ -732,34 +732,6 @@ function updateColorButtons() {
 
 
 /* ------------------- Image/thumbnail -------------------- */
-
-function itemImageCacheKey(scope, imageUrl) {
-  return `${scope}:${imageUrl}`;
-}
-
-async function getCachedItemImageObjectUrl(scope, imageUrl) {
-  if (!imageUrl) return null;
-
-  const key = itemImageCacheKey(scope, imageUrl);
-  const cached = itemImageBlobCache.get(key);
-  if (cached) return cached;
-
-  const blob = await loadItemImageFromStorage(scope, imageUrl);
-  const objectUrl = URL.createObjectURL(blob);
-
-  itemImageBlobCache.set(key, objectUrl);
-  return objectUrl;
-}
-
-export function clearItemImageBlobCache(scope, imageUrl) {
-  if (!imageUrl) return;
-
-  const key = itemImageCacheKey(scope, imageUrl);
-  const objectUrl = itemImageBlobCache.get(key);
-
-  if (objectUrl) URL.revokeObjectURL(objectUrl);
-  itemImageBlobCache.delete(key);
-}
 
 function updateImageThumbnail(item) {
 
