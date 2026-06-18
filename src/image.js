@@ -2,7 +2,7 @@ import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
 import {setSidebarItem} from './panel.js';
 import {initializeItem} from "./timeline.js";
-import {saveItemImageToStorage} from './database.js';
+import {saveItemImageToStorage, loadItemImageFromStorage} from './database.js';
 
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');

@@ -9,7 +9,6 @@ import {showModalDialog} from './confirmDialog.js';
 import {getImageThumbnail, removeImageThumbnail, getCachedItemImageObjectUrl} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
-import {loadItemImageFromStorage} from './database.js';
 
 const sidebar = document.getElementById('sidebar');
 const sidebarClose = document.getElementById('sidebar-close');
