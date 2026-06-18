@@ -6,7 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail, getCachedItemImageObjectUrl} from './image.js';
+import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -732,11 +732,12 @@ function updateImageThumbnail(item) {
 
   const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
   const imageUrl = item.image?.url ?? null;
+  const scope = item._timeline._scope;
 
   const editImg = document.getElementById('item-thumb-edit-img');
   const viewImg = document.getElementById('item-thumb-view-img');
 
-  // Thumb on the Edit tab
+  // Edit tab: display thumbnail
   if (thumb) {
     editImg.src = thumb;
     editImg.hidden = false;
@@ -747,26 +748,37 @@ function updateImageThumbnail(item) {
     closeThumbnailBtn.setAttribute("hidden", "");
   }
 
-  // Image on the View tab
+  // View tab: full image if possible
   if (imageUrl) {
     viewImg.hidden = false;
     viewImg.removeAttribute('src');
+    viewImg.height = DRAW.THUMB_SIZE;
+    viewImg.width = DRAW.THUMB_SIZE;
 
-    getCachedItemImageObjectUrl(item._timeline._scope, imageUrl, thumb)
+    // use image from cache, if present
+    let objectUrl = getImageObjectUrlfromCache(scope, imageUrl);
+    if (objectUrl) {
+      viewImg.src = objectUrl;
+      return;
+    }
+
+    // use thumbnail image, magnified to full image size
+    if (thumb) viewImg.src = thumb;
+
+    // use image from blob storage (and cache it)
+    getImageObjectUrlfromStorage(scope, imageUrl)
     .then((src) => {
-      if (appState.selected.item === item && src) {
-        viewImg.src = src;
-      }
+      if (src) viewImg.src = src;
     })
     .catch((err) => {
-      if (!Util.isLocalEnv) console.error(err);
-      if (thumb) viewImg.src = thumb;
-      else viewImg.hidden = true;
+      if (!Util.isLocalEnv) console.error(err);  // error is expected in dev env
     });
 
   } else if (thumb) {  // put the thumbnail in view panel
     viewImg.src = thumb;
     viewImg.hidden = false;
+    viewImg.height = DRAW.THUMB_LABEL_SIZE;
+    viewImg.width = DRAW.THUMB_LABEL_SIZE
 
   } else {
     viewImg.removeAttribute('src');
