@@ -76,7 +76,7 @@ export async function restoreSessionState() {
 
   // ignore if different user; don't persist saved session
   if (appState.authentication.userId != state.userId) {
-    sessionStorage.setItem("timelineSession", null);
+    clearSessionState();
     return;
   };
 
@@ -126,4 +126,8 @@ export async function restoreSessionState() {
 
   // leave sessionStorage with light session profile
   saveSessionState();
+}
+
+export function clearSessionState() {
+  sessionStorage.removeItem('timelineSession');
 }

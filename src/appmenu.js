@@ -2,7 +2,7 @@ import * as Util from './util.js';
 import {addNewTimeline} from './timeline.js';
 import {appState, canvas} from './canvas.js';
 import {openOpenTimelineDialog} from './fileDialog.js';
-import {getAuthState, saveSessionState} from './session.js';
+import {getAuthState, saveSessionState, clearSessionState} from './session.js';
 
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
@@ -52,6 +52,7 @@ export async function updateAppMenu() {
   if (userId) {
     authMenuItem.textContent = 'Sign out';
     authMenuItem.onclick = () => {
+      clearSessionState();
       window.location.href = '/.auth/logout';
     };
   } else {
