@@ -28,6 +28,7 @@ async function acquireBlobSas(scope, file, mode) {
     });
 
     const {sasUrl, sasKey, blobName} = await response.json();
+console.log({scope:scope, file:file, mode:mode, url:sasUrl});
     return {url:sasUrl, sasKey};
 
   } catch (err) {
