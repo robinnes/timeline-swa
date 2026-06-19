@@ -128,7 +128,7 @@ imageModal.addEventListener('click', (e) => {
         // clear cached image if present
         clearItemImageBlobCache(item);
 
-        const file = `${item.id}_thumb`;
+        const file = `${item.id}_thumb.webp`;
         item.image = { thumbnail, file };
         //delete item.thumbnail; // optional backward cleanup
 
