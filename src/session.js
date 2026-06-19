@@ -83,7 +83,7 @@ export async function restoreSessionState() {
   // reload openTimelines from database
   if (state.openTimelines) {
     for (const file of state.openTimelines) {
-      await loadTimeline(file);
+      if (file) await loadTimeline(file);
     }
   }
     
