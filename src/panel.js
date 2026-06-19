@@ -292,6 +292,9 @@ timelinePublishBtn.addEventListener('click', (e) => {
 });
 
 async function tryPublishTimeline() {
+  // check/ensure session is still active
+  if (!await checkSession()) return;
+
   const tl = appState.selected.timeline;
   
   const ok = await showModalDialog({message:'Make timeline available to the public?'});

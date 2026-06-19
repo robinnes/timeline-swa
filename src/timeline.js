@@ -161,7 +161,7 @@ export function initializeTimeline(tl) {
 
   const tlKey = JSON.stringify({  // id/scope necessary to distinguish private/public copies of same tl
     id: tl.id,
-    scope: tl.scope
+    scope: tl._scope
   });
   tl._key = tlKey;
 
