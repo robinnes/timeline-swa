@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {getTimeline, saveTimelineToStorage} from './database.js';
+import {getTimeline, saveTimelineToStorage, publishTimelineToStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -260,10 +260,8 @@ export async function publishTimeline(tl)
 {
   Util.showGlobalBusyCursor();
   try {
-    const text = timelineString(tl);
-    await saveTimelineToStorage("public", tl._file, text);
+    await publishTimelineToStorage(tl._file);
   } catch (err) {
-    //await sleep(1200);  // simulate database access
     console.error('Publish failed:', err.message);
   }
   Util.hideGlobalBusyCursor();

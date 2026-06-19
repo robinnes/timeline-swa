@@ -104,6 +104,17 @@ export async function getTimeline(scope, file) {
   }
 }
 
+export async function publishTimelineToStorage(file) {
+  const resp = await fetch('/api/publishTimeline', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timelineFile: file })
+  });
+
+  if (!resp.ok) throw new Error(await resp.text());
+  return resp.json();
+}
+
 /******************* Timeline list *******************/
 
 export async function getTimelineList(scope) {
