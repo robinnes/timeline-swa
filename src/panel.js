@@ -731,8 +731,8 @@ function updateColorButtons() {
 function updateImageThumbnail(item) {
 
   const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
-  const imageUrl = item.image?.url ?? null;
-  const scope = item._timeline._scope;
+  const filename = item.image?.file ?? null;
+  //const scope = item._timeline._scope;
 
   const editImg = document.getElementById('item-thumb-edit-img');
   const viewImg = document.getElementById('item-thumb-view-img');
@@ -749,14 +749,14 @@ function updateImageThumbnail(item) {
   }
 
   // View tab: full image if possible
-  if (imageUrl) {
+  if (filename) {
     viewImg.hidden = false;
     viewImg.removeAttribute('src');
     viewImg.height = DRAW.THUMB_SIZE;
     viewImg.width = DRAW.THUMB_SIZE;
 
     // use image from cache, if present
-    let objectUrl = getImageObjectUrlfromCache(scope, imageUrl);
+    let objectUrl = getImageObjectUrlfromCache(item);
     if (objectUrl) {
       viewImg.src = objectUrl;
       return;
@@ -766,7 +766,7 @@ function updateImageThumbnail(item) {
     if (thumb) viewImg.src = thumb;
 
     // use image from blob storage (and cache it)
-    getImageObjectUrlfromStorage(scope, imageUrl)
+    getImageObjectUrlfromStorage(item)
     .then((src) => {
       if (src) viewImg.src = src;
     })

@@ -126,10 +126,10 @@ imageModal.addEventListener('click', (e) => {
         const url = await saveItemImageToStorage(tl._scope, tl._file, item.id, blob);
 
         // clear cached image if present
-        const oldImageUrl = item.image?.url ?? null;
-        if (oldImageUrl) clearItemImageBlobCache(tl._scope, oldImageUrl);
+        clearItemImageBlobCache(item);
 
-        item.image = { thumbnail, url };
+        const filename = `${item.id}_thumb`;
+        item.image = { thumbnail, filename };
         //delete item.thumbnail; // optional backward cleanup
 
         tl._dirty = true;
@@ -151,11 +151,9 @@ export function removeImageThumbnail() {
   const item = appState.selected.item;
   if (!item) return;
 
-  const oldImageUrl = item.image?.url ?? null;
-  if (oldImageUrl) {
-    clearItemImageBlobCache(item._timeline._scope, oldImageUrl);
-  }
-
+  // remove from blob cache if present
+  clearItemImageBlobCache(item);
+  
   item.image = null;
   delete item.thumbnail;
 
@@ -168,36 +166,40 @@ export function removeImageThumbnail() {
 
 /******************* Image/thumbnail cache *******************/
 
-function itemImageCacheKey(scope, imageUrl) {
-  return `${scope}:${imageUrl}`;
+function itemImageCacheKey(item) {
+  const tl = item._timeline;
+  return `${tl._scope}:${itemImageFilePath(item)}`;
 }
 
+function itemImageFilePath(item) {
+  const tl = item._timeline;
+  const folder = Util.timelineStem(tl._file);  // filename minus extension
+  return `${folder}/${item.image.file}`;
+}
 
-export function getImageObjectUrlfromCache(scope, imageUrl) {
-  if (!imageUrl) return null;
-
-  const key = itemImageCacheKey(scope, imageUrl);
+export function getImageObjectUrlfromCache(item) {
+  const key = itemImageCacheKey(item);
   const objectUrl = itemImageBlobCache.get(key);
 
   if (objectUrl) return objectUrl;
 }
 
-export async function getImageObjectUrlfromStorage(scope, imageUrl) {
-  if (!imageUrl) return null;
+export async function getImageObjectUrlfromStorage(item) {
+  const scope = item._timeline._scope;
+  const imageFile = itemImageFilePath(item);  // path to the image file
 
-  const key = itemImageCacheKey(scope, imageUrl);
-
-  const blob = await loadItemImageFromStorage(scope, imageUrl);  // retrieve the image blob from storage
+  const blob = await loadItemImageFromStorage(scope, imageFile);  // retrieve the image blob from storage
   const objectUrl = URL.createObjectURL(blob);  // store in memory; get local URL
 
   itemImageBlobCache.set(key, objectUrl);  // cache it
   return objectUrl;
 }
 
-function clearItemImageBlobCache(scope, imageUrl) {
-  if (!imageUrl) return;
+function clearItemImageBlobCache(item) {
+  const imageFile = item.image?.file ?? null;
+  if (!imageFile) return;
 
-  const key = itemImageCacheKey(scope, imageUrl);
+  const key = itemImageCacheKey(item);
   const objectUrl = itemImageBlobCache.get(key);
 
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -205,9 +207,9 @@ function clearItemImageBlobCache(scope, imageUrl) {
 }
 
 export function clearCachedImagesForTimeline(tl) {
-
   // iterate cache keys and delete rows matching tl
-  const prefix = itemImageCacheKey(tl._scope, Util.timelineStem(tl._file));
+  const folder = Util.timelineStem(tl._file);  // filename minus extension
+  const prefix = `${tl._scope}:${folder}`;
 
   for (const [key, objectUrl] of itemImageBlobCache) {
     if (!key.startsWith(prefix)) continue;
