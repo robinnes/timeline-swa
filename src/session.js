@@ -10,7 +10,7 @@ export async function getAuthState() {
   // simulate logged-in state if running locally
   if (await Util.isLocalEnv()) {
     appState.authentication.userId = "simulated";
-    return true;
+    return appState.authentication.userId;
   }
 
   // retrieve identity block from the ./auth/me URL 
@@ -28,14 +28,6 @@ export async function getAuthState() {
 export function saveSessionState(complete = false) {
   
   const userId = appState.authentication.userId;
-  const openViews = appState.views.map(v => {
-    return {
-      tlKey: v.tlKey, 
-      file: v.file,
-      scope: v.scope,
-      tagFilter: v.tagFilter
-    }
-  })
   let state;
 
   if (!complete) {  
@@ -43,7 +35,16 @@ export function saveSessionState(complete = false) {
     state = {
       userId: userId,
       openTimelines: Array.from(timelineCache.values(), tl => tl._file),
-      openViews: openViews
+      openViews: appState.views
+        .filter(v => v.file != null)
+        .map(v => {
+          return {
+            tlKey: v.tlKey,
+            file: v.file,
+            scope: v.scope,
+            tagFilter: v.tagFilter
+          }
+        })
     };
   } else {
     // persist timeline data and canvas state, too
@@ -58,7 +59,14 @@ export function saveSessionState(complete = false) {
           timeline: timelineString(tl)
         }
       }),
-      openViews: openViews,
+      openViews: appState.views.map(v => {
+        return {
+          tlKey: v.tlKey, 
+          file: v.file,
+          scope: v.scope,
+          tagFilter: v.tagFilter
+        }
+      }),
       msPerPx: appState.msPerPx,
       offsetMs: appState.offsetMs
     }
@@ -71,8 +79,6 @@ export async function restoreSessionState() {
   const raw = sessionStorage.getItem("timelineSession");
   if (!raw) return;
   const state = JSON.parse(raw);
-
-  //await getAuthState();  // establishes userId
 
   // ignore if different user; don't persist saved session
   if (appState.authentication.userId != state.userId) {
