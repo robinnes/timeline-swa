@@ -61,7 +61,13 @@ app.http('publishTimeline', {
       }
 
       // 1. Promote timeline JSON.
-      await publicTimeline.syncCopyFromURL(privateTimeline.url);
+      //await publicTimeline.syncCopyFromURL(privateTimeline.url);
+      await copyBlob(
+        container,
+        privateTimelineName,
+        publicTimelineName,
+        'application/json; charset=utf-8'
+      );
 
       // 2. Reconcile image folder.
       const privateImages = new Set();
@@ -87,7 +93,13 @@ app.http('publishTimeline', {
         const sourceClient = container.getBlobClient(sourceName);
         const destClient = container.getBlobClient(destName);
 
-        await destClient.syncCopyFromURL(sourceClient.url);
+        //await destClient.syncCopyFromURL(sourceClient.url);
+        await copyBlob(
+          container,
+          sourceName,
+          destName,
+          'image/webp'
+        );
         copiedImages++;
       }
 
@@ -113,3 +125,16 @@ app.http('publishTimeline', {
     }
   }
 });
+
+async function copyBlob(container, sourceName, destName, contentType) {
+  const sourceClient = container.getBlockBlobClient(sourceName);
+  const destClient = container.getBlockBlobClient(destName);
+
+  const data = await sourceClient.downloadToBuffer();
+
+  await destClient.uploadData(data, {
+    blobHTTPHeaders: contentType
+      ? { blobContentType: contentType }
+      : undefined
+  });
+}
