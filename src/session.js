@@ -81,7 +81,7 @@ export async function restoreSessionState() {
   const state = JSON.parse(raw);
 
   // ignore if different user; don't persist saved session
-  if (appState.authentication.userId != state.userId) {
+  if (state.userId != null && appState.authentication.userId != state.userId) {
     clearSessionState();
     return;
   };
