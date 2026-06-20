@@ -87,7 +87,7 @@ export async function restoreSessionState() {
   };
 
   // if saved session has a userId but nobody logged in now, 
-  if (state.userId != null && appState.authentication.userId === null) {
+  if (state.userId != null && !appState.authentication.userId && !state.cachedTimelines) {
     console.log('saved session has a userId but nobody logged in now');
   }
 
