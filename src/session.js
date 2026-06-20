@@ -89,8 +89,14 @@ export async function restoreSessionState() {
   // if saved session (not 'complete') has a userId and nobody logged in now, the user's
   // session timed out and they refreshed the browser; send them to login
   if (state.userId != null && !appState.authentication.userId && !state.cachedTimelines) {
-    console.log('saved session has a userId but nobody logged in now');
-    window.location.href = '/.auth/login/auth0';
+    if (state.sentToLogin) {
+      clearSessionState();
+      return;
+    } else {
+      state.sentToLogin = 'yes';
+      sessionStorage.setItem("timelineSession", JSON.stringify(state));
+      window.location.href = '/.auth/login/auth0';
+    }
   }
 
   // reload openTimelines from database
