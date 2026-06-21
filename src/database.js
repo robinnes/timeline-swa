@@ -17,7 +17,17 @@ function formatURL(file, url, container, sasKey) {
   return `${base}/${container}/${encodedFile}${sas}`;
 }
 
-/******************* Blob storage functions *******************/
+async function gzipText(text) {
+  const stream = new Blob([text], {
+    type: 'application/json; charset=utf-8'
+  }).stream();
+
+  const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
+  return await new Response(compressedStream).blob();
+}
+
+
+/******************* Shared Access Signature (SAS) *******************/
 
 async function acquireBlobSas(scope, file, mode) {
   try {
@@ -59,8 +69,22 @@ async function loadTimelineFromStorage(scope, file) {
 
 export async function saveTimelineToStorage(scope, file, text) {
   try {
-    const {url, sasKey} = await acquireBlobSas(scope, file, "write");
-  
+    const gzBlob = await gzipText(text);
+    const compressedFilename = file + '.gz';
+    
+    const {url, sasKey} = await acquireBlobSas(scope, compressedFilename, "write");
+
+    await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Encoding': 'gzip'
+      },
+      body: gzBlob
+    });
+
+    /*
     const resp = await fetch(url, {
       method: 'PUT',
       headers: {
@@ -69,6 +93,7 @@ export async function saveTimelineToStorage(scope, file, text) {
       },
       body: text
     });
+    */
 
     if (!resp.ok) throw new Error(`Failed to upload blob: ${resp.status} ${resp.statusText}`);
     return true;
@@ -100,7 +125,7 @@ export async function getTimeline(scope, file) {
   }
 }
 
-export async function publishTimelineToStorage(file) {
+export async function publishTimelineToPublic(file) {
   const resp = await fetch('/api/publishTimeline', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

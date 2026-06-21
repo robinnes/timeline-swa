@@ -87,12 +87,12 @@ export async function restoreSessionState() {
   };
 
   // if saved session (not 'complete') has a userId and nobody logged in now, the user's
-  // session timed out and they refreshed the browser; send them to login
+  // session timed out and they refreshed the browser
   if (state.userId != null && !appState.authentication.userId && !state.cachedTimelines) {
-    if (state.sentToLogin) {
+    if (state.sentToLogin) {  // user has already been sent to login but they're back here
       clearSessionState();
       return;
-    } else {
+    } else {  // send user to login; give them a chance to log in and reload open views
       state.sentToLogin = 'yes';
       sessionStorage.setItem("timelineSession", JSON.stringify(state));
       window.location.href = '/.auth/login/auth0';
