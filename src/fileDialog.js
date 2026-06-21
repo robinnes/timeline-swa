@@ -265,8 +265,8 @@ async function handleOpenTimelineConfirm() {
     if (!filename) return;
 
     // Ensure .json extension
-    if (!filename.toLowerCase().endsWith('.json')) {
-      filename = `${filename}.json`;
+    if (!filename.toLowerCase().endsWith('TIMELINE_FILE_EXT')) {
+      filename = `${filename}${TIMELINE_FILE_EXT}`;
     }
     appState.selected.timeline._file = filename;
 

@@ -68,10 +68,9 @@ async function loadTimelineFromStorage(scope, file) {
 
 export async function saveTimelineToStorage(scope, file, text) {
   try {
-    const gzBlob = await gzipText(text);
-    const compressedFilename = file + '.gz';
-
-    const {url, sasKey} = await acquireBlobSas(scope, compressedFilename, "write");
+    const gzBlob = await gzipText(text);  // compress it
+    
+    const {url, sasKey} = await acquireBlobSas(scope, file, "write");
 
     const response = await fetch(url, {
       method: 'PUT',
