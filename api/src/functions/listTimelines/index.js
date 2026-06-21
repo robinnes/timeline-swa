@@ -34,7 +34,7 @@ app.http('listTimelines', {
       }
 
       // Optional query params
-      const ext = (url.searchParams.get('ext') || '.json').toLowerCase(); // default: only .json
+      const ext = (url.searchParams.get('ext') || '.json.gz').toLowerCase(); // default: only .json
       const max = clampInt(url.searchParams.get('max'), 1, 500, 200); // default 200
 
       const blobServiceClient = BlobServiceClient.fromConnectionString(conn);

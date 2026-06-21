@@ -26,7 +26,6 @@ async function gzipText(text) {
   return await new Response(compressedStream).blob();
 }
 
-
 /******************* Shared Access Signature (SAS) *******************/
 
 async function acquireBlobSas(scope, file, mode) {
@@ -85,7 +84,7 @@ export async function saveTimelineToStorage(scope, file, text) {
     });
 
     /*
-    const resp = await fetch(url, {
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'x-ms-blob-type': 'BlockBlob',
