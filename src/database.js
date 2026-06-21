@@ -71,10 +71,10 @@ export async function saveTimelineToStorage(scope, file, text) {
   try {
     const gzBlob = await gzipText(text);
     const compressedFilename = file + '.gz';
-    
+
     const {url, sasKey} = await acquireBlobSas(scope, compressedFilename, "write");
 
-    await fetch(url, {
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'x-ms-blob-type': 'BlockBlob',
@@ -95,7 +95,7 @@ export async function saveTimelineToStorage(scope, file, text) {
     });
     */
 
-    if (!resp.ok) throw new Error(`Failed to upload blob: ${resp.status} ${resp.statusText}`);
+    if (!response.ok) throw new Error(`Failed to upload blob: ${response.status} ${response.statusText}`);
     return true;
   } catch (e) {
     throw new Error(`Failed to save ${file} to storage: ${e.message}`);
