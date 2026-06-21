@@ -39,7 +39,7 @@ app.http('publishTimeline', {
         return badRequest(e.message);
       }
 
-      const timelineStem = safeTimelineFile.replace(/\.json$/i, '');
+      const timelineStem = safeTimelineFile.replace(/\.json\.gz$/i, '');
 
       const service = BlobServiceClient.fromConnectionString(conn);
       const container = service.getContainerClient(containerName);
@@ -62,12 +62,7 @@ app.http('publishTimeline', {
 
       // 1. Promote timeline JSON.
       //await publicTimeline.syncCopyFromURL(privateTimeline.url);
-      await copyBlob(
-        container,
-        privateTimelineName,
-        publicTimelineName,
-        'application/json; charset=utf-8'
-      );
+      await copyBlob(container, privateTimelineName, publicTimelineName);
 
       // 2. Reconcile image folder.
       const privateImages = new Set();
@@ -94,12 +89,7 @@ app.http('publishTimeline', {
         const destClient = container.getBlobClient(destName);
 
         //await destClient.syncCopyFromURL(sourceClient.url);
-        await copyBlob(
-          container,
-          sourceName,
-          destName,
-          'image/webp'
-        );
+        await copyBlob(container, sourceName, destName);
         copiedImages++;
       }
 
@@ -126,15 +116,20 @@ app.http('publishTimeline', {
   }
 });
 
-async function copyBlob(container, sourceName, destName, contentType) {
+async function copyBlob(container, sourceName, destName, overrides = {}) {
   const sourceClient = container.getBlockBlobClient(sourceName);
   const destClient = container.getBlockBlobClient(destName);
 
-  const data = await sourceClient.downloadToBuffer();
+  const [data, props] = await Promise.all([
+    sourceClient.downloadToBuffer(),
+    sourceClient.getProperties()
+  ]);
 
   await destClient.uploadData(data, {
-    blobHTTPHeaders: contentType
-      ? { blobContentType: contentType }
-      : undefined
+    blobHTTPHeaders: {
+      blobContentType: props.contentType,
+      blobContentEncoding: props.contentEncoding,
+      ...overrides
+    }
   });
 }
