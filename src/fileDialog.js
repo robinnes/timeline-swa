@@ -22,6 +22,8 @@ const FILE_DIALOG_MODE_OPEN = 'open';
 const FILE_DIALOG_MODE_SAVE_AS = 'save-as';
 let fileDialogMode = FILE_DIALOG_MODE_OPEN;
 
+const TIMELINE_FILE_EXT = '.json.gz';
+
 
 /******************************* Header and Public/Private tabs *******************************/
 
@@ -98,7 +100,7 @@ async function refreshTimelineList(scope) {
 function renderOpenTimelineTable() {
   if (!openTimelineTbody) return;
 
-  openTimelineTbody.innerHTML = '';
+    openTimelineTbody.innerHTML = '';
 
   // No timelines
   if (!openDialogBlobs || openDialogBlobs.length === 0) {
@@ -140,8 +142,8 @@ function renderOpenTimelineTable() {
     tr.classList.add('open-dialog__row');
     tr.dataset.blobName = blob.name;
 
-    const displayName = blob.name.endsWith('.json')
-      ? blob.name.slice(0, -5)
+    const displayName = blob.name.endsWith(TIMELINE_FILE_EXT)
+      ? blob.name.slice(0, TIMELINE_FILE_EXT.length * -1)
       : blob.name;
 
     const nameTd = document.createElement('td');
@@ -372,17 +374,17 @@ openTimelineFilenameInput.addEventListener('input', () => {
 function tempSimulateList(scope) {
   if (scope === "public") {
     return([
-      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/modernisrael.json"}
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/modernisrael.json.gz"}
     ]);
   } else {
     return([ 
-      {lastModified:"Mon, 17 Nov 2025 19:20:27 GMT", name:"career.json"},
-      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json"},
-      {lastModified:"Mon, 17 Nov 2025 01:47:33 GMT", name:"movetotx.json"},
-      {lastModified:"Mon, 17 Nov 2025 05:33:13 GMT", name:"robandanh.json"},
-      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robinnes.json"},
-      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"RobTest.json"},
-      {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"sherryinnes.json"}
+      {lastModified:"Mon, 17 Nov 2025 19:20:27 GMT", name:"career.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 01:47:33 GMT", name:"movetotx.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 05:33:13 GMT", name:"robandanh.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robinnes.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"RobTest.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"sherryinnes.json.gz"}
     ]);
   }
 }
