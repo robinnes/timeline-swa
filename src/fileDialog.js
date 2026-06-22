@@ -268,6 +268,7 @@ async function handleOpenTimelineConfirm() {
 /*    if (!filename.toLowerCase().endsWith('TIMELINE_FILE_EXT')) {
       filename = `${filename}${TIMELINE_FILE_EXT}`;
     } */
+    if (filename.toLowerCase().endsWith('.json')) filename = `${filename}.gz`;
     appState.selected.timeline._file = filename;
 
     saveTimeline(appState.selected.timeline).then(() => {
