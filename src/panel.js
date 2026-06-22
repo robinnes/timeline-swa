@@ -382,6 +382,11 @@ editItemDetails.addEventListener('input', (e) => {
 
 selectThumbnailBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  if (!appState.selected.item._timeline._file) {
+    // can't save thumbnail file without the timeline's filename
+    showModalDialog({message: "Timeline must be saved first.", showCancelBtn: false});
+    return;
+  }
   getImageThumbnail();
 });
 
@@ -735,7 +740,6 @@ function updateImageThumbnail(item) {
 
   const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
   const filename = item.image?.file ?? null;
-  //const scope = item._timeline._scope;
 
   const editImg = document.getElementById('item-thumb-edit-img');
   const viewImg = document.getElementById('item-thumb-view-img');

@@ -1,10 +1,12 @@
 const confirmDialog = document.getElementById('confirm-dialog');
 const messageEl = document.getElementById('confirm-dialog-message');
 const okBtn = document.getElementById('confirm-btn-ok');
+const cancelBtn = document.getElementById('confirm-btn-cancel');
 
-export function showModalDialog({message = 'Are you sure?'} = {}) {
+export function showModalDialog({message = 'Are you sure?', showCancelBtn = true} = {}) {
 
   if (messageEl) messageEl.textContent = message;
+  cancelBtn.hidden = !showCancelBtn;
 
   return new Promise((resolve) => {
     const cleanup = () => {
