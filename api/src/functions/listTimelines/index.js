@@ -34,7 +34,7 @@ app.http('listTimelines', {
       }
 
       // Optional query params
-      const ext = (url.searchParams.get('ext') || '.json.gz').toLowerCase(); // default: only .json
+      //const ext = (url.searchParams.get('ext') || '.json.gz').toLowerCase(); // default: only .json.gz
       const max = clampInt(url.searchParams.get('max'), 1, 500, 200); // default 200
 
       const blobServiceClient = BlobServiceClient.fromConnectionString(conn);
@@ -49,7 +49,8 @@ app.http('listTimelines', {
         if (!filename || filename.endsWith('/')) continue;
 
         // Filter by extension (default .json)
-        if (ext && !filename.toLowerCase().endsWith(ext)) continue;
+        //if (ext && !filename.toLowerCase().endsWith(ext)) continue;
+        if (filename.toLowerCase().endsWith('.json') || filename.toLowerCase().endsWith('.json.gz')) continue;
 
         results.push({
           name: filename,
