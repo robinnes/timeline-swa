@@ -151,7 +151,7 @@ export async function getTimelineList(scope) {
   }
 }
 
-/******************* Item images *******************/
+/******************* Item images (thumbnails) *******************/
 
 function itemImageFile(timelineFile, itemId) {
   return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(itemId)}_thumb.webp`;
@@ -210,4 +210,19 @@ export async function getItemImageUrl(scope, imageFile) {
   } catch (e) {
     throw new Error(`Failed to get item image URL ${imageFile}: ${e.message}`);
   }
+}
+
+export async function deleteItemImageFromStorage(scope, imageFile) {
+  if (!imageFile) return false;
+
+  const { url } = await acquireBlobSas(scope, imageFile, "delete");
+
+  const resp = await fetch(url, { method: 'DELETE' });
+
+  if (resp.status === 404) return false;
+  if (!resp.ok) {
+    throw new Error(`Failed to delete image blob: ${resp.status} ${resp.statusText}`);
+  }
+
+  return true;
 }

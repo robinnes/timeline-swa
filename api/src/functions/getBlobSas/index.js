@@ -131,6 +131,7 @@ function generateBlobSas(connectionString, containerName, blobName, mode) {
  */
 function getBlobPermissions(mode) {
   const m = String(mode || '').toLowerCase();
+  if (m === 'delete' || m === 'd') return BlobSASPermissions.parse('d');
   if (m === 'read' || m === 'r') return BlobSASPermissions.parse('r');
   return BlobSASPermissions.parse('rcw');
 }

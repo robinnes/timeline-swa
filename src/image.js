@@ -3,7 +3,7 @@ import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
 import {setSidebarItem} from './panel.js';
 import {initializeItem} from "./timeline.js";
-import {saveItemImageToStorage, loadItemImageFromStorage} from './database.js';
+import {saveItemImageToStorage, loadItemImageFromStorage, deleteItemImageFromStorage} from './database.js';
 
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
@@ -153,9 +153,10 @@ export function removeImageThumbnail() {
 
   // remove from blob cache if present
   clearItemImageBlobCache(item);
-  
+  deleteItemImage(item);
+
   item.image = null;
-  delete item.thumbnail;
+  //delete item.thumbnail;
 
   item._timeline._dirty = true;
 
@@ -196,7 +197,7 @@ export async function getImageObjectUrlfromStorage(item) {
   return objectUrl;
 }
 
-function clearItemImageBlobCache(item) {
+export function clearItemImageBlobCache(item) {
   const imageFile = item.image?.file ?? null;
   if (!imageFile) return;
 
@@ -205,6 +206,18 @@ function clearItemImageBlobCache(item) {
 
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   itemImageBlobCache.delete(key);
+}
+
+export function deleteItemImage(item) {
+  const scope = item._timeline._scope;
+  const imageFile = itemImageFilePath(item);
+  if (!imageFile) return;
+
+  try {
+    deleteItemImageFromStorage(scope, imageFile);
+  } catch (e) {
+    console.error('deleleteItemImage failed', e.message);  // fail silently
+  }
 }
 
 export function clearCachedImagesForTimeline(tl) {

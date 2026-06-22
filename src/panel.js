@@ -6,7 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache} from './image.js';
+import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache, deleteItemImage} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -276,15 +276,27 @@ export function markDirty(tl) {
 
 itemDeleteBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  deleteSelectedItem();
+});
+
+function deleteSelectedItem() {
+  const item = appState.selected.item;
   const tl = appState.selected.timeline;
   const items = tl.items;
-  const idx = items.indexOf(appState.selected.item);
+  const idx = items.indexOf(item);
+
+  // handle thumbnail
+  if (item.image) {
+    clearItemImageBlobCache(item);
+    deleteItemImage(item);
+  }
+
   items.splice(idx, 1);
   appState.selected.item = null;
   markDirty(tl);
   draw(true);
   openSelectedView(false);
-});
+}
 
 timelinePublishBtn.addEventListener('click', (e) => {
   e.preventDefault();
