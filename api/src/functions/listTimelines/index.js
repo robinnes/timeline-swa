@@ -50,7 +50,7 @@ app.http('listTimelines', {
 
         // Filter by extension (default .json)
         //if (ext && !filename.toLowerCase().endsWith(ext)) continue;
-        if (filename.toLowerCase().endsWith('.json') || filename.toLowerCase().endsWith('.json.gz')) continue;
+        if (!filename.toLowerCase().endsWith('.json') && !filename.toLowerCase().endsWith('.json.gz')) continue;
 
         results.push({
           name: filename,
