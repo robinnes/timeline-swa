@@ -228,7 +228,7 @@ export async function deleteItemImageFromStorage(scope, imageFile) {
 }
 */
 
-async function deleteOrphanedImages(scope, file) {
+export async function deleteOrphanedImages(scope, file) {
   const resp = await fetch('/api/deleteOrphanedImages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
