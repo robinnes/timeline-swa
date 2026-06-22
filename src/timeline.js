@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {getTimeline, saveTimelineToStorage, publishTimelineToPublic} from './database.js';
+import {getTimeline, saveTimelineToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -249,6 +249,7 @@ export async function saveTimeline(tl)
   try {
     const text = timelineString(tl);
     await saveTimelineToStorage("private", tl._file, text);
+    await deleteOrphanedImages("private", tl._file);
     tl._dirty = false;
   } catch (err) {
     console.error('Save failed:', err.message);

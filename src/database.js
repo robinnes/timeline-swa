@@ -227,7 +227,14 @@ export async function deleteItemImageFromStorage(scope, imageFile) {
   return true;
 }
 */
+
 async function deleteOrphanedImages(scope, file) {
-  // to do: call API function that iterates item images in storage that no longer
-  // have corresponding items in the timeline.
+  const resp = await fetch('/api/deleteOrphanedImages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scope: scope, timelineFile: file })
+  });
+
+  if (!resp.ok) throw new Error(await resp.text());
+  return resp.json();
 }
