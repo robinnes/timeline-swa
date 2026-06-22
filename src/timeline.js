@@ -192,8 +192,8 @@ export async function loadTimeline(file) {
   const tl = await getTimeline(scope, file);  // retrieve from storage
 
   if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
-  tl._file = file,
-  tl._scope = scope,
+  tl._file = (file.endsWith('.json')) ? `${file}.gz` : file;
+  tl._scope = scope;
   tl._mode = 'view';
 
   initializeTimeline(tl);
