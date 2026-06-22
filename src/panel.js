@@ -6,7 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache, deleteItemImage} from './image.js';
+import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -288,7 +288,7 @@ function deleteSelectedItem() {
   // handle thumbnail
   if (item.image) {
     clearItemImageBlobCache(item);
-    deleteItemImage(item);
+    // deleteItemImage(item);  // can't delete here; user might cancel changes
   }
 
   items.splice(idx, 1);

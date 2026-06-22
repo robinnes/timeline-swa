@@ -212,6 +212,7 @@ export async function getItemImageUrl(scope, imageFile) {
   }
 }
 
+/*
 export async function deleteItemImageFromStorage(scope, imageFile) {
   if (!imageFile) return false;
 
@@ -223,6 +224,10 @@ export async function deleteItemImageFromStorage(scope, imageFile) {
   if (!resp.ok) {
     throw new Error(`Failed to delete image blob: ${resp.status} ${resp.statusText}`);
   }
-
   return true;
+}
+*/
+async function deleteOrphanedImages(scope, file) {
+  // to do: call API function that iterates item images in storage that no longer
+  // have corresponding items in the timeline.
 }

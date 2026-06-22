@@ -3,7 +3,7 @@ import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
 import {setSidebarItem} from './panel.js';
 import {initializeItem} from "./timeline.js";
-import {saveItemImageToStorage, loadItemImageFromStorage, deleteItemImageFromStorage} from './database.js';
+import {saveItemImageToStorage, loadItemImageFromStorage} from './database.js';
 
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
@@ -153,7 +153,7 @@ export function removeImageThumbnail() {
 
   // remove from blob cache if present
   clearItemImageBlobCache(item);
-  deleteItemImage(item);
+  //deleteItemImage(item);   // can't delete here; user might cancel changes
 
   item.image = null;
   //delete item.thumbnail;
@@ -208,6 +208,7 @@ export function clearItemImageBlobCache(item) {
   itemImageBlobCache.delete(key);
 }
 
+/*
 export function deleteItemImage(item) {
   const scope = item._timeline._scope;
   const imageFile = itemImageFilePath(item);
@@ -219,6 +220,7 @@ export function deleteItemImage(item) {
     console.error('deleleteItemImage failed', e.message);  // fail silently
   }
 }
+*/
 
 export function clearCachedImagesForTimeline(tl) {
   // iterate cache keys and delete rows matching tl
