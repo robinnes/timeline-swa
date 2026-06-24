@@ -142,7 +142,7 @@ imageModal.addEventListener('click', (e) => {
 
         if (currentTarget  === "item") initializeItem(subject);
         //imageTarget.refresh();
-        updateImageThumbnail(imageTarget, currentTarget);
+        updateImageThumbnail(imageTarget.subject, currentTarget);
         updateSaveButton();
         draw(true);
 
