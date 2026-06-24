@@ -58,10 +58,13 @@
                 </div>
                 <!-- Main subpanel -->
                 <div id="subpanel-edit-item-main" class="subpanel">
+                  <!-- Label section -->
                   <section class="sidebar__section">
                     <label for="edit-item-label" class="control-label">Label</label>
                     <textarea id="edit-item-label" class="edit-textarea" rows="2"></textarea>
                   </section>
+
+                  <!-- Thumbnail section -->
                   <section class="sidebar__section">
                     <label for="select-thumbnail-btn" class="control-label">Thumbnail</label>
                     <div class="thumb__section">
@@ -72,33 +75,15 @@
                       </div>
                     </div>
                   </section>
+
+                  <!-- Date section -->
                   <section class="sidebar__section">
                     <label for="item-date-display" class="control-label">Date</label>
                     <input id="item-date-display" class="edit-input" type="text" readonly>
                   </section>
-                  <!--<section class="sidebar__section">
-                    <div class="significance">
-                      <div class="significance-row">
-                        <label class="control-label">Point</label>
-                        <div class="significance-controls">
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="1" id="sig-1"><span>Minor</span></label>
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="2" id="sig-2"><span>Normal</span></label>
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="3" id="sig-3"><span>Major</span></label>
-                        </div>
-                      </div>
-                      <div class="significance-row">
-                        <label class="control-label">Span</label>
-                        <div class="significance-controls">
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="4" id="sig-4"><span>Minor</span></label>
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="5" id="sig-5"><span>Normal</span></label>
-                          <label class="sig-btn"><input type="radio" name="item-significance" value="6" id="sig-6"><span>Major</span></label>
-                        </div>
-                      </div>
-                    </div>
-                  </section>-->
+                  <!-- Type and Date Specification section  -->
                   <section class="sidebar__section">
                     <label class="control-label">Type</label>
-
                     <div class="type-date-row">
                       <!-- Item Type (left) -->
                       <div class="toggle-group" id="item-type-group">
@@ -111,7 +96,6 @@
                           <span>Period</span>
                         </label>
                       </div>
-
                       <!-- Date Specification (right-aligned) -->
                       <div class="toggle-group type-date-right" id="date-spec-group">
                         <label class="toggle-btn">
@@ -124,17 +108,12 @@
                         </label>
                       </div>
                     </div>
-
-                    <!-- Prominence Slider -->
-                    <label class="control-label" style="margin-top: 12px;">Prominence</label>
+                  </section>
+                    <!-- Prominence section -->
+                  <section class="sidebar__section">
+                    <label class="control-label">Prominence</label>
                     <div class="prominence-slider">
-                      <input
-                        type="range"
-                        id="item-prominence"
-                        min="1"
-                        max="5"
-                        step="1"
-                      />
+                      <input type="range" id="item-prominence" min="1" max="5" step="1"/>
                       <div class="prominence-labels">
                         <span>1</span>
                         <span>2</span>
@@ -144,6 +123,7 @@
                       </div>
                     </div>
                   </section>
+                  <!-- Color section -->
                   <section class="sidebar__section">
                     <div class="color-selectors">
                       <label class="color-sel-btn"><input type="radio" name="color-target" value="left"><span>Left</span></label>
@@ -228,6 +208,18 @@
                     <label for="edit-timeline-title" class="control-label">Title</label>
                     <input type="text" id="edit-timeline-title" class="edit-text" />
                   </section>
+
+                  <section class="sidebar__section">
+                    <label for="select-timeline-thumbnail-btn" class="control-label">Thumbnail</label>
+                    <div class="thumb__section">
+                      <button class="action-btn action-btn-small" id="select-timeline-thumbnail-btn">Select</button>
+                      <div class="thumb__right">
+                        <img class="thumbnail-img" id="timeline-thumb-edit-img" alt="Edit timeline thumbnail"/>
+                        <button class="action-btn action-btn-close" id="close-timeline-thumbnail-btn">×</button>
+                      </div>
+                    </div>
+                  </section>
+                  
                   <section class="sidebar__section">
                     <label for="edit-timeline-details" class="control-label">Details</label>
                     <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>

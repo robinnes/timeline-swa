@@ -34,11 +34,12 @@ const colorTargetRadios = Array.from(document.querySelectorAll('input[name="colo
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
 const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
 const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
-
-//const significanceButtons = Array.from(document.querySelectorAll('input[name="item-significance"]'));
+const selectTimelineThumbnailBtn = document.getElementById('select-timeline-thumbnail-btn');
+const closeTimelineThumbnailBtn = document.getElementById('close-timeline-thumbnail-btn');
 const itemTypeButtons = Array.from(document.querySelectorAll('input[name="item-type"]'));
 const dateSpecificationButtons = Array.from(document.querySelectorAll('input[name="date-spec"]'));
 const prominenceSlider = document.getElementById('item-prominence');
+
 
 /* ------------------- Sidebar -------------------- */
 
@@ -373,7 +374,19 @@ function showSubpanel(targetId) {
 
 }
 
-/* ------------------- Edit item panel -------------------- */
+/* ------------------- Title/Label and Detail controls -------------------- */
+
+// hyperlink clicks within label and details
+for (const txt of displayTextAreas) {
+  txt.addEventListener('click', (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
+    //e.preventDefault();  -- no, we need normal hyperlinks to work
+    if (followHyperlink(appState.selected.view, a, true)) {
+      setSidebarView(appState.selected.view);
+    };
+  });
+}
 
 editItemLabel.addEventListener('input', (e) => {
   const s = e.target.value;
@@ -392,23 +405,6 @@ editItemDetails.addEventListener('input', (e) => {
   markDirty(appState.selected.timeline);
 });
 
-selectThumbnailBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  if (!appState.selected.item._timeline._file) {
-    // can't save thumbnail file without the timeline's filename
-    showModalDialog({message: "Timeline must be saved first.", showCancelBtn: false});
-    return;
-  }
-  getImageThumbnail();
-});
-
-closeThumbnailBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  removeImageThumbnail();
-});
-
-/* ------------------- Edit timeline panel -------------------- */
-
 editTimelineTitle.addEventListener('input', (e) => {
   const s = e.target.value;
   const tl = appState.selected.timeline;
@@ -425,20 +421,6 @@ editTimelineDetails.addEventListener('input', (e) => {
   markDirty(tl);
 });
 
-
-/* ------------------- Hyperlinks -------------------- */
-
-// hyperlink clicks within label and details
-for (const txt of displayTextAreas) {
-  txt.addEventListener('click', (e) => {
-    const a = e.target.closest("a");
-    if (!a) return;
-    //e.preventDefault();  -- no, we need normal hyperlinks to work
-    if (followHyperlink(appState.selected.view, a, true)) {
-      setSidebarView(appState.selected.view);
-    };
-  });
-}
 
 /* ------------------- Open view/item -------------------- */
 
@@ -532,6 +514,13 @@ function setSidebarView(vw) {
     $("timeline-title").textContent = tags[0]?.label;
     $("timeline-details").innerText = "";
   }
+
+  // thumbnail
+  const thumb = tl.image?.thumbnail;
+  const img = document.getElementById("timeline-thumb-edit-img");
+  img.src = thumb ?? "";
+  img.hidden = !thumb;
+  document.getElementById("close-timeline-thumbnail-btn").hidden = !thumb;
 
   // tag navigation
   renderTagNavigation(vw);
@@ -748,6 +737,45 @@ function updateColorButtons() {
 
 /* ------------------- Image/thumbnail -------------------- */
 
+selectThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  editThumbnail("item");
+});
+
+closeThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  deleteThumbnail("item");
+});
+
+selectTimelineThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  editThumbnail("timeline");
+});
+
+closeTimelineThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  deleteThumbnail("timeline");
+});
+
+function editThumbnail(target) {
+
+  const tl = appState.selected.timeline;
+
+  if (!tl._file) {
+    showModalDialog({
+      message: "Timeline must be saved first.",
+      showCancelBtn: false
+    });
+    return;
+  }
+
+  getImageThumbnail(target);
+}
+
+function deleteThumbnail(target) {
+  removeImageThumbnail(target);
+}
+
 function updateImageThumbnail(item) {
 
   const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
@@ -803,7 +831,6 @@ function updateImageThumbnail(item) {
     viewImg.removeAttribute('src');
     viewImg.hidden = true;
   }
-
 }
 
 

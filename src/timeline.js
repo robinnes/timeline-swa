@@ -33,6 +33,7 @@ export function timelineString(tl) {
     id: tl.id,
     title: tl.title,
     details: tl.details,
+    image: tl.image,
     tags: tl.tags.map(({id, label, parentId, order}) => ({
                         id, label, parentId, order
     })),

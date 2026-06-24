@@ -377,7 +377,7 @@ aside.sidebar {
 
 /********************************* Thumbnail *********************************/
 
-/* Thumbnail/label section */
+/* Thumbnail/label view  section */
 .thumblabel__section {
   display: flex;
   align-items: flex-start;   /* top-align thumbnail + text */
@@ -389,6 +389,7 @@ aside.sidebar {
   margin: 0;        /* remove default h2 margin */
 }
 
+/* Thumbnail edit section */
 .thumb__section {
   display: flex;
   align-items: flex-start;
@@ -400,7 +401,7 @@ aside.sidebar {
   align-items: flex-start;  /* top aligned */
   margin-left: auto;        /* push to far right */
   gap: 4px;
-  min-height: 52px;
+  min-height: 42px;
 }
 
 .thumbnail-img {
@@ -489,6 +490,7 @@ aside.sidebar {
 
 .control-label {
   display: block;
+  /*margin-top: 12px;*/
   margin-bottom: 6px;
   color: var(--muted);
   font-size: 13px;
@@ -510,7 +512,7 @@ h2.label {
 .panel__content--view .details {
   display: block;
   flex: 0 0 auto;
-  min-height: auto;
+  min-height: 0;      /* auto */
   overflow: visible;
 }
 

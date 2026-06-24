@@ -18,7 +18,7 @@ function destroyCropper() {
   }
 }
 
-export function getImageThumbnail() {
+export function getImageThumbnail(target = "item") {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -100,8 +100,14 @@ imageModal.addEventListener('click', (e) => {
       return;
     }
 
-    const item = appState.selected.item;
-    const tl = appState.selected.timeline ?? item._timeline;
+    const imageTarget = getImageTarget(target);
+    if (!imageTarget?.subject || !imageTarget?.timeline) {
+      closeImageModal();
+      return;
+    }
+
+    const subject = imageTarget.subject;
+    const tl = imageTarget.timeline;
 
     const canvasThumbnail = cropper.getCroppedCanvas({
       width: DRAW.THUMB_LABEL_SIZE,
@@ -123,19 +129,17 @@ imageModal.addEventListener('click', (e) => {
       }
 
       try {
-        const url = await saveItemImageToStorage(tl._scope, tl._file, item.id, blob);
+        await saveItemImageToStorage(tl._scope, tl._file, imageTarget.id, blob);
 
-        // clear cached image if present
-        clearItemImageBlobCache(item);
+        clearImageBlobCache(subject, tl);
 
-        const file = `${item.id}_thumb.webp`;
-        item.image = { thumbnail, file };
-        //delete item.thumbnail; // optional backward cleanup
+        const file = `${imageTarget.id}_thumb.webp`;
+        subject.image = { thumbnail, file };
 
         tl._dirty = true;
 
-        setSidebarItem(item);
-        initializeItem(item);
+        if (target === "item") initializeItem(subject);
+        imageTarget.refresh();
         draw(true);
 
       } catch (err) {
@@ -147,35 +151,54 @@ imageModal.addEventListener('click', (e) => {
   }
 });
 
-export function removeImageThumbnail() {
-  const item = appState.selected.item;
-  if (!item) return;
+export function removeImageThumbnail(target = "item") {
+  const imageTarget = getImageTarget(target);
+  if (!imageTarget?.subject || !imageTarget?.timeline) return;
 
-  // remove from blob cache if present
-  clearItemImageBlobCache(item);
-  //deleteItemImage(item);   // can't delete here; user might cancel changes
+  clearImageBlobCache(imageTarget.subject, imageTarget.timeline);
 
-  item.image = null;
-  //delete item.thumbnail;
+  imageTarget.subject.image = null;
+  imageTarget.timeline._dirty = true;
 
-  item._timeline._dirty = true;
-
-  setSidebarItem(item);
-  initializeItem(item);
+  if (target === "item") initializeItem(imageTarget.subject);
+  imageTarget.refresh();
   draw(true);
 }
 
-/******************* Image/thumbnail cache *******************/
+/******************* Helpers *******************/
 
-function itemImageCacheKey(item) {
-  const tl = item._timeline;
-  return `${tl._scope}:${itemImageFilePath(item)}`;
+function getImageTarget(target) {
+  const tl = appState.selected.timeline;
+
+  if (target === "timeline") {
+    return {
+      subject: tl,
+      timeline: tl,
+      id: "timeline",
+      refresh: () => setSidebarTimeline(tl)
+    };
+  }
+
+  const item = appState.selected.item;
+
+  return {
+    subject: item,
+    timeline: tl ?? item._timeline,
+    id: item.id,
+    refresh: () => setSidebarItem(item)
+  };
 }
 
-function itemImageFilePath(item) {
-  const tl = item._timeline;
-  const folder = Util.timelineStem(tl._file);  // filename minus extension
-  return `${folder}/${item.image.file}`;
+
+/******************* Image/thumbnail cache *******************/
+
+function imageCacheKey(subject, tl) {
+  return `${tl._scope}:${imageFilePath(subject, tl)}`;
+}
+
+function imageFilePath(subject, tl) {
+  const folder = Util.timelineStem(tl._file);
+  return `${folder}/${subject.image.file}`;
 }
 
 export function getImageObjectUrlfromCache(item) {
@@ -197,15 +220,19 @@ export async function getImageObjectUrlfromStorage(item) {
   return objectUrl;
 }
 
-export function clearItemImageBlobCache(item) {
-  const imageFile = item.image?.file ?? null;
+export function clearImageBlobCache(subject, tl) {
+  const imageFile = subject.image?.file ?? null;
   if (!imageFile) return;
 
-  const key = itemImageCacheKey(item);
+  const key = imageCacheKey(subject, tl);
   const objectUrl = itemImageBlobCache.get(key);
 
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   itemImageBlobCache.delete(key);
+}
+
+export function clearItemImageBlobCache(item) {
+  clearImageBlobCache(item, item._timeline);
 }
 
 /*
