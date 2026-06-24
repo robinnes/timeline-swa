@@ -177,7 +177,7 @@ function getImageTarget(target) {
       subject: tl,
       timeline: tl,
       id: "timeline",
-      refresh: () => setSidebarTimeline(tl)
+      refresh: () => setSidebarView(tl)
     };
   }
 
