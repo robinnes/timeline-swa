@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
-import {setSidebarItem, setSidebarView} from './panel.js';
+import {/*setSidebarItem, setSidebarView, */updateImageThumbnail, updateSaveButton} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveItemImageToStorage, loadItemImageFromStorage} from './database.js';
 
@@ -131,7 +131,7 @@ imageModal.addEventListener('click', (e) => {
       }
 
       try {
-        await saveItemImageToStorage(tl._scope, tl._file, imageTarget.id, blob);
+        await saveItemImageToStorage(tl._scope, tl._file, imageTarget.id, blob);  // todo: rename function?
 
         clearImageBlobCache(subject, tl);
 
@@ -141,7 +141,9 @@ imageModal.addEventListener('click', (e) => {
         tl._dirty = true;
 
         if (currentTarget  === "item") initializeItem(subject);
-        imageTarget.refresh();
+        //imageTarget.refresh();
+        updateImageThumbnail(imageTarget, currentTarget);
+        updateSaveButton();
         draw(true);
 
       } catch (err) {
@@ -163,7 +165,9 @@ export function removeImageThumbnail(target = "item") {
   imageTarget.timeline._dirty = true;
 
   if (target === "item") initializeItem(imageTarget.subject);
-  imageTarget.refresh();
+  //imageTarget.refresh();
+  updateImageThumbnail(imageTarget, target);
+  updateSaveButton();
   draw(true);
 }
 
@@ -176,8 +180,8 @@ function getImageTarget(target) {
     return {
       subject: tl,
       timeline: tl,
-      id: "timeline",
-      refresh: () => setSidebarView(tl)
+      id: "timeline"
+      //refresh: () => setSidebarView(tl)
     };
   }
 
@@ -186,8 +190,8 @@ function getImageTarget(target) {
   return {
     subject: item,
     timeline: tl ?? item._timeline,
-    id: item.id,
-    refresh: () => setSidebarItem(item)
+    id: item.id
+    //refresh: () => setSidebarItem(item)
   };
 }
 

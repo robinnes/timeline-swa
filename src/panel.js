@@ -541,6 +541,10 @@ export function setSidebarView(vw) {
   updateSaveButton?.();
 }
 
+export function setSidebarTimeline(tl) {
+
+}
+
 
 /* ------------------- Item type / date specification / prominence -------------------- */
 
@@ -779,7 +783,7 @@ function deleteThumbnail(target) {
   removeImageThumbnail(target);
 }
 
-function updateImageThumbnail(subject, prefix) {
+export function updateImageThumbnail(subject, prefix) {
 
   const thumb = subject.image?.thumbnail ?? null;
   const filename = subject.image?.file ?? null;
