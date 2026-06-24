@@ -176,9 +176,14 @@
             <!-- View timeline panel -->
             <div id="panel-view-timeline" class="panel" hidden inert>
               <div class="panel__content panel__content--view">
+
                 <section class="sidebar__section">
-                  <h2 class="label" id="timeline-title"></h2>
+                  <div class="thumblabel__section">
+                    <img class="thumbnail-img" id="timeline-thumb-view-img" alt="View timeline thumbnail"/>
+                    <h2 class="label display-textarea" id="timeline-title"></h2>
+                  </div>
                 </section>
+
                 <section class="sidebar__section">
                   <div class="details display-textarea" id="timeline-details"></div>
                 </section>
@@ -219,7 +224,7 @@
                       </div>
                     </div>
                   </section>
-                  
+
                   <section class="sidebar__section">
                     <label for="edit-timeline-details" class="control-label">Details</label>
                     <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>

@@ -6,7 +6,14 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache} from './image.js';
+//import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache} from './image.js';
+import {
+    getImageThumbnail,
+    removeImageThumbnail,
+    getImageObjectUrlfromStorage,
+    getImageObjectUrlfromCache,
+    clearImageBlobCache
+} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -288,7 +295,7 @@ function deleteSelectedItem() {
 
   // handle thumbnail
   if (item.image) {
-    clearItemImageBlobCache(item);
+    clearImageBlobCache(item, tl);
     // deleteItemImage(item);  // can't delete here; user might cancel changes
   }
 
@@ -487,14 +494,14 @@ export function setSidebarItem(item) {
   updateColorSelectorState();
   updateColorButtons();
 
-  updateImageThumbnail(item);
+  updateImageThumbnail(item, "item");
 
   renderTagPickerUI(appState.selected.timeline, item);
 
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
-function setSidebarView(vw) {
+export function setSidebarView(vw) {
   // update sidebar (all panels) to vw
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
@@ -516,11 +523,7 @@ function setSidebarView(vw) {
   }
 
   // thumbnail
-  const thumb = tl.image?.thumbnail;
-  const img = document.getElementById("timeline-thumb-edit-img");
-  img.src = thumb ?? "";
-  img.hidden = !thumb;
-  document.getElementById("close-timeline-thumbnail-btn").hidden = !thumb;
+  updateImageThumbnail(tl, "timeline");
 
   // tag navigation
   renderTagNavigation(vw);
@@ -776,60 +779,71 @@ function deleteThumbnail(target) {
   removeImageThumbnail(target);
 }
 
-function updateImageThumbnail(item) {
+function updateImageThumbnail(subject, prefix) {
 
-  const thumb = item.image?.thumbnail ?? item.thumbnail ?? null;
-  const filename = item.image?.file ?? null;
+  const thumb = subject.image?.thumbnail ?? null;
+  const filename = subject.image?.file ?? null;
 
-  const editImg = document.getElementById('item-thumb-edit-img');
-  const viewImg = document.getElementById('item-thumb-view-img');
+  const editImg  = document.getElementById(`${prefix}-thumb-edit-img`);
+  const viewImg  = document.getElementById(`${prefix}-thumb-view-img`);
+  const closeBtn = document.getElementById(`close-${prefix}-thumbnail-btn`);
 
-  // Edit tab: display thumbnail
-  if (thumb) {
-    editImg.src = thumb;
-    editImg.hidden = false;
-    closeThumbnailBtn.removeAttribute("hidden");
-  } else {
-    editImg.removeAttribute('src');
-    editImg.hidden = true;
-    closeThumbnailBtn.setAttribute("hidden", "");
+  // ---------- Edit panel ----------
+
+  if (editImg) {
+    if (thumb) {
+      editImg.src = thumb;
+      editImg.hidden = false;
+      if (closeBtn) closeBtn.hidden = false;
+    } else {
+      editImg.removeAttribute("src");
+      editImg.hidden = true;
+      if (closeBtn) closeBtn.hidden = true;
+    }
   }
 
-  // View tab: full image if possible
-  if (filename) {
-    viewImg.hidden = false;
-    viewImg.removeAttribute('src');
-    viewImg.height = DRAW.THUMB_SIZE;
-    viewImg.width = DRAW.THUMB_SIZE;
+  // ---------- View panel ----------
 
-    // use image from cache, if present
-    let objectUrl = getImageObjectUrlfromCache(item);
+  if (!viewImg) return;
+
+  if (filename) {
+
+    viewImg.hidden = false;
+    viewImg.width = DRAW.THUMB_SIZE;
+    viewImg.height = DRAW.THUMB_SIZE;
+    viewImg.removeAttribute("src");
+
+    let objectUrl = getImageObjectUrlfromCache(subject);
+
     if (objectUrl) {
       viewImg.src = objectUrl;
       return;
     }
 
-    // use thumbnail image, magnified to full image size
-    if (thumb) viewImg.src = thumb;
+    if (thumb)
+      viewImg.src = thumb;
 
-    // use image from blob storage (and cache it)
-    getImageObjectUrlfromStorage(item)
-    .then((src) => {
-      if (src) viewImg.src = src;
-    })
-    .catch((err) => {
-      if (!Util.isLocalEnv) console.error(err);  // error is expected in dev env
-    });
+    getImageObjectUrlfromStorage(subject)
+      .then(src => {
+        if (src) viewImg.src = src;
+      })
+      .catch(err => {
+        if (!Util.isLocalEnv)
+          console.error(err);
+      });
 
-  } else if (thumb) {  // put the thumbnail in view panel
+  } else if (thumb) {
+
     viewImg.src = thumb;
-    viewImg.hidden = false;
+    viewImg.width = DRAW.THUMB_LABEL_SIZE;
     viewImg.height = DRAW.THUMB_LABEL_SIZE;
-    viewImg.width = DRAW.THUMB_LABEL_SIZE
+    viewImg.hidden = false;
 
   } else {
-    viewImg.removeAttribute('src');
+
     viewImg.hidden = true;
+    viewImg.removeAttribute("src");
+
   }
 }
 

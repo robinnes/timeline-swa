@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
-import {setSidebarItem} from './panel.js';
+import {setSidebarItem, setSidebarView} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveItemImageToStorage, loadItemImageFromStorage} from './database.js';
 
@@ -10,6 +10,7 @@ const editImage = document.getElementById('edit-image');
 
 let cropper = null;
 let currentObjectUrl = null;
+let currentTarget = "item";
 
 function destroyCropper() {
   if (cropper) {
@@ -19,6 +20,7 @@ function destroyCropper() {
 }
 
 export function getImageThumbnail(target = "item") {
+  currentTarget = target;
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -95,12 +97,12 @@ imageModal.addEventListener('click', (e) => {
   if (target.matches('[data-modal-action="ok"]')) {
     e.preventDefault();
 
-    if (!cropper || !appState.selected?.item) {
+    if (!cropper) {
       closeImageModal();
       return;
     }
 
-    const imageTarget = getImageTarget(target);
+    const imageTarget = getImageTarget(currentTarget);
     if (!imageTarget?.subject || !imageTarget?.timeline) {
       closeImageModal();
       return;
@@ -138,7 +140,7 @@ imageModal.addEventListener('click', (e) => {
 
         tl._dirty = true;
 
-        if (target === "item") initializeItem(subject);
+        if (currentTarget  === "item") initializeItem(subject);
         imageTarget.refresh();
         draw(true);
 
@@ -201,22 +203,20 @@ function imageFilePath(subject, tl) {
   return `${folder}/${subject.image.file}`;
 }
 
-export function getImageObjectUrlfromCache(item) {
-  const key = itemImageCacheKey(item);
-  const objectUrl = itemImageBlobCache.get(key);
-
-  if (objectUrl) return objectUrl;
+export function getImageObjectUrlfromCache(subject, tl = subject._timeline ?? subject) {
+  const key = imageCacheKey(subject, tl);
+  return itemImageBlobCache.get(key);
 }
 
-export async function getImageObjectUrlfromStorage(item) {
-  const scope = item._timeline._scope;
-  const imageFile = itemImageFilePath(item);  // path to the image file
+export async function getImageObjectUrlfromStorage(subject, tl = subject._timeline ?? subject) {
+  const imageFile = imageFilePath(subject, tl);
 
-  const blob = await loadItemImageFromStorage(scope, imageFile);  // retrieve the image blob from storage
-  const objectUrl = URL.createObjectURL(blob);  // store in memory; get local URL
+  const blob = await loadItemImageFromStorage(tl._scope, imageFile);
+  const objectUrl = URL.createObjectURL(blob);
 
-  const key = itemImageCacheKey(item);
-  itemImageBlobCache.set(key, objectUrl);  // cache it
+  const key = imageCacheKey(subject, tl);
+  itemImageBlobCache.set(key, objectUrl);
+
   return objectUrl;
 }
 
