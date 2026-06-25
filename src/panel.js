@@ -39,8 +39,8 @@ const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
-const selectThumbnailBtn = document.getElementById('select-thumbnail-btn');
-const closeThumbnailBtn = document.getElementById('close-thumbnail-btn');
+const selectItemThumbnailBtn = document.getElementById('select-item-thumbnail-btn');
+const closeItemThumbnailBtn = document.getElementById('close-item-thumbnail-btn');
 const selectTimelineThumbnailBtn = document.getElementById('select-timeline-thumbnail-btn');
 const closeTimelineThumbnailBtn = document.getElementById('close-timeline-thumbnail-btn');
 const itemTypeButtons = Array.from(document.querySelectorAll('input[name="item-type"]'));
@@ -445,7 +445,7 @@ export function openSelectedView(display) {
 
   if (display) openSidebar();
 
-  if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
+  //if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
 export function openSelectedItem(forceMainSubpanel) {
@@ -744,12 +744,12 @@ function updateColorButtons() {
 
 /* ------------------- Image/thumbnail -------------------- */
 
-selectThumbnailBtn.addEventListener('click', e => {
+selectItemThumbnailBtn.addEventListener('click', e => {
   e.preventDefault();
   editThumbnail("item");
 });
 
-closeThumbnailBtn.addEventListener('click', e => {
+closeItemThumbnailBtn.addEventListener('click', e => {
   e.preventDefault();
   deleteThumbnail("item");
 });
