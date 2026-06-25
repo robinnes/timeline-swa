@@ -824,8 +824,7 @@ export function updateImageThumbnail(subject, prefix) {
       return;
     }
 
-    if (thumb)
-      viewImg.src = thumb;
+    if (thumb) viewImg.src = thumb;
 
     getImageObjectUrlfromStorage(subject)
       .then(src => {
@@ -839,15 +838,15 @@ export function updateImageThumbnail(subject, prefix) {
   } else if (thumb) {
 
     viewImg.src = thumb;
-    viewImg.width = DRAW.THUMB_LABEL_SIZE;
-    viewImg.height = DRAW.THUMB_LABEL_SIZE;
+    viewImg.removeAttribute('width');
+    viewImg.removeAttribute('height');
+    //viewImg.width = DRAW.THUMB_LABEL_SIZE;
+    //viewImg.height = DRAW.THUMB_LABEL_SIZE;
     viewImg.hidden = false;
 
   } else {
-
     viewImg.hidden = true;
     viewImg.removeAttribute("src");
-
   }
 }
 

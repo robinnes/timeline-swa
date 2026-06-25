@@ -153,13 +153,13 @@ export async function getTimelineList(scope) {
 
 /******************* Item images (thumbnails) *******************/
 
-function itemImageFile(timelineFile, itemId) {
-  return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(itemId)}_thumb.webp`;
+function imageFileName(timelineFile, id) {
+  return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(id)}_thumb.webp`;
 }
 
-export async function saveItemImageToStorage(scope, timelineFile, itemId, blob) {
+export async function saveImageToStorage(scope, timelineFile, id, blob) {
   try {
-    const file = itemImageFile(timelineFile, itemId);
+    const file = imageFileName(timelineFile, id);
     const {url} = await acquireBlobSas(scope, file, "write");
 
     const resp = await fetch(url, {
@@ -173,11 +173,11 @@ export async function saveItemImageToStorage(scope, timelineFile, itemId, blob) 
 
     if (!resp.ok) throw new Error(`Failed to upload image blob: ${resp.status} ${resp.statusText}`);
 
-    // Store this relative name in item.image.url, not the SAS URL.
+    // Store this relative name in item.image.file, not the SAS URL.
     return file;
 
   } catch (e) {
-    throw new Error(`Failed to save item image for ${timelineFile}/${itemId}: ${e.message}`);
+    throw new Error(`Failed to save item image for ${timelineFile}/${id}: ${e.message}`);
   }
 }
 

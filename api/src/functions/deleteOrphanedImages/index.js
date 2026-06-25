@@ -62,12 +62,8 @@ app.http('deleteOrphanedImages', {
 
       const tl = JSON.parse(text);
 
-      const referenced = new Set(
-      (tl.items ?? [])
-          .map(item => item.image?.file)
-          .filter(Boolean)
-          .map(file => `${imagePrefix}${file}`)
-      );
+      // build list of all image files referenced in tl (on items, tags and the tl itself)
+      const referenced = collectReferencedImageBlobNames(tl, imagePrefix);
 
       let scanned = 0;
       let deleted = 0;
@@ -98,4 +94,18 @@ app.http('deleteOrphanedImages', {
 
 function isGzip(buffer) {
   return buffer?.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b;
+}
+
+function collectReferencedImageBlobNames(tl, imagePrefix) {
+  const files = [
+    tl.image?.file,
+    ...(tl.tags ?? []).map(tag => tag.image?.file),
+    ...(tl.items ?? []).map(item => item.image?.file)
+  ];
+
+  return new Set(
+    files
+      .filter(Boolean)
+      .map(file => `${imagePrefix}${file}`)
+  );
 }
