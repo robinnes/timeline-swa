@@ -338,27 +338,6 @@ for (const tabsEl of subpanelTabs) {
     if (!targetId) return;
 
     showSubpanel(targetId);
-    /*
-    const panelEl = tabsEl.closest('.panel');
-    if (!panelEl) return;
-
-    // activate only the subtabs in this tab strip
-    for (const b of tabsEl.querySelectorAll('.subtab-btn')) {
-      const isTarget = b.dataset.target === targetId;
-      b.classList.toggle('is-active', isTarget);
-      b.setAttribute('aria-selected', isTarget ? 'true' : 'false');
-    }
-
-    // show only the subpanels in this panel
-    const targetEl = panelEl.querySelector('#' + CSS.escape(targetId));
-    if (!targetEl) return;
-
-    for (const sp of panelEl.querySelectorAll('.subpanel')) {
-      const isActive = sp === targetEl;
-      sp.toggleAttribute('hidden', !isActive);
-      sp.toggleAttribute('inert', !isActive);
-    }
-    */
   });
 }
 
@@ -502,16 +481,14 @@ export function setSidebarItem(item) {
 }
 
 export function setSidebarView(vw) {
-  // update sidebar (all panels) to vw
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
 
+  // View Timeline panel
   if (!vw.tagFilter) {
-    // title
-    $("timeline-title").textContent = tl.title ?? '';
+    $("timeline-title").textContent = tl.title ?? '';  // title
   
-    // details
-    const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // necessary?
+    const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // details
     if (isHtml) $("timeline-details").innerHTML = tl.details;
     else $("timeline-details").innerText = tl.details ?? '';
 
@@ -522,27 +499,25 @@ export function setSidebarView(vw) {
     $("timeline-details").innerText = "";
   }
 
+  // edit timeline title and details
+  editTimelineTitle.value = tl.title ?? '';
+  editTimelineDetails.value = tl.details ?? '';
+
   // thumbnail
   updateImageThumbnail(tl, "timeline");
 
-  // tag navigation
-  renderTagNavigation(vw);
+  // tags
+  renderTagNavigation(vw);  // navigation
+  renderTagsUI(tl);         // definition
 
   // no 'Edit' button for public timelines
-  if (tl._scope === "public") 
+/*  if (tl._scope === "public") 
     viewTimelineFooter.setAttribute("hidden", "");
   else 
-    viewTimelineFooter.removeAttribute("hidden");
+    viewTimelineFooter.removeAttribute("hidden"); */
+  viewTimelineFooter.toggleAttribute('hidden', tl._scope==='public');
 
-  // edit timeline panel
-  editTimelineTitle.value = tl.title ?? '';
-  editTimelineDetails.value = tl.details ?? '';
-  renderTagsUI(tl);
   updateSaveButton?.();
-}
-
-export function setSidebarTimeline(tl) {
-
 }
 
 

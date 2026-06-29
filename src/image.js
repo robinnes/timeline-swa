@@ -140,7 +140,7 @@ imageModal.addEventListener('click', (e) => {
 
         tl._dirty = true;
 
-        //if (currentTarget  === "item") initializeItem(subject);
+        if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
         updateImageThumbnail(imageTarget.subject, currentTarget);
         updateSaveButton();
         draw(true);
@@ -163,7 +163,7 @@ export function removeImageThumbnail(target = "item") {
   imageTarget.subject.image = null;
   imageTarget.timeline._dirty = true;
 
-  //if (target === "item") initializeItem(imageTarget.subject);
+  if (target === "item") initializeItem(imageTarget.subject);
   updateImageThumbnail(imageTarget.subject, target);
   updateSaveButton();
   draw(true);

@@ -206,6 +206,7 @@
                 <div class="subpanel__tabs">
                   <button class="subtab-btn is-active" data-target="subpanel-edit-timeline-main" role="subtab" aria-selected="true">Main</button>
                   <button class="subtab-btn"           data-target="subpanel-edit-timeline-tags" role="subtab" aria-selected="false">Tags</button>
+                  <button class="subtab-btn"           data-target="subpanel-edit-timeline-tag" role="subtab" aria-selected="false">tag</button>
                 </div>
                 <!-- Main subpanel -->
                 <div id="subpanel-edit-timeline-main" class="subpanel">
@@ -213,7 +214,6 @@
                     <label for="edit-timeline-title" class="control-label">Title</label>
                     <input type="text" id="edit-timeline-title" class="edit-text" />
                   </section>
-
                   <section class="sidebar__section">
                     <label for="select-timeline-thumbnail-btn" class="control-label">Thumbnail</label>
                     <div class="thumb__section">
@@ -224,7 +224,6 @@
                       </div>
                     </div>
                   </section>
-
                   <section class="sidebar__section">
                     <label for="edit-timeline-details" class="control-label">Details</label>
                     <textarea id="edit-timeline-details" class="edit-textarea" rows="8"></textarea>
@@ -240,6 +239,25 @@
                       </div>
                     </div>
                   </section>
+                </div>
+                <div id="subpanel-edit-timeline-tag" class="subpanel" hidden inert>
+
+                  <section class="sidebar__section">
+                    <label for="select-tag-thumbnail-btn" class="control-label">Thumbnail</label>
+                    <div class="thumb__section">
+                      <button class="action-btn action-btn-small" id="select-tag-thumbnail-btn">Select</button>
+                      <div class="thumb__right">
+                        <img class="thumbnail-img" id="tag-thumb-edit-img" alt="Edit timeline thumbnail"/>
+                        <button class="action-btn action-btn-close" id="close-tag-thumbnail-btn">×</button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="sidebar__section">
+                    <label for="edit-tag-details" class="control-label">Details</label>
+                    <textarea id="edit-tag-details" class="edit-textarea" rows="8"></textarea>
+                  </section>
+
                 </div>
               </div>
               <div class="panel__footer">
