@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
-import {updateImageThumbnail, updateSaveButton, updateThumbnailEdit, updateThumbnailView} from './panel.js';
+import {updateSaveButton, updateThumbnailEdit, updateThumbnailView} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveImageToStorage, loadItemImageFromStorage} from './database.js';
 
@@ -141,9 +141,10 @@ imageModal.addEventListener('click', (e) => {
         tl._dirty = true;
 
         if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
-        //updateImageThumbnail(imageTarget.subject, currentTarget);
+      
         updateThumbnailView(imageTarget.subject, currentTarget);
         updateThumbnailEdit(imageTarget.subject, currentTarget);
+        
         updateSaveButton();
         draw(true);
 
@@ -166,7 +167,7 @@ export function removeImageThumbnail(target) {
   imageTarget.timeline._dirty = true;
 
   if (target === "item") initializeItem(imageTarget.subject);
-  //updateImageThumbnail(imageTarget.subject, target);
+
   updateThumbnailView(imageTarget.subject, target);
   updateThumbnailEdit(imageTarget.subject, target);
   

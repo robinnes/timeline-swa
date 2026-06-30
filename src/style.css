@@ -613,6 +613,32 @@ h2.label {
   margin: 0;
 }
 
+.tagnavigate__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tagnavigate__toggle {
+  width: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+.tagnavigate__toggle:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.tagnavigate__toggle:disabled {
+  cursor: default;
+  opacity: 0;
+}
+
 
 /********************************* Significance selecitons *********************************/
 

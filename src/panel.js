@@ -518,7 +518,6 @@ export function setSidebarView(vw) {
   editTimelineDetails.value = tl.details ?? '';   // details
 
   // thumbnail
-  //updateImageThumbnail(tl, "timeline");
   updateThumbnailEdit(tl, "timeline");
 
   // tags
@@ -549,7 +548,6 @@ function setSidebarTag(tag) {
   const tabLabel = tag?.label ?? 'tag';
   tagBtn.textContent = tabLabel;
 
-  //updateImageThumbnail(tag, "tag");
   updateThumbnailEdit(tag, "tag");
 }
 
@@ -806,73 +804,6 @@ function editThumbnail(target) {
 
 function deleteThumbnail(target) {
   removeImageThumbnail(target);
-}
-
-export function updateImageThumbnail(subject, prefix) {
-
-  const thumb = subject?.image?.thumbnail ?? null;
-  const filename = subject?.image?.file ?? null;
-
-  const editImg  = document.getElementById(`${prefix}-thumb-edit-img`);
-  const viewImg  = document.getElementById(`${prefix}-thumb-view-img`);
-  const closeBtn = document.getElementById(`close-${prefix}-thumbnail-btn`);
-
-  // ---------- Edit panel ----------
-
-  if (editImg) {
-    if (thumb) {
-      editImg.src = thumb;
-      editImg.hidden = false;
-      if (closeBtn) closeBtn.hidden = false;
-    } else {
-      editImg.removeAttribute("src");
-      editImg.hidden = true;
-      if (closeBtn) closeBtn.hidden = true;
-    }
-  }
-
-  // ---------- View panel ----------
-
-  if (!viewImg) return;
-
-  if (filename) {
-
-    viewImg.hidden = false;
-    viewImg.width = DRAW.THUMB_SIZE;
-    viewImg.height = DRAW.THUMB_SIZE;
-    viewImg.removeAttribute("src");
-
-    let objectUrl = getImageObjectUrlfromCache(subject);
-
-    if (objectUrl) {
-      viewImg.src = objectUrl;
-      return;
-    }
-
-    if (thumb) viewImg.src = thumb;
-
-    getImageObjectUrlfromStorage(subject)
-      .then(src => {
-        if (src) viewImg.src = src;
-      })
-      .catch(err => {
-        if (!Util.isLocalEnv)
-          console.error(err);
-      });
-
-  } else if (thumb) {
-
-    viewImg.src = thumb;
-    viewImg.removeAttribute('width');
-    viewImg.removeAttribute('height');
-    //viewImg.width = DRAW.THUMB_LABEL_SIZE;
-    //viewImg.height = DRAW.THUMB_LABEL_SIZE;
-    viewImg.hidden = false;
-
-  } else {
-    viewImg.hidden = true;
-    viewImg.removeAttribute("src");
-  }
 }
 
 export function updateThumbnailEdit(subject, prefix) {

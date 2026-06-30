@@ -9,6 +9,8 @@ let selectedTagId = null;
 let pickerEl = null;
 let pickerHintEl = null;
 
+const expandedNavigateTagIds = new Set();
+
 
 /* -------------------------- Utilities -------------------------- */
 
@@ -529,20 +531,56 @@ export function renderTagNavigation(vw) {
 
 function renderNavigateNode(tag, byParent, depth) {
   const li = document.createElement("li");
+  li.className = "tagnavigate__item";
   li.style.paddingLeft = `${depth * 16}px`;
+
+  const row = document.createElement("div");
+  row.className = "tagnavigate__row";
+
+  const kids = byParent.get(tag.id) ?? [];
+  const hasKids = kids.length > 0;
+  const expanded = expandedNavigateTagIds.has(tag.id);
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "tagnavigate__toggle";
+  toggle.textContent = hasKids ? (expanded ? "−" : "+") : "";
+  toggle.setAttribute("aria-expanded", String(expanded));
+
+
+  if (hasKids) {
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (expandedNavigateTagIds.has(tag.id)) {
+          expandedNavigateTagIds.delete(tag.id);
+      } else {
+          expandedNavigateTagIds.add(tag.id);
+      }
+
+      renderTagNavigation(appState.selected.view);
+    });
+  }
 
   const a = document.createElement("a");
   a.href = "#";
   a.setAttribute("tag", tag.id);
-  a.innerHTML = tag.label;
-  li.appendChild(a);
+  a.textContent = tag.label || "(untitled)";
 
-  const kids = byParent.get(tag.id) ?? [];
-  if (kids.length) {
-    const ul = document.createElement("ul");
-    ul.className = "tagnavigate__tree";
-    for (const c of kids) ul.appendChild(renderNavigateNode(c, byParent, depth + 1));
-    li.appendChild(ul);
+  row.appendChild(toggle);
+  row.appendChild(a);
+  li.appendChild(row);
+
+  if (hasKids && expanded) {
+      const ul = document.createElement("ul");
+      ul.className = "tagnavigate__tree";
+
+      for (const c of kids)
+          ul.appendChild(renderNavigateNode(c, byParent, depth + 1));
+
+      li.appendChild(ul);
   }
+
   return li;
 }
