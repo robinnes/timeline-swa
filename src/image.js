@@ -196,7 +196,7 @@ function getImageTarget(target) {
     const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
     return {
       subject: tag,
-      timeline: tl ?? item._timeline,
+      timeline: tl,
       id: tag.id
     };
   }
