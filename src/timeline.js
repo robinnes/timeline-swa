@@ -168,7 +168,11 @@ export function initializeTimeline(tl) {
 
   initializeTitle(tl);
 
-  if (tl.tags) tl.tags.forEach(initializeTag);
+  //if (tl.tags) tl.tags.forEach(initializeTag);
+  for (const tag of tl.tags) {
+    tag._timeline = tl;
+    initializeTag(tag);
+  }
   
   for (const item of tl.items) {
     // convert string dates loaded from storage to timestamps
