@@ -182,13 +182,24 @@ function getImageTarget(target) {
     };
   }
 
-  const item = appState.selected.item;
+  if (target === "item") {
+    const item = appState.selected.item;
+    return {
+      subject: item,
+      timeline: tl ?? item._timeline,
+      id: item.id
+    };
+  }
 
-  return {
-    subject: item,
-    timeline: tl ?? item._timeline,
-    id: item.id
-  };
+  if (target === "tag") {
+    const vw = appState.selected.view;
+    const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
+    return {
+      subject: tag,
+      timeline: tl ?? item._timeline,
+      id: tag.id
+    };
+  }
 }
 
 
