@@ -2,7 +2,7 @@ import * as Util from './util.js';
 import * as Calendar from './calendar.js';
 import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeItem} from './timeline.js';
-import {markDirty} from './panel.js';
+import {markDirty, forceEditItemMain} from './panel.js';
 import {positionLabels} from './render.js';
 import {getTickSpec, startOfTick, nextTick, tickSpec} from './ticks.js';
 
@@ -39,7 +39,7 @@ export function stopDragging(revert = false) {
     i.fadeRight = d.start.fadeRight;
     markDirty(appState.selected.timeline);
     initializeItem(i);
-    document.getElementById('item-date-display').value = Calendar.formatItemDates(e);
+    document.getElementById('item-date-display').value = Calendar.formatItemDates(i);
     positionLabels();
     draw();
   }
@@ -78,6 +78,7 @@ export function drag(e) {
   initializeItem(si);
 
   document.getElementById('item-date-display').value = Calendar.formatItemDates(si);
+  forceEditItemMain();
   markDirty(appState.selected.timeline);
   positionLabels();
   draw();

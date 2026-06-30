@@ -34,8 +34,8 @@ export function timelineString(tl) {
     title: tl.title,
     details: tl.details,
     image: tl.image,
-    tags: tl.tags.map(({id, label, parentId, order}) => ({
-                        id, label, parentId, order
+    tags: tl.tags.map(({id, label, parentId, order, image, details}) => ({
+                        id, label, parentId, order, image, details
     })),
     items: tl.items.map(item => {
       if (item.date) {

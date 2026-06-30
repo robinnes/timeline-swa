@@ -6,14 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-//import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearItemImageBlobCache} from './image.js';
-import {
-    getImageThumbnail,
-    removeImageThumbnail,
-    getImageObjectUrlfromStorage,
-    getImageObjectUrlfromCache,
-    clearImageBlobCache
-} from './image.js';
+import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearImageBlobCache} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -37,15 +30,19 @@ const editItemLabel = document.getElementById('edit-item-label');
 const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
+const editTagDetails = document.getElementById('edit-tag-details');
 const colorTargetRadios = Array.from(document.querySelectorAll('input[name="color-target"]'));
 const colorButtons = Array.from(document.querySelectorAll('.color-btn'));
+const itemTypeButtons = Array.from(document.querySelectorAll('input[name="item-type"]'));
+const dateSpecificationButtons = Array.from(document.querySelectorAll('input[name="date-spec"]'));
+const prominenceSlider = document.getElementById('item-prominence');
+
 const selectItemThumbnailBtn = document.getElementById('select-item-thumbnail-btn');
 const closeItemThumbnailBtn = document.getElementById('close-item-thumbnail-btn');
 const selectTimelineThumbnailBtn = document.getElementById('select-timeline-thumbnail-btn');
 const closeTimelineThumbnailBtn = document.getElementById('close-timeline-thumbnail-btn');
-const itemTypeButtons = Array.from(document.querySelectorAll('input[name="item-type"]'));
-const dateSpecificationButtons = Array.from(document.querySelectorAll('input[name="date-spec"]'));
-const prominenceSlider = document.getElementById('item-prominence');
+const selectTagThumbnailBtn = document.getElementById('select-tag-thumbnail-btn');
+const closeTagThumbnailBtn = document.getElementById('close-tag-thumbnail-btn');
 
 
 /* ------------------- Sidebar -------------------- */
@@ -407,6 +404,18 @@ editTimelineDetails.addEventListener('input', (e) => {
   markDirty(tl);
 });
 
+editTagDetails.addEventListener('input', (e) => {
+  const tl = appState.selected.timeline;
+  const vw = appState.selected.view;
+  const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
+  if (!tag) return;
+
+  const txt = e.target.value;
+  tag.details = txt;
+  
+  markDirty(tl);
+});
+
 
 /* ------------------- Open view/item -------------------- */
 
@@ -421,6 +430,8 @@ export function openSelectedView(display) {
   const panel = editMode ? "panel-edit-timeline" : "panel-view-timeline";
   showPanel(panel);
   setActiveEditTab('timeline');
+
+  if (editMode && vw.tagFilter) showSubpanel('subpanel-edit-timeline-tag');
 
   if (display) openSidebar();
 
@@ -483,25 +494,23 @@ export function setSidebarItem(item) {
 export function setSidebarView(vw) {
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
+  const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
 
   // View Timeline panel
-  if (!vw.tagFilter) {
-    $("timeline-title").textContent = tl.title ?? '';  // title
-  
-    const isHtml = /<[a-z][\s\S]*>/i.test(tl.details);  // details
-    if (isHtml) $("timeline-details").innerHTML = tl.details;
-    else $("timeline-details").innerText = tl.details ?? '';
+  const title = (tag ? tag.label : tl.title) ?? '';  // title/label
+  $("timeline-title").textContent = title;
 
-  } else {
-    // if view is filtered to a tag, display only tag label for title (no details)
-    const tags = tl.tags.filter(t => t.id === vw.tagFilter);
-    $("timeline-title").textContent = tags[0]?.label;
-    $("timeline-details").innerText = "";
-  }
+  const details = (tag ? tag.details : tl.details) ?? '';  // details
+  const isHtml = /<[a-z][\s\S]*>/i.test(details);
+  if (isHtml) $("timeline-details").innerHTML = details;
+  else $("timeline-details").innerText = details;
 
-  // edit timeline title and details
-  editTimelineTitle.value = tl.title ?? '';
-  editTimelineDetails.value = tl.details ?? '';
+  // tag (that the view is filtered by)
+  setSidebarTag(tag);
+
+  // Edit Timeline
+  editTimelineTitle.value = tl.title ?? '';       // title
+  editTimelineDetails.value = tl.details ?? '';   // details
 
   // thumbnail
   updateImageThumbnail(tl, "timeline");
@@ -510,14 +519,34 @@ export function setSidebarView(vw) {
   renderTagNavigation(vw);  // navigation
   renderTagsUI(tl);         // definition
 
-  // no 'Edit' button for public timelines
-/*  if (tl._scope === "public") 
-    viewTimelineFooter.setAttribute("hidden", "");
-  else 
-    viewTimelineFooter.removeAttribute("hidden"); */
+  // display 'Edit' and 'Publish' buttons for private timelines
   viewTimelineFooter.toggleAttribute('hidden', tl._scope==='public');
 
-  updateSaveButton?.();
+  updateSaveButton();
+}
+
+function setSidebarTag(tag) {
+  const tagBtn = document.getElementById('subtab-btn-tag');
+
+  if (!tag && tagBtn.classList.contains('is-active')) showSubpanel('subpanel-edit-timeline-main')
+
+  tagBtn.disabled = !tag;
+  tagBtn.hidden = !tag;
+
+  const details = tag?.details ?? '';  // details
+  editTagDetails.textContent = details;
+
+  const tabLabel = tag?.label ?? 'tag';  // label - put on "tag" tab
+  tagBtn.textContent = tabLabel;
+
+  updateImageThumbnail(tag, "tag");
+}
+
+export function forceEditItemMain() {
+  // open the Edit Item Main subpanel
+  showPanel('panel-edit-item');
+  setActiveEditTab('item');
+  showSubpanel('subpanel-edit-item-main');
 }
 
 
@@ -739,6 +768,16 @@ closeTimelineThumbnailBtn.addEventListener('click', e => {
   deleteThumbnail("timeline");
 });
 
+selectTagThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  editThumbnail("tag");
+});
+
+closeTagThumbnailBtn.addEventListener('click', e => {
+  e.preventDefault();
+  deleteThumbnail("tag");
+});
+
 function editThumbnail(target) {
 
   const tl = appState.selected.timeline;
@@ -760,8 +799,8 @@ function deleteThumbnail(target) {
 
 export function updateImageThumbnail(subject, prefix) {
 
-  const thumb = subject.image?.thumbnail ?? null;
-  const filename = subject.image?.file ?? null;
+  const thumb = subject?.image?.thumbnail ?? null;
+  const filename = subject?.image?.file ?? null;
 
   const editImg  = document.getElementById(`${prefix}-thumb-edit-img`);
   const viewImg  = document.getElementById(`${prefix}-thumb-view-img`);
