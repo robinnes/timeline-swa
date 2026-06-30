@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, itemImageBlobCache} from './canvas.js';
-import {updateImageThumbnail, updateSaveButton} from './panel.js';
+import {updateImageThumbnail, updateSaveButton, updateThumbnailEdit, updateThumbnailView} from './panel.js';
 import {initializeItem} from "./timeline.js";
 import {saveImageToStorage, loadItemImageFromStorage} from './database.js';
 
@@ -141,7 +141,9 @@ imageModal.addEventListener('click', (e) => {
         tl._dirty = true;
 
         if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
-        updateImageThumbnail(imageTarget.subject, currentTarget);
+        //updateImageThumbnail(imageTarget.subject, currentTarget);
+        updateThumbnailView(imageTarget.subject, currentTarget);
+        updateThumbnailEdit(imageTarget.subject, currentTarget);
         updateSaveButton();
         draw(true);
 
@@ -154,7 +156,7 @@ imageModal.addEventListener('click', (e) => {
   }
 });
 
-export function removeImageThumbnail(target = "item") {
+export function removeImageThumbnail(target) {
   const imageTarget = getImageTarget(target);
   if (!imageTarget?.subject || !imageTarget?.timeline) return;
 
@@ -164,7 +166,10 @@ export function removeImageThumbnail(target = "item") {
   imageTarget.timeline._dirty = true;
 
   if (target === "item") initializeItem(imageTarget.subject);
-  updateImageThumbnail(imageTarget.subject, target);
+  //updateImageThumbnail(imageTarget.subject, target);
+  updateThumbnailView(imageTarget.subject, target);
+  updateThumbnailEdit(imageTarget.subject, target);
+  
   updateSaveButton();
   draw(true);
 }

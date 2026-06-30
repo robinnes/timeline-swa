@@ -484,7 +484,9 @@ export function setSidebarItem(item) {
   updateColorSelectorState();
   updateColorButtons();
 
-  updateImageThumbnail(item, "item");
+  //updateImageThumbnail(item, "item");
+  updateThumbnailEdit(item, "item");
+  updateThumbnailView(item, "item");
 
   renderTagPickerUI(appState.selected.timeline, item);
 
@@ -505,6 +507,9 @@ export function setSidebarView(vw) {
   if (isHtml) $("timeline-details").innerHTML = details;
   else $("timeline-details").innerText = details;
 
+  if (tag) updateThumbnailView(tag, "tag") 
+    else updateThumbnailView(tl, "timeline");
+
   // tag (that the view is filtered by)
   setSidebarTag(tag);
 
@@ -513,7 +518,8 @@ export function setSidebarView(vw) {
   editTimelineDetails.value = tl.details ?? '';   // details
 
   // thumbnail
-  updateImageThumbnail(tl, "timeline");
+  //updateImageThumbnail(tl, "timeline");
+  updateThumbnailEdit(tl, "timeline");
 
   // tags
   renderTagNavigation(vw);  // navigation
@@ -528,18 +534,23 @@ export function setSidebarView(vw) {
 function setSidebarTag(tag) {
   const tagBtn = document.getElementById('subtab-btn-tag');
 
+  // if no tag but tag button is active, return to Main subpanel
   if (!tag && tagBtn.classList.contains('is-active')) showSubpanel('subpanel-edit-timeline-main')
 
+  // show/hide tag subpanel
   tagBtn.disabled = !tag;
   tagBtn.hidden = !tag;
 
-  const details = tag?.details ?? '';  // details
+  // tag details
+  const details = tag?.details ?? '';
   editTagDetails.textContent = details;
 
-  const tabLabel = tag?.label ?? 'tag';  // label - put on "tag" tab
+  // tag label (put on the subpanel button)
+  const tabLabel = tag?.label ?? 'tag';
   tagBtn.textContent = tabLabel;
 
-  updateImageThumbnail(tag, "tag");
+  //updateImageThumbnail(tag, "tag");
+  updateThumbnailEdit(tag, "tag");
 }
 
 export function forceEditItemMain() {
@@ -864,6 +875,70 @@ export function updateImageThumbnail(subject, prefix) {
   }
 }
 
+export function updateThumbnailEdit(subject, prefix) {
+
+  const thumb = subject?.image?.thumbnail ?? null;
+
+  const editImg  = document.getElementById(`${prefix}-thumb-edit-img`);
+  const closeBtn = document.getElementById(`close-${prefix}-thumbnail-btn`);
+
+  if (editImg) {
+    if (thumb) {
+      editImg.src = thumb;
+      editImg.hidden = false;
+      if (closeBtn) closeBtn.hidden = false;
+    } else {
+      editImg.removeAttribute("src");
+      editImg.hidden = true;
+      if (closeBtn) closeBtn.hidden = true;
+    }
+  }
+
+}
+
+export function updateThumbnailView(subject, prefix) {
+
+  const thumb = subject?.image?.thumbnail ?? null;
+  const filename = subject?.image?.file ?? null;
+  const elemName = (prefix==='tag' ? 'timeline' : prefix) + '-thumb-view-img';
+  const viewImg  = document.getElementById(elemName);
+
+  if (filename) {
+
+    viewImg.hidden = false;
+    viewImg.width = DRAW.THUMB_SIZE;
+    viewImg.height = DRAW.THUMB_SIZE;
+    viewImg.removeAttribute("src");
+
+    let objectUrl = getImageObjectUrlfromCache(subject);
+
+    if (objectUrl) {
+      viewImg.src = objectUrl;
+      return;
+    }
+
+    if (thumb) viewImg.src = thumb;
+
+    getImageObjectUrlfromStorage(subject)
+      .then(src => {
+        if (src) viewImg.src = src;
+      })
+      .catch(err => {
+        if (!Util.isLocalEnv)
+          console.error(err);
+      });
+
+  } else if (thumb) {
+    viewImg.src = thumb;
+    viewImg.removeAttribute('width');
+    viewImg.removeAttribute('height');
+    viewImg.hidden = false;
+
+  } else {
+    viewImg.hidden = true;
+    viewImg.removeAttribute("src");
+  }
+}
 
 initTagsUI();
 initTagPickerUI();
