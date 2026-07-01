@@ -455,7 +455,7 @@ export function renderTagPickerUI(tl, item) {
 
 function renderPickerNode(tag, byParent, depth, item) {
   const li = document.createElement('li');
-  li.style.paddingLeft = `${depth * 16}px`;
+  li.style.paddingLeft = `${depth===0 ? 0 : 16}px`;
 
   const row = document.createElement('label');
   row.className = 'tagpick__row';
@@ -487,15 +487,19 @@ function renderIncludeNode(item) {
   // hard-code 'Include in base timeline' node (item.include)
   const li = document.createElement('li');
   li.style.paddingLeft = "0px";
+
   const row = document.createElement('label');
   row.className = 'tagpick__row';
+
   const cb = document.createElement('input');
   cb.type = 'checkbox';
   cb.dataset.tagId = "include";
   cb.checked = item.include;
+
   const text = document.createElement('div');
   text.className = 'tagpick__label';
   text.textContent = "Include in base timeline";
+
   row.appendChild(cb);
   row.appendChild(text);
   li.appendChild(row);
@@ -522,6 +526,8 @@ export function renderTagNavigation(vw) {
     arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 
+  if (vw.tagFilter) navigateEl.appendChild(renderTimelineNode(tl));
+
   // Render roots
   const root = byParent.get(vw.tagFilter) ?? [];  // begin at the view's tag, if present
   for (const t of root) {
@@ -532,7 +538,7 @@ export function renderTagNavigation(vw) {
 function renderNavigateNode(tag, byParent, depth) {
   const li = document.createElement("li");
   li.className = "tagnavigate__item";
-  li.style.paddingLeft = `${depth * 16}px`;
+  li.style.paddingLeft = `${depth===0 ? 0 : 16}px`;
 
   const row = document.createElement("div");
   row.className = "tagnavigate__row";
@@ -581,6 +587,34 @@ function renderNavigateNode(tag, byParent, depth) {
 
       li.appendChild(ul);
   }
+
+  return li;
+}
+
+function renderTimelineNode(tl)
+{
+  // Display a link to the unfiltered timeline itself
+  const li = document.createElement("li");
+  li.className = "tagnavigate__item";
+  li.style.paddingLeft = '4px';
+
+  const row = document.createElement("div");
+  row.className = "tagnavigate__row";
+/*
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "tagnavigate__toggle";
+  toggle.textContent = "+";
+  toggle.setAttribute("aria-expanded", String("false"));
+*/
+  const a = document.createElement("a");
+  a.href = "#";
+  a.setAttribute("tl", Util.timelineStem(tl._file));
+  a.textContent = tl.title || "(untitled)";
+
+//  row.appendChild(toggle);
+  row.appendChild(a);
+  li.appendChild(row);
 
   return li;
 }
