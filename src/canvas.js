@@ -639,7 +639,7 @@ function zoomToTick(t, t2) {
 function getViewForFile(file) {
   // (for now) if file does not include a slash ("/") then it's private, otherwise public
   //const scope = file.includes('/') ? 'public' : 'private';
-  const found = appState.views.find(vw => vw.file === file /*&& vw.scope === scope*/);
+  const found = appState.views.find(vw => vw.file === file && vw.tagFilter === null /*&& vw.scope === scope*/);
   return(found);
 }
 
@@ -680,6 +680,7 @@ export async function followHyperlink(origVw, a, forceDisplay) {
   if (a.hasAttribute("tl")) {
     const file = a.getAttribute("tl") + ".json.gz";
     view = await linkToFile(file);
+    //view = await openTimeline(file, true, 0);
   } else if (a.hasAttribute("tag")) {
     const tag = a.getAttribute("tag");
     view = linkToTag(origVw, tag);
