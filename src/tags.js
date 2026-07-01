@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, timelineCache} from './canvas.js';
+import {appState, draw, timelineCache, linkToTag} from './canvas.js';
 import {markDirty} from './panel.js';
 import {initializeTag} from './timeline.js';
 
@@ -145,7 +145,7 @@ function renderNode(tag, byParent, depth) {
   const label = document.createElement('div');
   label.className = 'tagmgr__label';
   label.textContent = tag.label || '(untitled)';
-
+  
   row.appendChild(label);
   li.appendChild(row);
 
@@ -229,6 +229,8 @@ function copyLink(tagId) {
   // generate hyperlink to this tag
   const link = `<a href="#" tag="${tagId}">${label}</a>`;
   navigator.clipboard.writeText(link);
+
+  linkToTag(appState.selected.view, tag.id);
 }
 
 function beginRename(tagId) {
@@ -600,19 +602,12 @@ function renderTimelineNode(tl)
 
   const row = document.createElement("div");
   row.className = "tagnavigate__row";
-/*
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "tagnavigate__toggle";
-  toggle.textContent = "+";
-  toggle.setAttribute("aria-expanded", String("false"));
-*/
+
   const a = document.createElement("a");
   a.href = "#";
   a.setAttribute("tl", Util.timelineStem(tl._file));
   a.textContent = tl.title || "(untitled)";
 
-//  row.appendChild(toggle);
   row.appendChild(a);
   li.appendChild(row);
 

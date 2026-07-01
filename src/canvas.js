@@ -654,7 +654,7 @@ async function linkToFile(file) {
   return newView;
 }
 
-function linkToTag(origVw, tagID) {
+export function linkToTag(origVw, tagID) {
   // don't open another view if one with this tag is already open; just zoom to it
   const existingVw = appState.views.find((vw) => vw.tagFilter===tagID);
   if (existingVw) {
