@@ -678,7 +678,7 @@ export function linkToTag(origVw, tagID) {
 export async function followHyperlink(origVw, a, forceDisplay) {
   var view = null;
   if (a.hasAttribute("tl")) {
-    const file = a.getAttribute("tl") + ".json.gz";
+    const file = a.getAttribute("tl");
     view = await linkToFile(file);
     //view = await openTimeline(file, true, 0);
   } else if (a.hasAttribute("tag")) {
