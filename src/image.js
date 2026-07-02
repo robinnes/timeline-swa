@@ -216,8 +216,9 @@ function imageCacheKey(subject, tl) {
 }
 
 function imageFilePath(subject, tl) {
-  const folder = Util.timelineStem(tl._file);
-  return `${folder}/${subject.image.file}`;
+  /*const folder = Util.timelineStem(tl._file);
+  return `${folder}/${subject.image.file}`;*/
+  return `${tl._file}/${subject.image.file}`;  // *** change ***
 }
 
 export function getImageObjectUrlfromCache(subject, tl = subject._timeline ?? subject) {
@@ -268,8 +269,9 @@ export function deleteItemImage(item) {
 
 export function clearCachedImagesForTimeline(tl) {
   // iterate cache keys and delete rows matching tl
-  const folder = Util.timelineStem(tl._file);  // filename minus extension
-  const prefix = `${tl._scope}:${folder}`;
+  /*const folder = Util.timelineStem(tl._file);  // filename minus extension
+  const prefix = `${tl._scope}:${folder}`;*/
+  const prefix = `${tl._scope}:${tl._file}`;  // *** change ***
 
   for (const [key, objectUrl] of itemImageBlobCache) {
     if (!key.startsWith(prefix)) continue;

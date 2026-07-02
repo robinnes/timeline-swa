@@ -28,9 +28,9 @@ async function gzipText(text) {
 
 /******************* Shared Access Signature (SAS) *******************/
 
-async function acquireBlobSas(scope, file, mode) {
+async function acquireBlobSas(scope, filename, mode) {
   try {
-    const url = `/api/getBlobSas?scope=${scope}&name=${encodeURIComponent(file)}&mode=${mode}`;
+    const url = `/api/getBlobSas?scope=${scope}&name=${encodeURIComponent(filename)}&mode=${mode}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {'Accept': 'application/json'}
@@ -49,9 +49,11 @@ async function acquireBlobSas(scope, file, mode) {
 
 async function loadTimelineFromStorage(scope, file) {
   try {
+    const filename = Util.addTimelineFileExt(file);  // *** change ***
+
     // acquire SAS token
-    const {url, sasKey} = await acquireBlobSas(scope, file, "read");
-    //const blobUrl = formatURL(file, url, container, sasKey); 
+    //const {url, sasKey} = await acquireBlobSas(scope, filename, "read");
+    const {url, sasKey} = await acquireBlobSas(scope, file, "read");  // *** change ***
 
     // fetch the blob
     const resp = await fetch(url);
@@ -62,15 +64,17 @@ async function loadTimelineFromStorage(scope, file) {
     return JSON.parse(text);
 
   } catch (e) {
-    throw new Error(`Failed to load ${file} from storage: ${e.message}`);
+    throw new Error(`Failed to load ${filename} from storage: ${e.message}`);  // *** change ***
   }
 }
 
 export async function saveTimelineToStorage(scope, file, text) {
   try {
+    const filename = Util.addTimelineFileExt(file);  // *** change ***
     const gzBlob = await gzipText(text);  // compress it
     
-    const {url, sasKey} = await acquireBlobSas(scope, file, "write");
+    //const {url, sasKey} = await acquireBlobSas(scope, file, "write");
+    const {url, sasKey} = await acquireBlobSas(scope, filename, "write"); // *** change ***
 
     const response = await fetch(url, {
       method: 'PUT',
@@ -96,7 +100,7 @@ export async function saveTimelineToStorage(scope, file, text) {
     if (!response.ok) throw new Error(`Failed to upload blob: ${response.status} ${response.statusText}`);
     return true;
   } catch (e) {
-    throw new Error(`Failed to save ${file} to storage: ${e.message}`);
+    throw new Error(`Failed to save ${filename} to storage: ${e.message}`);  // *** change ***
   }
 }
 
@@ -124,10 +128,11 @@ export async function getTimeline(scope, file) {
 }
 
 export async function publishTimelineToPublic(file) {
+  const filename = Util.addTimelineFileExt(file);  // *** change ***
   const resp = await fetch('/api/publishTimeline', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ timelineFile: file })
+    body: JSON.stringify({ timelineFile: filename })  // *** change ***
   });
 
   if (!resp.ok) throw new Error(await resp.text());
@@ -154,13 +159,16 @@ export async function getTimelineList(scope) {
 /******************* Item images (thumbnails) *******************/
 
 function imageFileName(timelineFile, id) {
-  return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(id)}_thumb.webp`;
+  //return `${Util.timelineStem(timelineFile)}/${encodeURIComponent(id)}_thumb.webp`;
+  return `${timelineFile}/${encodeURIComponent(id)}_thumb.webp`;  // *** change ***
 }
 
 export async function saveImageToStorage(scope, timelineFile, id, blob) {
   try {
-    const file = imageFileName(timelineFile, id);
-    const {url} = await acquireBlobSas(scope, file, "write");
+//    const file = imageFileName(timelineFile, id);
+    const filename = imageFileName(timelineFile, id);  // *** change ***
+//    const {url} = await acquireBlobSas(scope, file, "write");
+    const {url} = await acquireBlobSas(scope, filename, "write");  // *** change ***
 
     const resp = await fetch(url, {
       method: 'PUT',
@@ -174,7 +182,8 @@ export async function saveImageToStorage(scope, timelineFile, id, blob) {
     if (!resp.ok) throw new Error(`Failed to upload image blob: ${resp.status} ${resp.statusText}`);
 
     // Store this relative name in item.image.file, not the SAS URL.
-    return file;
+    //return file;
+    return filename;  // *** change ***
 
   } catch (e) {
     throw new Error(`Failed to save item image for ${timelineFile}/${id}: ${e.message}`);
@@ -196,7 +205,7 @@ export async function loadItemImageFromStorage(scope, imageFile) {
     throw new Error(`Failed to load item image ${imageFile}: ${e.message}`);
   }
 }
-
+/*
 export async function getItemImageUrl(scope, imageFile) {
   try {
     if (!imageFile) return null;
@@ -211,7 +220,7 @@ export async function getItemImageUrl(scope, imageFile) {
     throw new Error(`Failed to get item image URL ${imageFile}: ${e.message}`);
   }
 }
-
+*/
 /*
 export async function deleteItemImageFromStorage(scope, imageFile) {
   if (!imageFile) return false;
@@ -229,10 +238,12 @@ export async function deleteItemImageFromStorage(scope, imageFile) {
 */
 
 export async function deleteOrphanedImages(scope, file) {
+  const filename = Util.addTimelineFileExt(file);  // *** change ***
   const resp = await fetch('/api/deleteOrphanedImages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ scope: scope, timelineFile: file })
+    //body: JSON.stringify({ scope: scope, timelineFile: file })
+    body: JSON.stringify({ scope: scope, timelineFile: filename })  // *** change ***
   });
 
   if (!resp.ok) throw new Error(await resp.text());

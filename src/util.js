@@ -45,6 +45,13 @@ export function timelineStem(file) {
   return String(file || '').replace(/\.json\.gz$/i, '');
 }
 
+export function removeTimelineFileExt(file) {
+  return String(file || '').replace(/\.json\.gz$/i, '');
+}
+
+export function addTimelineFileExt(file) {
+  return `${file || ''}.json.gz`;
+}
 
 // **********************************************************************************************************************
 

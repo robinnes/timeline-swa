@@ -605,7 +605,8 @@ function renderTimelineNode(tl)
 
   const a = document.createElement("a");
   a.href = "#";
-  a.setAttribute("tl", Util.timelineStem(tl._file));
+  //a.setAttribute("tl", Util.timelineStem(tl._file));
+  a.setAttribute("tl", tl._file);   // *** change ***
   a.textContent = tl.title || "(untitled)";
 
   row.appendChild(a);

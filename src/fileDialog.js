@@ -142,9 +142,10 @@ function renderOpenTimelineTable() {
     tr.classList.add('open-dialog__row');
     tr.dataset.blobName = blob.name;
 
-    const displayName = blob.name.endsWith(TIMELINE_FILE_EXT)
+/*    const displayName = blob.name.endsWith(TIMELINE_FILE_EXT)
       ? blob.name.slice(0, TIMELINE_FILE_EXT.length * -1)
-      : blob.name;
+      : blob.name;*/
+    const displayName = Util.removeTimelineFileExt(blob.name);   // ***change***
 
     const nameTd = document.createElement('td');
     nameTd.textContent = displayName;
@@ -263,11 +264,12 @@ async function handleOpenTimelineConfirm() {
 
     let filename = openTimelineFilenameInput.value.trim();
     if (!filename) return;
-
-    // Ensure .json extension
+/*
+    // Ensure .json extension   *** change ***
     if (!filename.toLowerCase().endsWith('TIMELINE_FILE_EXT')) {
       filename = `${filename}${TIMELINE_FILE_EXT}`;
     }
+*/
     appState.selected.timeline._file = filename;
 
     saveTimeline(appState.selected.timeline).then(() => {
