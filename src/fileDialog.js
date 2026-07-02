@@ -140,12 +140,13 @@ function renderOpenTimelineTable() {
   sorted.forEach((blob) => {
     const tr = document.createElement('tr');
     tr.classList.add('open-dialog__row');
-    tr.dataset.blobName = blob.name;
+    //tr.dataset.blobName = blob.name;  // *** change ***
 
 /*    const displayName = blob.name.endsWith(TIMELINE_FILE_EXT)
       ? blob.name.slice(0, TIMELINE_FILE_EXT.length * -1)
       : blob.name;*/
-    const displayName = Util.removeTimelineFileExt(blob.name);   // ***change***
+    const displayName = Util.removeTimelineFileExt(blob.name);   // *** change ***
+    tr.dataset.blobName = displayName;  // *** change ***
 
     const nameTd = document.createElement('td');
     nameTd.textContent = displayName;
@@ -159,7 +160,8 @@ function renderOpenTimelineTable() {
     tr.appendChild(lastModifiedTd);
 
     tr.addEventListener('click', () => {
-      openDialogSelectedName = blob.name;
+      //openDialogSelectedName = blob.name;  // *** change ***
+      openDialogSelectedName = tr.dataset.blobName;  // *** change ***
 
       // Highlight selected row
       openTimelineTbody.querySelectorAll('.open-dialog__row').forEach((row) => {
@@ -171,7 +173,8 @@ function renderOpenTimelineTable() {
 
     // double-click to open immediately
     tr.addEventListener('dblclick', () => {
-      openDialogSelectedName = blob.name;
+      //openDialogSelectedName = blob.name;  // *** change ***
+      openDialogSelectedName = tr.dataset.blobName;  // *** change ***
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
       handleOpenTimelineConfirm();
     });

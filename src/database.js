@@ -115,7 +115,7 @@ export async function getTimeline(scope, file) {
   } catch (err) {
     if (Util.isLocalEnv) {
       // return local file if running locally
-      const response = await fetch(`data/${file}`);  // only works when a local server is running
+      const response = await fetch(`data/${file}.json.gz`);  // only works when a local server is running
       const tl = await response.json();
 
       await sleep(500);  // simulate database access
