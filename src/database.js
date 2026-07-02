@@ -53,7 +53,7 @@ async function loadTimelineFromStorage(scope, file) {
 
     // acquire SAS token
     //const {url, sasKey} = await acquireBlobSas(scope, filename, "read");
-    const {url, sasKey} = await acquireBlobSas(scope, file, "read");  // *** change ***
+    const {url, sasKey} = await acquireBlobSas(scope, filename, "read");  // *** change ***
 
     // fetch the blob
     const resp = await fetch(url);
