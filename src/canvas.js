@@ -680,7 +680,7 @@ export async function followHyperlink(origVw, a, forceDisplay) {
   if (a.hasAttribute("tl")) {
     const file = a.getAttribute("tl");
     view = await linkToFile(file);
-    //view = await openTimeline(file, true, 0);
+    
   } else if (a.hasAttribute("tag")) {
     const tag = a.getAttribute("tag");
     view = linkToTag(origVw, tag);
