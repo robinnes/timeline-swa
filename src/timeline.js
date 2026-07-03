@@ -38,39 +38,24 @@ export function timelineString(tl) {
                         id, label, parentId, order, image, details
     })),
     items: tl.items.map(item => {
-      if (item.date) {
-        return {
-          id: item.id,
-          itemType: item.itemType,
-          dateSpecification: item.dateSpecification,
-          prominence: item.prominence,
-          label: item.label,
-          date: serializeCompoundDate(item.date),
-          color: item.color,
-          details: item.details,
-          image: item.image,
-          tagIds: item.tagIds,
-          include: item.include
-        } 
-      } else {
-        return {
-          id: item.id,
-          itemType: item.itemType,
-          dateSpecification: item.dateSpecification,
-          prominence: item.prominence,
-          label: item.label,
-          dateFrom: serializeCompoundDate(item.dateFrom),
-          dateTo: serializeCompoundDate(item.dateTo),
-          fadeLeft: serializeCompoundDate(item.fadeLeft),
-          fadeRight: serializeCompoundDate(item.fadeRight),
-          color: item.color,
-          colorLeft: item.colorLeft,
-          colorRight: item.colorRight,
-          details: item.details,
-          image: item.image,
-          tagIds: item.tagIds,
-          include: item.include
-        }
+      return {
+        id: item.id,
+        itemType: item.itemType,
+        dateSpecification: item.dateSpecification,
+        prominence: item.prominence,
+        label: item.label,
+        date: serializeCompoundDate(item.date),
+        dateFrom: serializeCompoundDate(item.dateFrom),
+        dateTo: serializeCompoundDate(item.dateTo),
+        fadeLeft: serializeCompoundDate(item.fadeLeft),
+        fadeRight: serializeCompoundDate(item.fadeRight),
+        color: item.color,
+        colorLeft: item.colorLeft,
+        colorRight: item.colorRight,
+        details: item.details,
+        image: item.image,
+        tagIds: item.tagIds,
+        include: item.include
       }
     })
   };
@@ -87,8 +72,6 @@ export function initializeItem(i) {
   // Check 'include' flag if not present or no tags are selected (force visibility)
   if (i.include===undefined || i.tagIds.length===0) i.include = true;
   
-  //if (i.thumbnail) i.image = {thumbnail: i.thumbnail};  // backward compatibility
-
   // Establish properties for positioning labels
   const thumbnail = !!i?.image?.thumbnail;  // whether i has an image.thumbnail
   const parsed = parseLabel(i.label, thumbnail);
@@ -103,10 +86,12 @@ export function initializeItem(i) {
   if (i.dateSpecification === 'point') {
     if (!i.date) {  // switched from line to dot
       i.date = {...i.dateFrom};  
-      i.dateFrom = null;
-      i.dateTo = null;
-      i.fadeLeft = null;
-      i.fadeRight = null;
+      delete i.dateFrom;
+      delete i.dateTo;
+      delete i.fadeLeft;
+      delete i.fadeRight;
+      delete i.colorLeft;
+      delete i.colorRight;
     }
 
     // derived attributes for rendering
@@ -126,7 +111,7 @@ export function initializeItem(i) {
       i.fadeLeft = {...i.date};
       i.dateTo = tickSpec.get(i.date.prec).inclusive ? {...i.date} : {ts:tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1), prec:i.dateFrom.prec};
       i.fadeRight = {...i.dateTo};
-      i.date = null;
+      delete i.date;
     }
 
     i.dateFrom._mid = Math.round((i.dateFrom.ts + tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1)) / 2);

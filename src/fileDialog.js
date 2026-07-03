@@ -367,17 +367,14 @@ openTimelineFilenameInput.addEventListener('input', () => {
 function tempSimulateList(scope) {
   if (scope === "public") {
     return([
-      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/modernisrael.json.gz"}
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/Rob Innes.json.gz"}
     ]);
   } else {
     return([ 
-      {lastModified:"Mon, 17 Nov 2025 19:20:27 GMT", name:"career.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"modernisrael.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 01:47:33 GMT", name:"movetotx.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 05:33:13 GMT", name:"robandanh.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robinnes.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"RobTest.json.gz"},
-      {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"sherryinnes.json"}
+      {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"Modern Israel.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"Rob Innes.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 08:45:38 GMT", name:"robtest.json.gz"},
+      {lastModified:"Mon, 17 Nov 2025 07:07:05 GMT", name:"Sherry Innes.json.gz"}
     ]);
   }
 }

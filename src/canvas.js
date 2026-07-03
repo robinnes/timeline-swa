@@ -307,7 +307,6 @@ canvas.addEventListener('click', function (e) {
   const elem = screenElements[appState.highlighted.idx];
   if (elem.type === 'tick') {
     // enter 'fixed pan mode' where each arrow key press moves a year/month/etc.
-    //const m = (elem.mode === 'day') ? 'week' : elem.mode;  // hack: not going to drill to day
     appState.fixedPanMode = tickSpec.get(elem.mode);
     zoomToTick(elem.t);
 
