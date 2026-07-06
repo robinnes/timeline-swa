@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - preview
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+      - preview
 
 jobs:
   build_and_deploy_job:
@@ -31,6 +33,8 @@ jobs:
           app_location: "./src" # App source code path
           api_location: "./api" # Api source code path - optional
           output_location: "." # Built app content directory - optional
+          production_branch: "main"
+          deployment_environment: ${{ github.ref_name == 'preview' && 'preview' || '' }}
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
