@@ -18,7 +18,7 @@ app.http('publishTimeline', {
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-      const containerName = 'timelines';
+      const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
 
       let usernameKey;
       try {

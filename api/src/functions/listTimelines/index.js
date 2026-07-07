@@ -18,7 +18,7 @@ app.http('listTimelines', {
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-      const containerName = 'timelines';
+      const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
       const url = new URL(request.url);
       const public = url.searchParams.has('public');  // return list of public docs if 'public' parameter is present
       let prefix = 'public/';

@@ -37,9 +37,10 @@ app.http('deleteOrphanedImages', {
       }
 
       const conn = process.env.TIMELINE_STORAGE_CONN;
+      const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
       const container = BlobServiceClient
         .fromConnectionString(conn)
-        .getContainerClient('timelines');
+        .getContainerClient(containerName);
 
       const base =
         scope === 'private'

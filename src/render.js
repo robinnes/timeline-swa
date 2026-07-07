@@ -777,7 +777,7 @@ export function positionViews(zoom) {
   const wh = window.innerHeight;
   const c = appState.views.length;
   const height = wh - TICK.TICK_TOP - TICK.TICK_LABEL_HEIGHT;
-  const h = (c===1) ? wh/2 : ((height)/(c+1)) + ((height)/((c+1)*c*2));
+  const h = (c===1) ? wh * 0.6 : ((height)/(c+1)) + ((height)/((c+1)*c*2));
   let p = h;
 
   // iterate through timelines in reverse
