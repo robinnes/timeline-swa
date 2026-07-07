@@ -25,7 +25,7 @@ app.http('getBlobSas', {
   handler: async (request, context) => {
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
-      const containerName = 'timelines';
+      const containerName = process.env.TIMELINE_STORAGE_CONTAINER;  //'timelines';
       const {scope, name, mode} = await getParams(request);
       if (!name) return badRequest('Missing filename. Provide ?scope=<public|private>&name=<filename>&mode=<read|write>.');
 

@@ -71,4 +71,4 @@ export const TOUCH = {
   SIMULATE_MODE: false  // force pointer event handlers in mobile.js, even with a mouse
 };
 
-export const CONTAINER = 'timelines';
+//export const CONTAINER = 'timelines';
