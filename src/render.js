@@ -30,7 +30,7 @@ export function isMouseOver(left, right, top, bottom) {
 export function drawEnvAlert() {
   // if environment is other than production (or null) watermark the canvas
   const env = appState.configuration?.environment;
-  if (env) {
+  if ((env ?? 'production') != 'production') {
     ctx.save();
     ctx.font = "bold 96px 'Segoe UI', Arial, sans-serif";
     ctx.fillStyle = "rgba(255, 255, 255, 0.055)";
