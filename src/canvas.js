@@ -1,7 +1,7 @@
 import {TIME, TOUCH, ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver} from './render.js';
+import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, drawEnvAlert} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
 import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
@@ -65,7 +65,8 @@ export const appState = {
     pinchMidT: 0,
     pinchEverOccurred: false
   },
-  views:[]
+  views:[],
+  configuration: null
 }
 
 export const timelineCache = new Map();
@@ -76,8 +77,10 @@ export const screenElements = [];  // Elements currently rendered on screen that
 
 export async function initialLoad() {
 
-  const config = await getConfiguration();
-  console.log(config);
+  getConfiguration().then(config => {
+    if (config) appState.configuration = config;
+    draw();
+  });
 
   const userId = await getAuthState();
   appState.authentication.userId = userId;
@@ -156,6 +159,7 @@ export function draw(reposition){
     appState.highlighted.linkIdx = -1;
     drawTicks();
     drawItems();
+    drawEnvAlert();
 
   } catch (err) {
     debugAppendText(err.stack);

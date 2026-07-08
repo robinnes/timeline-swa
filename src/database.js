@@ -30,8 +30,10 @@ async function gzipText(text) {
 /******************* Instance configuration *******************/
 
 export async function getConfiguration() {
+  // fetch configuration settings from the server
   const res = await fetch('/api/getConfiguration');
-  if (!res.ok) throw new Error('Failed to load configuration');
+  if (!res.ok) return {environment: 'unknown'};
+  
   return await res.json();
 }
 
