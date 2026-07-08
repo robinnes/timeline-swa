@@ -26,6 +26,16 @@ async function gzipText(text) {
   return await new Response(compressedStream).blob();
 }
 
+
+/******************* Instance configuration *******************/
+
+export async function getConfiguration() {
+  const res = await fetch('/api/getConfiguration');
+  if (!res.ok) throw new Error('Failed to load configuration');
+  return await res.json();
+}
+
+
 /******************* Shared Access Signature (SAS) *******************/
 
 async function acquireBlobSas(scope, filename, mode) {

@@ -9,6 +9,7 @@ import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getAuthState, saveSessionState, restoreSessionState} from './session.js';
+import {getConfiguration} from './database.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
@@ -74,6 +75,9 @@ export const screenElements = [];  // Elements currently rendered on screen that
 /* ------------------- Functions -------------------- */
 
 export async function initialLoad() {
+
+  const config = await getConfiguration();
+  console.log(config);
 
   const userId = await getAuthState();
   appState.authentication.userId = userId;
