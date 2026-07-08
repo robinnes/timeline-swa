@@ -40,11 +40,6 @@ export function uuid() {
   return crypto.randomUUID();
 }
 
-export function timelineStem(file) {
-  // remove '.json' extension from filename
-  return String(file || '').replace(/\.json\.gz$/i, '');
-}
-
 export function removeTimelineFileExt(file) {
   return String(file || '').replace(/\.json\.gz$/i, '');
 }

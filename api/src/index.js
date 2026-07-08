@@ -12,3 +12,4 @@ require('./functions/getBlobSas/index.js');
 require('./functions/listTimelines/index.js');
 require('./functions/publishTimeline/index.js');
 require('./functions/deleteOrphanedImages/index.js');
+require('./functions/getConfiguration/index.js');

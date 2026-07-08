@@ -27,6 +27,24 @@ export function isMouseOver(left, right, top, bottom) {
   return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
 }
 
+export function drawEnvAlert() {
+  // if environment is other than production (or null) watermark the canvas
+  const env = appState.configuration?.environment;
+  if (env) {
+    ctx.save();
+    ctx.font = "bold 96px 'Segoe UI', Arial, sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.055)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.translate(canvas.width / (2 * window.devicePixelRatio),
+                  canvas.height / (2 * window.devicePixelRatio));
+    ctx.rotate(-Math.PI / 8);   // -22.5°
+
+    ctx.fillText(env, 0, 0);
+    ctx.restore();
+  }
+}
 
 /***************************** Colors *****************************/
 
