@@ -27,24 +27,6 @@ export function isMouseOver(left, right, top, bottom) {
   return (appState.mouseX >= left && appState.mouseX <= right && appState.mouseY >= top && appState.mouseY <= bottom);
 }
 
-export function drawEnvAlert() {
-  // if environment is other than production (or null) watermark the canvas
-  const env = appState.configuration?.environment;
-  if ((env ?? 'production') != 'production') {
-    ctx.save();
-    ctx.font = "bold 96px 'Segoe UI', Arial, sans-serif";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.055)";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.translate(canvas.width / (2 * window.devicePixelRatio),
-                  canvas.height / (2 * window.devicePixelRatio));
-    ctx.rotate(-Math.PI / 8);   // -22.5°
-
-    ctx.fillText(env, 0, 0);
-    ctx.restore();
-  }
-}
 
 /***************************** Colors *****************************/
 
@@ -70,6 +52,65 @@ function colorMix(rgb1, rgb2) {
       b:Math.round((rgb1.b + rgb2.b)/2)
     };
   return m;
+}
+
+
+/**************************************** Static elements  *****************************************/
+
+export function drawEnvAlert() {
+  // if environment is other than production (or null) watermark the canvas
+  const env = appState.configuration?.environment;
+  if ((env ?? 'production') != 'production') {
+    ctx.save();
+    ctx.font = "bold 96px 'Segoe UI', Arial, sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.055)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.translate(canvas.width / (2 * window.devicePixelRatio),
+                  canvas.height / (2 * window.devicePixelRatio));
+    ctx.rotate(-Math.PI / 8);   // -22.5°
+
+    ctx.fillText(env, 0, 0);
+    ctx.restore();
+  }
+}
+
+export function drawAboutFooter() {
+
+  // © 2026 OpenTL.app · Beta · About
+  let x = 8;
+  let y = window.innerHeight - 18;
+  const h = 20;
+
+  ctx.save();
+  ctx.font = "12px system-ui, -apple-system, 'Segoe UI', sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+
+  const display = (label, link = false) => {
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    const w = ctx.measureText(label).width;
+    
+    if (link) {
+      screenElements.push({left:x, right:x+w, top:y, bottom:y+h, type:"button", subType:label});
+      if (isMouseOver(x, x+w, y, y+h)) {
+        appState.highlighted.idx = screenElements.length - 1;
+        ctx.fillStyle = "rgba(106,166,255,0.85)"
+      }
+    }
+
+    ctx.fillText(label, x, y);
+    x += w;
+  };
+
+  display("© 2026 OpenTL.app");
+  display(" · ");
+  display("Beta");
+  display(" · ");
+  display("About", true);
+  
+  ctx.restore();
 }
 
 
