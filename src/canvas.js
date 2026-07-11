@@ -1,7 +1,7 @@
 import {TIME, TOUCH, ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, drawEnvAlert} from './render.js';
+import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
 import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
@@ -157,9 +157,10 @@ export function draw(reposition){
     screenElements.length = 0;  // reset list of screen elements
     appState.highlighted.idx = -1;
     appState.highlighted.linkIdx = -1;
+    drawEnvAlert();
     drawTicks();
     drawItems();
-    drawEnvAlert();
+    drawAboutFooter();
 
   } catch (err) {
     debugAppendText(err.stack);
@@ -336,6 +337,7 @@ canvas.addEventListener('click', function (e) {
   } else if (elem.type === 'button') {
     if (elem.subType === 'close-timeline') closeView(elem.view); 
     else if (elem.subType === 'add-item') addNewItem(elem.view);
+    else if (elem.subType === 'About') window.open("./about/", "_blank", "noopener");
   }
 });
 
