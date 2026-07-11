@@ -297,7 +297,6 @@ canvas.addEventListener('click', function (e) {
   if (appState.highlighted.linkIdx > -1) {
     // hyperlink clicked
     const link = screenElements[appState.highlighted.linkIdx].subType;  // format:"attr=value"
-console.log({link});
     const vw = screenElements[appState.highlighted.idx]?.view;  // have to retrieve view from label beneath
     if (!vw) return;
     // construct an HTML object

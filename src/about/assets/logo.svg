@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">OpenTL logo</title>
+  <desc id="desc">A globe crossed by a stylized timeline.</desc>
+  <g fill="none" stroke="#6aa6ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="80" cy="80" r="55"/>
+    <path d="M80 25c-18 16-28 35-28 55s10 39 28 55M80 25c18 16 28 35 28 55s-10 39-28 55M28 58h104M28 102h104" opacity=".8"/>
+    <path d="M14 80h132" stroke-width="14"/>
+  </g>
+  <g fill="#f5f8ff">
+    <circle cx="44" cy="80" r="6"/>
+    <circle cx="80" cy="80" r="6"/>
+    <circle cx="116" cy="80" r="6"/>
+  </g>
+</svg>
