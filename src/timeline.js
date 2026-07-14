@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {getTimeline, saveTimelineToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+import {loadTimelineFromStorage, saveTimelineToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -179,7 +179,12 @@ export async function loadTimeline(file) {
 
   // if file does not include a slash ("/") then it's private, otherwise public
   const scope = file.includes('/') ? 'public' : 'private';  
-  const tl = await getTimeline(scope, file);  // retrieve from storage
+  
+  Util.showGlobalBusyCursor();
+  const tl = await loadTimelineFromStorage(scope, file);  // retrieve from storage
+  Util.hideGlobalBusyCursor();
+
+  if (!tl) return;
 
   if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
   tl._file = (file.endsWith('.json')) ? `${file}.gz` : file;

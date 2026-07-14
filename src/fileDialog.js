@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {loadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
-import {appState, zoomToView, /*openTimeline*/ getTimeline, openView} from './canvas.js';
+import {appState, zoomToView, getTimeline, openView} from './canvas.js';
 import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
