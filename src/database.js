@@ -61,7 +61,7 @@ async function acquireBlobSas(scope, filename, mode) {
 
 export async function loadTimelineFromStorage(scope, file) {
 
-  const isLocal = Util.isLocalEnv();
+  const isLocal = await Util.isLocalEnv();
   if (isLocal) return await tempSimulateLoadFile(scope, file);
 
   try {
