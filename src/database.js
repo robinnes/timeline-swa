@@ -61,7 +61,8 @@ async function acquireBlobSas(scope, filename, mode) {
 
 export async function loadTimelineFromStorage(scope, file) {
 
-  if (Util.isLocalEnv) return await tempSimulateLoadFile(scope, file);
+  const isLocal = Util.isLocalEnv;
+  if (isLocal) return await tempSimulateLoadFile(scope, file);
 
   try {
     const filename = Util.addTimelineFileExt(file);
@@ -78,7 +79,7 @@ export async function loadTimelineFromStorage(scope, file) {
     return JSON.parse(text);
 
   } catch (e) {
-    console.error(`Failed to load ${filename} from storage: ${e.message}`);
+    console.error(`Failed to load ${file} from storage: ${e.message}`);
   }
 }
 
@@ -116,23 +117,6 @@ export async function saveTimelineToStorage(scope, file, text) {
     throw new Error(`Failed to save ${filename} to storage: ${e.message}`);
   }
 }
-
-/*
-export async function getTimeline(scope, file) {
-  Util.showGlobalBusyCursor();
-  try {
-    // retrieve from Azure blob storage
-    const tl = await loadTimelineFromStorage(scope, file);
-    Util.hideGlobalBusyCursor();
-    return tl;
-    
-  } catch (err) {
-    if (Util.isLocalEnv) return tempSimulateLoadFile(scope, file);
-    console.error(err);
-  }
-  Util.hideGlobalBusyCursor();
-}
-*/
 
 export async function publishTimelineToPublic(file) {
   const filename = Util.addTimelineFileExt(file);
