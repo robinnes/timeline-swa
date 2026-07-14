@@ -296,14 +296,18 @@ canvas.addEventListener('click', function (e) {
 
   if (appState.highlighted.linkIdx > -1) {
     // hyperlink clicked
-    const link = screenElements[appState.highlighted.linkIdx].subType;  // format:"attr=value"
     const vw = screenElements[appState.highlighted.idx]?.view;  // have to retrieve view from label beneath
     if (!vw) return;
-    // construct an HTML object
-    const [attr, value] = link.split("=", 2);
-    const a = document.createElement("a");
-    a.setAttribute(attr, value);
-    followHyperlink(vw, a, false);
+    const link = screenElements[appState.highlighted.linkIdx].subType;  // format:"attr=value"
+
+    // parse link
+    const element = new DOMParser()
+      .parseFromString(link, "text/html")
+      .querySelector("a");
+    const tl = element.getAttribute("tl");
+    const tag = element.getAttribute("tag");
+
+    followHyperlink(tl || vw._file, tag, vw, false);
     return;
   }
 
@@ -645,111 +649,82 @@ function zoomToTick(t, t2) {
 
 /* ------------------- View/Timeline management -------------------- */
 
-function getViewForFile(file) {
-  // (for now) if file does not include a slash ("/") then it's private, otherwise public
-  //const scope = file.includes('/') ? 'public' : 'private';
-  const found = appState.views.find(vw => vw.file === file && vw.tagFilter === null /*&& vw.scope === scope*/);
-  return(found);
-}
+export async function followHyperlink(file, tagID, origVw, forceDisplay) {
 
-async function linkToFile(file) {
-  // check if timeline is already there
-  let existingVw = getViewForFile(file);
-  if (existingVw) {
-    zoomToView(existingVw);
-    return existingVw;
-  }
-  const newView = openTimeline(file, true, 0);
-  return newView;
-}
+  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw.tlKey);
 
-export function linkToTag(origVw, tagID) {
-  // don't open another view if one with this tag is already open; just zoom to it
-  const existingVw = appState.views.find((vw) => vw.tagFilter===tagID);
-  if (existingVw) {
-    zoomToView(existingVw);
-    return existingVw;
-  }
-
-  const origIdx = appState.views.indexOf(origVw);
-  const newVw = structuredClone(origVw);  // copy originating view
-  newVw.tagFilter = tagID;
-  filterItemsForView(newVw);  // establish min/max dates
-
-  appState.views.splice(origIdx+1, 0, newVw);  // insert above originating view
-  saveSessionState();
-  //positionViews(false);
-  zoomToView(newVw);
-
-  return newVw;
-}
-
-export async function followHyperlink(origVw, a, forceDisplay) {
-  var view = null;
-  if (a.hasAttribute("tl")) {
-    const file = a.getAttribute("tl");
-    view = await linkToFile(file);
-    
-  } else if (a.hasAttribute("tag")) {
-    const tag = a.getAttribute("tag");
-    view = linkToTag(origVw, tag);
-  }
+  const view = openView(tl, tagID, origVw);
   if (view) {
-    const tl = timelineCache.get(view.tlKey);
     appState.selected.view = view;
     appState.selected.item = null;
-  
+
     const display = sidebarIsOpen() || forceDisplay;
     openSelectedView(display);
-    return true;
   }
-  return false;
 }
 
-export async function openTimeline(file, zoom, sourceView) {
-  let existingVw = getViewForFile(file);
-  if (existingVw) {
-    // timeline is already present
-    const tlKey = existingVw.tlKey;
-    const existingTL = timelineCache.get(tlKey);
-    // check before reloading timeline that's being edited
-    if (existingTL?._dirty) {
-      const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
-      if (!ok) return;  // consider returning a false here and not closing fileDialog
-    }
-    // delete present timeline and all views pointing to it, then reload
-    timelineCache.delete(tlKey);
-    while (existingVw) {
-      const idx = appState.views.indexOf(existingVw);
-      appState.views.splice(idx, 1);
-      existingVw = getViewForFile(file);
+export async function getTimeline(file, reload) {
+  // locate timeline indicated by file in timelineCache (can't use the map's key)
+  let tlKey = null;
+  for (const [key, tl] of timelineCache.entries()) {
+    if (tl._file === file) {
+      tlKey = key;
+      break;
     }
   }
-  const tl = await loadTimeline(file);  // retrieve timeline from storage
-  const view = {
+
+  if (tlKey) {
+    const existingTL = timelineCache.get(tlKey);
+    if (!reload) return existingTL;
+
+    // check before reloading timeline that's being edited
+    if (existingTL._dirty) {
+      const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
+      if (!ok) return;
+    }
+    // delete present timeline and all views pointing to it before reloading
+    timelineCache.delete(tlKey);
+    let view = appState.views.find(vw => vw.tlKey === tlKey);
+    while (view) {
+      const idx = appState.views.indexOf(view);
+      appState.views.splice(idx, 1);
+      view = appState.views.find(vw => vw.tlKey === tlKey);
+    }
+  }
+
+  const newTL = await loadTimeline(file);  // retrieve timeline from storage
+  return newTL;
+}
+
+export function openView(tl, tagID, origVw) {
+  const ExistingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagID === tagID);
+  if (ExistingView) return ExistingView;
+
+  const newView = {
     tlKey: tl._key,
     file: tl._file,
     scope: tl._scope,
     tFrom: null,
     tTo: null,
-    tagFilter: null,
-    itemPos: []
+    tagFilter: tagID,
+    itemPos: [],
+    yPos: origVw?.yPos,
+    ceiling: origVw?.ceiling
   }
-  filterItemsForView(view);  // establish min/max dates for view (tFrom/tTo)
+  filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
 
-  if (!sourceView) appState.views.push(view);
-  else appState.views.splice(sourceView, 0, view);  // insert above currently selected view
-  saveSessionState();
-  positionViews(false);
-
-  if (!zoom) {
-    centerOnView(view);
+  if (!origVw) {
+    appState.views.push(newView);
+    positionViews(false);
   } else {
-    zoomToView(view);
+    const origIdx = appState.views.indexOf(origVw);
+    appState.views.splice(origIdx+1, 0, newView);  // insert above currently selected view
   }
-  return view;
-}
+  saveSessionState();
 
+  zoomToView(newView);
+  return newView;
+}
 
 /* ------------------- Canvas button handling -------------------- */
 

@@ -114,6 +114,7 @@ export async function saveTimelineToStorage(scope, file, text) {
   }
 }
 
+// the only purpose is the busy cursor and fetching local files in dev... let's eliminate
 export async function getTimeline(scope, file) {
   Util.showGlobalBusyCursor();
   try {
@@ -129,12 +130,11 @@ export async function getTimeline(scope, file) {
       const tl = await response.json();
 
       await sleep(500);  // simulate database access
-      Util.hideGlobalBusyCursor();
       return tl;
     }
-
     console.error(err);
   }
+  Util.hideGlobalBusyCursor();
 }
 
 export async function publishTimelineToPublic(file) {

@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, timelineCache, linkToTag} from './canvas.js';
+import {appState, draw, timelineCache, followHyperlink} from './canvas.js';
 import {markDirty} from './panel.js';
 import {initializeTag} from './timeline.js';
 
@@ -220,17 +220,18 @@ function addChild(parentId) {
   addTag({ asChild: true });
 }
 
-function copyLink(tagId) {
-  selectedTagId = tagId;
+function copyLink(tagID) {
+  selectedTagId = tagID;
   const tl = currentTimeline();
-  const tag = tl.tags.find(t => t.id === tagId);
+  const tag = tl.tags.find(t => t.id === tagID);
   const label = tag.label;
 
   // generate hyperlink to this tag
-  const link = `<a href="#" tag="${tagId}">${label}</a>`;
+  const link = `<a href="#" tag="${tagID}">${label}</a>`;
   navigator.clipboard.writeText(link);
 
-  linkToTag(appState.selected.view, tag.id);
+  const vw = appState.selected.view;
+  followHyperlink(tl._file, tagID, vw, false);
 }
 
 function beginRename(tagId) {
