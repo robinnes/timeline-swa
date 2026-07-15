@@ -88,16 +88,13 @@ export async function initialLoad() {
   // if there is a user session underway then restore
   await restoreSessionState();
 
-/* disable for now...
   // open public timeline indicated param "tl" if present
   const params = new URLSearchParams(window.location.search);
-  const tlParam = params.get("tl");
-
-  if (tlParam) {
-    const file = tlParam + ".json";
-    openTimeline(file, false);
+  const tl = params.get("tl");
+  if (tl) {
+    const tag = params.get("tag");
+    followHyperlink(tl, tag, null, false);
   }
-*/
 }
 
 export function getCanvasViewport() {
@@ -651,7 +648,7 @@ function zoomToTick(t, t2) {
 
 export async function followHyperlink(file, tagID, origVw, forceDisplay) {
 
-  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw.tlKey);
+  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw?.tlKey);
 
   const view = openView(tl, tagID, origVw);
   if (view) {
@@ -697,8 +694,11 @@ export async function getTimeline(file, reload) {
 }
 
 export function openView(tl, tagID, origVw) {
-  const ExistingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagID === tagID);
-  if (ExistingView) return ExistingView;
+  const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
+  if (existingView) {
+    zoomToView(existingView);
+    return existingView;
+  }
 
   const newView = {
     tlKey: tl._key,
