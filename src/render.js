@@ -302,7 +302,7 @@ function drawDateHandles(itemPos) {
 }
 
 
-/***************************** Timeline labels *****************************/
+/***************************** View labels *****************************/
 
 function labelForVw(vw) {
   // the timeline's title or if view is filtered by a tag, the tag's label
@@ -323,7 +323,7 @@ function positionTimelineLabel(vw) {
   const height = DRAW.LABEL_LINE_HEIGHT + DRAW.EDGE_GAP;
 
   return {left:left, right:right, top:top, bottom:bottom,
-    btnLeft:right, btnRight:right+height, btnTop:top, btnBottom:bottom};
+    btnLeft:right + 6, btnRight:right+height + 6, btnTop:top, btnBottom:bottom};
 };
 
 function registerTimelineLabel(vw) {
@@ -353,15 +353,6 @@ function drawTimelineLabel(vw, highlight) {
   const btnRadius = btnSize / 4;
 
   ctx.save();
-/*
-  ctx.fillStyle = window.getComputedStyle(document.body).backgroundColor;
-  let grad = ctx.createLinearGradient(0, p.top, 0, p.bottom);
-  grad.addColorStop(0.0, 'rgba(0,0,0,0)');
-  grad.addColorStop(0.5, 'rgba(0,0,0,1)');
-  grad.addColorStop(1.0, 'rgba(0,0,0,0)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(p.left, p.top, width, height);
-*/
   ctx.fillStyle = 'rgb(40,40,40)';
   ctx.strokeStyle = 'rgba(255,255,255,0.18)';
   ctx.lineWidth = 1;
@@ -379,7 +370,7 @@ function drawTimelineLabel(vw, highlight) {
 
   // close button
   if (highlight) {
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillStyle = 'rgb(40,40,40)';
     ctx.beginPath();
     ctx.roundRect(p.btnLeft, p.btnTop, btnSize, btnSize, btnRadius);
     ctx.fill();
