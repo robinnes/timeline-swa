@@ -59,7 +59,11 @@ async function acquireBlobSas(scope, filename, mode) {
 
 /******************* Timeline management *******************/
 
-async function loadTimelineFromStorage(scope, file) {
+export async function loadTimelineFromStorage(scope, file) {
+
+  const isLocal = await Util.isLocalEnv();
+  if (isLocal) return await tempSimulateLoadFile(scope, file);
+
   try {
     const filename = Util.addTimelineFileExt(file);
 
@@ -75,7 +79,7 @@ async function loadTimelineFromStorage(scope, file) {
     return JSON.parse(text);
 
   } catch (e) {
-    throw new Error(`Failed to load ${filename} from storage: ${e.message}`);
+    console.error(`Failed to load ${file} from storage: ${e.message}`);
   }
 }
 
@@ -111,29 +115,6 @@ export async function saveTimelineToStorage(scope, file, text) {
     return true;
   } catch (e) {
     throw new Error(`Failed to save ${filename} to storage: ${e.message}`);
-  }
-}
-
-export async function getTimeline(scope, file) {
-  Util.showGlobalBusyCursor();
-  try {
-    // retrieve from Azure blob storage
-    const tl = await loadTimelineFromStorage(scope, file);
-    Util.hideGlobalBusyCursor();
-    return tl;
-    
-  } catch (err) {
-    if (Util.isLocalEnv) {
-      // return local file if running locally
-      const response = await fetch(`data/${file}.json.gz`);  // only works when a local server is running
-      const tl = await response.json();
-
-      await sleep(500);  // simulate database access
-      Util.hideGlobalBusyCursor();
-      return tl;
-    }
-
-    console.error(err);
   }
 }
 
@@ -253,4 +234,16 @@ export async function deleteOrphanedImages(scope, file) {
 
   if (!resp.ok) throw new Error(await resp.text());
   return resp.json();
+}
+
+
+/******************************* temp *******************************/
+
+async function tempSimulateLoadFile(scope, file) {
+  // return local file if running locally
+  const response = await fetch(`data/${file}.json.gz`);  // only works when a local server is running
+  const tl = await response.json();
+
+  await sleep(350);  // simulate database access
+  return tl;
 }

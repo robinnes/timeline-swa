@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import {loadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
-import {appState, zoomToView, openTimeline} from './canvas.js';
+import {appState, zoomToView, getTimeline, openView} from './canvas.js';
 import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
@@ -252,8 +252,10 @@ async function handleOpenTimelineConfirm() {
   if (fileDialogMode === FILE_DIALOG_MODE_OPEN) {
     if (!openDialogSelectedName) return;
 
-    await openTimeline(openDialogSelectedName, true);
-
+    //await openTimeline(openDialogSelectedName, true);
+    const tl = await getTimeline(openDialogSelectedName, true);
+    if (tl) openView(tl, null);
+    
     closeModal(openTimelineModal);
 
   } else if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {

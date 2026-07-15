@@ -1,11 +1,10 @@
 import {DRAW} from './constants.js';
 import {ctx} from './canvas.js';
 
-
 function processLinks(text) {
   // Convert text, which may contain HTML hyperlink tags, into an array of words for further processing
-  //const regex = /<a\s+href="#"\s+tl="([^"]*)">(.*?)<\/a>/;
-  const regex = /<a\s+href="#"\s+([a-z]+)="([^"]*)">(.*?)<\/a>/;  // reg exp for a hyperlink tag
+  const regex = /(<a\s+href="#"\s*[^>]*?>)(.*?)<\/a>/;  // reg exp for a hyperlink tag
+
   ctx.font = DRAW.LABEL_FONT;
   let remain = text;
   let totalWidth = 0;
@@ -33,8 +32,8 @@ function processLinks(text) {
         }
         
         // process all words within the hyperlink
-        const link = `${r[1]}=${r[2]}`;
-        const linkLabel = r[3].split(" ");
+        const link = r[1];
+        const linkLabel = r[2].split(" ");
         for (let i=0; i < linkLabel.length; i++) {
           const spacer = (i === linkLabel.length - 1) ? "" : " ";
           const word = linkLabel[i];
