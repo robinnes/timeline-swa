@@ -59,7 +59,11 @@ export function timelineString(tl) {
       }
     })
   };
-  return JSON.stringify(txt, null, 2);
+  return JSON.stringify(
+    txt,
+    (key, value) => value === null ? undefined : value,
+    2
+  );
 }
 
 /******************************* Initialization *******************************/

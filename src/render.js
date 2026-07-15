@@ -353,6 +353,7 @@ function drawTimelineLabel(vw, highlight) {
   const btnRadius = btnSize / 4;
 
   ctx.save();
+/*
   ctx.fillStyle = window.getComputedStyle(document.body).backgroundColor;
   let grad = ctx.createLinearGradient(0, p.top, 0, p.bottom);
   grad.addColorStop(0.0, 'rgba(0,0,0,0)');
@@ -360,6 +361,15 @@ function drawTimelineLabel(vw, highlight) {
   grad.addColorStop(1.0, 'rgba(0,0,0,0)');
   ctx.fillStyle = grad;
   ctx.fillRect(p.left, p.top, width, height);
+*/
+  ctx.fillStyle = 'rgb(40,40,40)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(p.left - 30, p.top + 2, width + 36, height - 4, 12);
+  if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW; ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
+  ctx.fill();
+  ctx.stroke();
 
   ctx.font = DRAW.TITLE_FONT;
   ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
@@ -375,14 +385,15 @@ function drawTimelineLabel(vw, highlight) {
     ctx.fill();
 
     // "X" symbol centered inside
+    const xMargin = 6;
     ctx.strokeStyle = 'white';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
+    ctx.lineWidth = 3;
+    //ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(p.btnLeft + 4, p.btnTop + 4);
-    ctx.lineTo(p.btnLeft + btnSize - 4, p.btnTop + btnSize - 4);
-    ctx.moveTo(p.btnLeft + btnSize - 4, p.btnTop + 4);
-    ctx.lineTo(p.btnLeft + 4, p.btnTop + btnSize - 4);
+    ctx.moveTo(p.btnLeft + xMargin, p.btnTop + xMargin);
+    ctx.lineTo(p.btnLeft + btnSize - xMargin, p.btnTop + btnSize - xMargin);
+    ctx.moveTo(p.btnLeft + btnSize - xMargin, p.btnTop + xMargin);
+    ctx.lineTo(p.btnLeft + xMargin, p.btnTop + btnSize - xMargin);
     ctx.stroke();
   }
   ctx.restore();
