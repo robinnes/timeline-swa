@@ -1,31 +1,28 @@
 const { BlobServiceClient } = require("@azure/storage-blob");
+const { getClientPrincipal } = require("./utils");
 
-const AUTHORIZATION_CONTAINER = "configuration";
-const AUTHORIZATION_BLOB = "authorization.json";
+const AUTHORIZATION_BLOB = "configuration/authorization.json";
 const CACHE_DURATION_MS = 60_000;
-
-const blobServiceClient = BlobServiceClient.fromConnectionString(
-  process.env.AZURE_STORAGE_CONNECTION_STRING
-);
-
-const authorizationBlobClient = blobServiceClient
-  .getContainerClient(AUTHORIZATION_CONTAINER)
-  .getBlobClient(AUTHORIZATION_BLOB);
 
 let cachedAuthorization = null;
 let cacheExpiresAt = 0;
 
-function getClientPrincipal(req) {
-  const encoded = req.headers["x-ms-client-principal"];
-  if (!encoded) return null;
+function getAuthorizationBlobClient() {
+  const connectionString = process.env.TIMELINE_STORAGE_CONN;
+  const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
 
-  try {
-    return JSON.parse(
-      Buffer.from(encoded, "base64").toString("utf8")
-    );
-  } catch {
-    return null;
+  if (!connectionString) {
+    throw new Error("TIMELINE_STORAGE_CONN is not configured.");
   }
+
+  if (!containerName) {
+    throw new Error("TIMELINE_STORAGE_CONTAINER is not configured.");
+  }
+
+  return BlobServiceClient
+    .fromConnectionString(connectionString)
+    .getContainerClient(containerName)
+    .getBlobClient(AUTHORIZATION_BLOB);
 }
 
 async function loadAuthorization() {
@@ -35,17 +32,18 @@ async function loadAuthorization() {
     return cachedAuthorization;
   }
 
-  const response = await authorizationBlobClient.download();
+  const response = await getAuthorizationBlobClient().download();
   const text = await streamToString(response.readableStreamBody);
+  const authorization = JSON.parse(text);
 
-  cachedAuthorization = JSON.parse(text);
+  cachedAuthorization = authorization;
   cacheExpiresAt = now + CACHE_DURATION_MS;
 
-  return cachedAuthorization;
+  return authorization;
 }
 
-async function getUserRoles(req) {
-  const principal = getClientPrincipal(req);
+async function getUserRoles(request) {
+  const principal = getClientPrincipal(request);
   if (!principal?.userId) return [];
 
   const authorization = await loadAuthorization();
@@ -53,20 +51,19 @@ async function getUserRoles(req) {
   return authorization.users?.[principal.userId]?.roles ?? [];
 }
 
-async function hasRole(req, requiredRole) {
-  const roles = await getUserRoles(req);
+async function hasRole(request, requiredRole) {
+  const roles = await getUserRoles(request);
 
-  if (roles.includes("admin")) return true;
-
-  return roles.includes(requiredRole);
+  return roles.includes("admin") ||
+         roles.includes(requiredRole);
 }
 
-async function canPublish(req) {
-  return hasRole(req, "pro");
+async function canPublish(request) {
+  return hasRole(request, "pro");
 }
 
-async function canUseThumbnails(req) {
-  return hasRole(req, "pro");
+async function canUseThumbnails(request) {
+  return hasRole(request, "pro");
 }
 
 function streamToString(stream) {
@@ -74,9 +71,9 @@ function streamToString(stream) {
     const chunks = [];
 
     stream.on("data", chunk => chunks.push(Buffer.from(chunk)));
-    stream.on("end", () =>
-      resolve(Buffer.concat(chunks).toString("utf8"))
-    );
+    stream.on("end", () => {
+      resolve(Buffer.concat(chunks).toString("utf8"));
+    });
     stream.on("error", reject);
   });
 }
