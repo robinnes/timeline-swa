@@ -5,6 +5,7 @@ const {
   json,
   badRequest,
   unauthorized,
+  permissions,
   serverError,
   requireUsernameFolderKey,
   requireSafeFilename,
@@ -12,10 +13,27 @@ const {
   publicPrefixForUsername
 } = require('../utils');
 
+const { canPublish } = require("../authorization");
+
 app.http('publishTimeline', {
   methods: ['POST'],
   authLevel: 'anonymous',
   handler: async (request, context) => {
+
+    // check permissions
+    if (!await canPublish(request)) {
+      return permissions("A Pro account is required to publish timelines.");
+      /*
+      context.res = {
+        status: 403,
+        body: {
+          error: "A Pro account is required to publish timelines."
+        }
+      };
+      return;
+    */
+    }
+
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
@@ -61,7 +79,6 @@ app.http('publishTimeline', {
       }
 
       // 1. Promote timeline JSON.
-      //await publicTimeline.syncCopyFromURL(privateTimeline.url);
       await copyBlob(container, privateTimelineName, publicTimelineName);
 
       // 2. Reconcile image folder.
