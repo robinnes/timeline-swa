@@ -160,7 +160,8 @@ export function draw(reposition){
     drawAboutFooter();
 
   } catch (err) {
-    debugAppendText(err.stack);
+    //debugAppendText(err.stack);
+    console.error(err.message);
   }
   //Util.debugVars();
   //debugDisplay();  // for mobile

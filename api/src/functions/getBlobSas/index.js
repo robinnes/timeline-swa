@@ -19,6 +19,8 @@ const {
   extractConnectionStringParts
 } = require('../utils');
 
+//const { canUseThumbnails } = require("../authorization");
+
 app.http('getBlobSas', {
   methods: ['GET'], 
   authLevel: 'anonymous', // SWA enforces auth via staticwebapp.config.json routes

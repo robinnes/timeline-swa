@@ -58,6 +58,10 @@ function unauthorized(message = 'Not authenticated') {
   return json(401, { error: message });
 }
 
+function permissions(message = 'Not authorized') {
+  return json(403, { error: message });
+}
+
 function serverError(message = 'Server error', err) {
   return json(500, { error: message, detail: err?.message || String(err || '') });
 }
@@ -218,6 +222,7 @@ module.exports = {
   json,
   badRequest,
   unauthorized,
+  permissions,
   serverError,
 
   // principal / user

@@ -33,6 +33,7 @@ export async function getConfiguration() {
   // fetch configuration settings from the server
   const res = await fetch('/api/getConfiguration');
   if (!res.ok) return {environment: 'unknown'};
+  //if (!res.ok) return {environment: 'unknown', canPublish: true, canUseThumbnails: true};
   
   return await res.json();
 }
