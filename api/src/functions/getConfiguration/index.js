@@ -11,15 +11,15 @@ app.http('getConfiguration', {
   authLevel: 'anonymous',
   handler: async (request, context) => {
 
-    const roles = await getUserRoles(req);
+    const roles = await getUserRoles(request);
 
     return {
       status: 200,
       jsonBody: {
         environment: process.env.APP_ENVIRONMENT,
         roles,
-        canPublish: await canPublish(req),
-        canUseThumbnails: await canUseThumbnails(req)
+        canPublish: await canPublish(request),
+        canUseThumbnails: await canUseThumbnails(request)
       }
     };
   }
