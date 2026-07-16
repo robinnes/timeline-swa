@@ -527,6 +527,10 @@ export function setSidebarView(vw) {
   // display 'Edit' and 'Publish' buttons for private timelines
   viewTimelineFooter.toggleAttribute('hidden', tl._scope==='public');
 
+  // enable/disable Publish button
+  const canPublish = (appState.configuration?.canPublish ?? false);
+  $("timeline-publish").disabled = !canPublish;
+
   updateSaveButton();
 }
 
@@ -811,7 +815,13 @@ export function updateThumbnailEdit(subject, prefix) {
   const thumb = subject?.image?.thumbnail ?? null;
 
   const editImg  = document.getElementById(`${prefix}-thumb-edit-img`);
+  const selectBtn = document.getElementById(`select-${prefix}-thumbnail-btn`);
   const closeBtn = document.getElementById(`close-${prefix}-thumbnail-btn`);
+
+  // enable/disable thumbnail button
+  const canUseThumbnails = (appState.configuration?.canUseThumbnails ?? false);
+  selectBtn.disabled = !canUseThumbnails;
+  closeBtn.disabled = !canUseThumbnails;
 
   if (editImg) {
     if (thumb) {
