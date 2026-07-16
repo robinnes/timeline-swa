@@ -367,7 +367,7 @@ for (const txt of displayTextAreas) {
 
     const file = a.getAttribute("tl");
     const tagID = a.getAttribute("tag");
-    followHyperlink(file, tagID, appState.selected.view, true);
+    if (file || tagID) followHyperlink(file, tagID, appState.selected.view, true);
   });
 }
 
