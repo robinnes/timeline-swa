@@ -127,7 +127,8 @@ export async function restoreSessionState() {
       scope: v.scope,
       tagFilter: v.tagFilter
     }
-    appState.views.push(view);
+    if (timelineCache.has(view.tlKey))  // somehow we get orphaned views (?)
+      appState.views.push(view);
   });
 
   // restore canvas state
