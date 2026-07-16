@@ -20,20 +20,13 @@ app.http('publishTimeline', {
   authLevel: 'anonymous',
   handler: async (request, context) => {
 
+    /*
     // check permissions
     if (!await canPublish(request)) {
       return permissions("A Pro account is required to publish timelines.");
-      /*
-      context.res = {
-        status: 403,
-        body: {
-          error: "A Pro account is required to publish timelines."
-        }
-      };
-      return;
-    */
     }
-
+    */
+   
     try {
       const conn = process.env.TIMELINE_STORAGE_CONN;
       const containerName = process.env.TIMELINE_STORAGE_CONTAINER;
