@@ -81,6 +81,10 @@ body.modal-open .app-menu {
   flex: 0 0 auto;
 }
 
+.modal__footer-left {
+  margin-right: auto;
+}
+
 .modal__body {
   margin-top: 4px;
   flex: 1 1 auto;

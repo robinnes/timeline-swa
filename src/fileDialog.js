@@ -6,6 +6,7 @@ import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
 import {saveSessionState} from './session.js';
+import {showModalDialog} from './confirmDialog.js';
 
 const openTimelineModal = document.getElementById('open-timeline-modal');
 const openTimelineTbody = document.getElementById('open-timeline-tbody');
@@ -14,6 +15,7 @@ const saveasTimelineModalTitle = document.getElementById('saveas-timeline-modal-
 const openTimelineFilenameInput = document.getElementById('open-timeline-filename-input');
 const openTimelineDialog = openTimelineModal ? openTimelineModal.querySelector('.modal__dialog') : null;
 const openTimelineOpenBtn = document.getElementById('open-timeline-open-btn');
+const openTimelineDeleteBtn = document.getElementById('open-timeline-delete-btn');
 const fileModalScopeTabs = document.getElementById( 'filemodal-scope-tabs');
 const fileModalTabButtons = Array.from(document.querySelectorAll('.filemodal__tabs .tab-btn'));
 
@@ -78,6 +80,7 @@ async function refreshTimelineList(scope) {
   try {
     openDialogSelectedName = null;
     openTimelineOpenBtn.disabled = true;
+    updateDeleteButtonState();
 
     const blobs = await getTimelineList(scope);
     openDialogBlobs = blobs || [];
@@ -115,6 +118,7 @@ function renderOpenTimelineTable() {
     openTimelineTbody.appendChild(tr);
     openTimelineOpenBtn.disabled = true;
     openDialogSelectedName = null;
+    updateDeleteButtonState();
     return;
   }
 
@@ -164,12 +168,14 @@ function renderOpenTimelineTable() {
       });
 
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
+      updateDeleteButtonState();
     });
 
     // double-click to open immediately
     tr.addEventListener('dblclick', () => {
       openDialogSelectedName = tr.dataset.blobName;
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
+      updateDeleteButtonState();
       handleOpenTimelineConfirm();
     });
 
@@ -225,6 +231,7 @@ openTimelineTable.addEventListener('keydown', (ev) => {
   // Update selected name + button state
   openDialogSelectedName = nextRow.dataset.blobName || null;
   openTimelineOpenBtn.disabled = !openDialogSelectedName;
+  updateDeleteButtonState();
 
   // Keep selected row visible in the scroll container
   nextRow.scrollIntoView({ block: 'nearest' });
@@ -275,6 +282,74 @@ async function handleOpenTimelineConfirm() {
 }
 
 
+/******************************* Delete timeline *******************************/
+
+let deletePermissionRequest = 0;
+
+async function updateDeleteButtonState() {
+  if (!openTimelineDeleteBtn) return;
+
+  const requestId = ++deletePermissionRequest;
+  openTimelineDeleteBtn.disabled = true;
+
+  if (fileDialogMode !== FILE_DIALOG_MODE_OPEN || !openDialogSelectedName) return;
+  if (appState.authentication.userId == null) return;
+
+  const scope = getActiveFileScope();
+
+  try {
+    const response = await fetch(
+      `/api/deleteTimeline?scope=${encodeURIComponent(scope)}&name=${encodeURIComponent(openDialogSelectedName)}`
+    );
+    if (!response.ok) return;
+
+    const result = await response.json();
+    if (requestId !== deletePermissionRequest) return;
+    openTimelineDeleteBtn.disabled = !result.canDelete;
+  } catch (err) {
+    console.error('Unable to check delete permission:', err);
+  }
+}
+
+async function deleteSelectedTimeline() {
+  if (!openDialogSelectedName || openTimelineDeleteBtn.disabled) return;
+
+  const scope = getActiveFileScope();
+  const displayName = openDialogSelectedName;
+  const ok = await showModalDialog({
+    message: `Delete “${displayName}” and all of its images?`
+  });
+  if (!ok) return;
+
+  Util.showGlobalBusyCursor();
+  openTimelineDeleteBtn.disabled = true;
+
+  try {
+    const response = await fetch(
+      `/api/deleteTimeline?scope=${encodeURIComponent(scope)}&name=${encodeURIComponent(displayName)}`,
+      { method: 'DELETE' }
+    );
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      throw new Error(result?.error || `Delete failed (${response.status}).`);
+    }
+
+    await refreshTimelineList(scope);
+  } catch (err) {
+    console.error('Delete failed:', err);
+    await showModalDialog({ message: err.message || 'Unable to delete timeline.' });
+  } finally {
+    Util.hideGlobalBusyCursor();
+  }
+}
+
+openTimelineDeleteBtn?.addEventListener('click', (e) => {
+  e.preventDefault();
+  deleteSelectedTimeline();
+});
+
+
 /******************************* Open timeline modal *******************************/
 
 export function openOpenTimelineDialog() {
@@ -297,8 +372,10 @@ function configureOpenTimelineDialogForOpen() {
 
   openTimelineDialog.classList.remove('modal__dialog--save-mode');
   openTimelineOpenBtn.textContent = "Open";
+  openTimelineDeleteBtn.removeAttribute('hidden');
 
   openTimelineOpenBtn.disabled = !openDialogSelectedName;
+  updateDeleteButtonState();
   openTimelineFilenameInput.value = '';
 }
 
@@ -350,6 +427,8 @@ function configureOpenTimelineDialogForSaveAs(defaultFilename = '') {
   saveasTimelineModalTitle.removeAttribute('hidden');
   
   openTimelineOpenBtn.textContent = 'Save';
+  openTimelineDeleteBtn.setAttribute('hidden', '');
+  openTimelineDeleteBtn.disabled = true;
 
   openTimelineOpenBtn.disabled = !defaultFilename;
   openTimelineFilenameInput.value = defaultFilename;

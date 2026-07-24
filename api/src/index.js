@@ -13,3 +13,4 @@ require('./functions/listTimelines/index.js');
 require('./functions/publishTimeline/index.js');
 require('./functions/deleteOrphanedImages/index.js');
 require('./functions/getConfiguration/index.js');
+require('./functions/deleteTimeline/index.js');
