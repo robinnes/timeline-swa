@@ -55,12 +55,20 @@ app.http('deleteTimeline', {
       const imagePrefix = `${basePrefix}${timelineStem}/`;
 
       let deletedImages = 0;
+
       for await (const blob of container.listBlobsFlat({ prefix: imagePrefix })) {
-        const result = await container.deleteBlob(blob.name, { deleteSnapshots: 'include' });
-        if (result.succeeded) deletedImages += 1;
+        const blobClient = container.getBlobClient(blob.name);
+        const result = await blobClient.deleteIfExists({
+          deleteSnapshots: 'include'
+        });
+
+        if (result.succeeded) {
+          deletedImages += 1;
+        }
       }
 
-      const timelineResult = await container.deleteBlob(timelineBlobName, {
+      const timelineBlob = container.getBlobClient(timelineBlobName);
+      const timelineResult = await timelineBlob.deleteIfExists({
         deleteSnapshots: 'include'
       });
 
