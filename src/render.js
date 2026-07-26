@@ -705,14 +705,18 @@ export function drawItems() {
   }
 
   // iterate through screenElements (items and their labels)
-  screenElements.filter(se => se.type==='line' || se.type==='bubble' || se.type==='label').forEach(se => {
-    const ip = se.itemPos;
-    const i = ip.item;
-    const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
-    if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
-    if (se.type === 'bubble') drawLabelAbove(ip, highlight);
-    if (se.type === 'label') drawLabelBelow(ip, highlight);
-  });
+  // sorting by bottom ensures stems don't overlap bubbles
+  screenElements
+    .filter(se => se.type==='line' || se.type==='bubble' || se.type==='label')
+    .sort((a, b) => a.bottom - b.bottom)
+    .forEach(se => {
+      const ip = se.itemPos;
+      const i = ip.item;
+      const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
+      if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
+      if (se.type === 'bubble') drawLabelAbove(ip, highlight);
+      if (se.type === 'label') drawLabelBelow(ip, highlight);
+    });
 
   // iterate views...
   for (const vw of appState.views) {
@@ -807,13 +811,13 @@ function positionLabelsForVw(vw){
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
           
           // if item's bubble is over i's stem (x) then can't display
-          if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
+          //if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }  // allow overlap
 
           // if item's bubble overlaps i's then move up and try again
           if (itemPos._left < right && itemPos._right > left && itemPos._top < bot && itemPos._bot > top) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
           // if i's bubble would overlap item's stem then move up and try again
-          if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
+          //if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}  // allow overlap
         }
         open = true;
       }
