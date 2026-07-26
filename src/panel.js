@@ -357,6 +357,7 @@ function showSubpanel(targetId) {
 
 }
 
+
 /* ------------------- Title/Label and Detail controls -------------------- */
 
 // hyperlink clicks within label and details
@@ -469,7 +470,7 @@ export function setSidebarItem(item) {
   // if details looks like HTML, show as HTML; otherwise plain-text
   const isHtml = /<[a-z][\s\S]*>/i.test(item.details);  // necessary?
   if (isHtml) $("item-details").innerHTML = item.details;
-  else $("item-details").innerText = item.details ?? '';
+  else $("item-details").textContent = item.details ?? '';
 
   // edit item panel
   editItemLabel.value = item.label ?? '';
@@ -505,7 +506,7 @@ export function setSidebarView(vw) {
   const details = (tag ? tag.details : tl.details) ?? '';  // details
   const isHtml = /<[a-z][\s\S]*>/i.test(details);
   if (isHtml) $("timeline-details").innerHTML = details;
-  else $("timeline-details").innerText = details;
+  else $("timeline-details").textContent = details;
 
   if (tag) updateThumbnailView(tag, "tag") 
     else updateThumbnailView(tl, "timeline");
@@ -546,7 +547,7 @@ function setSidebarTag(tag) {
 
   // tag details
   const details = tag?.details ?? '';
-  editTagDetails.textContent = details;
+  editTagDetails.value = details;
 
   // tag label (put on the subpanel button)
   const tabLabel = tag?.label ?? 'tag';

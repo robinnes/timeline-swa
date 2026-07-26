@@ -357,7 +357,7 @@ function drawTimelineLabel(vw, highlight) {
   ctx.strokeStyle = 'rgba(255,255,255,0.18)';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(p.left - 30, p.top + 2, width + 36, height - 4, 12);
+  ctx.roundRect(p.left - 30, p.top, width + 36, height, 12);
   if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW; ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
   ctx.fill();
   ctx.stroke();
@@ -770,6 +770,7 @@ export function filterItemsForView(vw){
 }
 
 function positionLabelsForVw(vw){
+  const ceiling = (vw.ceiling * -1) + 40;
   filterItemsForView(vw);
 
   // find a place for each item, if possible - most important first
@@ -798,20 +799,20 @@ function positionLabelsForVw(vw){
       let open = false;
 
       scanUpwardLoop:
-      while (top > -200 && !open) {
-        // Check each already placed item (c) for overlap...
+      while (top > ceiling && !open) {
+        // Check each already placed item (item) for overlap...
         for (const itemPos of vw.itemPos) {
           const item = itemPos.item;
           if (item === i) continue; // self
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
           
-          // if c's bubble is over e's stem (x) then can't display
+          // if item's bubble is over i's stem (x) then can't display
           if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
 
-          // if c's bubble overlaps e's then move up and try again
+          // if item's bubble overlaps i's then move up and try again
           if (itemPos._left < right && itemPos._right > left && itemPos._top < bot && itemPos._bot > top) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
-          // if e's bubble would overlap c's stem then move up and try again
+          // if i's bubble would overlap item's stem then move up and try again
           if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
         }
         open = true;
@@ -824,6 +825,8 @@ function positionLabelsForVw(vw){
         ip._right = right;
         ip._top = top;
         ip._bot = bot;
+      } else {
+        ip.yOffset = 0;
       }
     });
   }
@@ -850,7 +853,7 @@ export function positionViews(zoom) {
       vw.origYPos = vw.yPos;
       vw.newYPos = Math.floor(p);
     } else {
-      vw.ceiling = h;  // to do: use ceiling to limit above labels
+      vw.ceiling = h;
       vw.yPos = Math.floor(p);
     }
     p += h;
