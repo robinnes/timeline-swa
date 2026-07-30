@@ -774,7 +774,7 @@ export function filterItemsForView(vw){
 }
 
 function positionLabelsForVw(vw){
-  const ceiling = (vw.ceiling * -1) + 40;
+  const ceiling = (vw.ceiling * -1) + 52;
   filterItemsForView(vw);
 
   // find a place for each item, if possible - most important first
@@ -809,15 +809,17 @@ function positionLabelsForVw(vw){
           const item = itemPos.item;
           if (item === i) continue; // self
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
-          
-          // if item's bubble is over i's stem (x) then can't display
-          //if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }  // allow overlap
 
           // if item's bubble overlaps i's then move up and try again
           if (itemPos._left < right && itemPos._right > left && itemPos._top < bot && itemPos._bot > top) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
-          // if i's bubble would overlap item's stem then move up and try again
-          //if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}  // allow overlap
+          if (!DRAW.ALLOW_BUBBLE_OVERLAP) {
+            // if item's bubble is over i's stem (x) then can't display
+            if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }  // allow overlap
+
+            // if i's bubble would overlap item's stem then move up and try again
+            if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}  // allow overlap
+          }
         }
         open = true;
       }
@@ -842,24 +844,48 @@ export function positionLabels() {
 }
 
 export function positionViews(zoom) {
+  const view = appState.selected.view;
   const wh = window.innerHeight;
-  const c = appState.views.length;
-  const height = wh - TICK.TICK_TOP - TICK.TICK_LABEL_HEIGHT;
-  const h = (c===1) ? wh * 0.6 : ((height)/(c+1)) + ((height)/((c+1)*c*2));
-  let p = h;
+  let p = TICK.TICK_TOP + TICK.TICK_LABEL_HEIGHT;
+  let c = appState.views.length;
+  let reserve = 0;
+  let remain = wh - p;
+  let h = 0;
+
+  const calcRemaining = (height, count) => {
+    return (height/(count+1)) + (height/((count+1)*count*2));
+  };
+
+  if (c === 1) {
+    h = Math.round(remain * 0.6);
+  } else {
+    h = calcRemaining(remain, c);
+
+    if (view) {
+      const ceiling = Math.min(DRAW.MIN_VIEW_CEILING, remain * 0.6);
+      if (h < ceiling) {
+        reserve = ceiling;
+        remain -= reserve
+        h = calcRemaining(remain, c - 1);
+      }
+    }      
+  }
 
   // iterate through timelines in reverse
-  for (let i=c-1; i>=0; i--) {
+  for (let i=appState.views.length-1; i>=0; i--) {
     const vw = appState.views[i];
+    const ceiling = (vw === view) ? Math.max(reserve, h) : h;
+    p += ceiling;
+    
     if (zoom) {
       vw.origCeiling = vw.ceiling;
-      vw.newCeiling = h;
+      vw.newCeiling = ceiling;
       vw.origYPos = vw.yPos;
       vw.newYPos = Math.floor(p);
     } else {
-      vw.ceiling = h;
+      vw.ceiling = ceiling;
       vw.yPos = Math.floor(p);
     }
-    p += h;
+    
   }
 }

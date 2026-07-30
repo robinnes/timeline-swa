@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, draw, followHyperlink, zoomToView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
+import {appState, draw, followHyperlink, focusView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -215,7 +215,7 @@ async function cancelTimelineEdit() {
       appState.selected.view = vwBelow;
       appState.selected.item = null;
       openSelectedView(false);
-      zoomToView(vwBelow);  // closing the sidebar would conflict with the zoom animation
+      focusView(vwBelow, true);  // closing the sidebar would conflict with the zoom animation
     }
 
   } else if (tl._dirty) {
