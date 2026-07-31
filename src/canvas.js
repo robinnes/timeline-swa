@@ -347,7 +347,7 @@ canvas.addEventListener('click', function (e) {
     const tl = timelineCache.get(vw.tlKey)
     appState.selected.view = vw;
     appState.selected.timeline = tl;
-focusView(vw, false);
+    focusView(vw, false);
     openSelectedView(true);
 
   } else if (elem.type === 'button') {
@@ -535,7 +535,8 @@ function mouseZoom(x, factor) {
 };
 
 function compareItemsForSort(a, b) {
-  // sort rule is: _tFrom, _tTo (descending) then id
+  // sort rule is: _date, _tFrom, _tTo (descending) then id
+  if (a._date !== b._date) return a._date - b._date;
   if (a._tFrom !== b._tFrom) return a._tFrom - b._tFrom;
   if (a._tTo !== b._tTo) return b._tTo - a._tTo;
   if (a.id < b.id) return -1;
@@ -616,7 +617,8 @@ function zoomToItem(i, zoom) {
 
   } else {
     const vp = getCanvasViewport();  // need for canvas width
-    const ts = i.dateSpecification==='point' ? i._date : i._tFrom;  // center on timestamp: center of point or left side of range
+    //const ts = i.dateSpecification==='point' ? i._date : i._tFrom;  // center on timestamp: center of point or left side of range
+    const ts = i._date;  // center on timestamp: center of point or center of range
     const newOffset = ts - (appState.msPerPx * (vp.width/2)) - TIME.EPOCH;  // center on canvas
 
     appState.zoom = {

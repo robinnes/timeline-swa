@@ -348,13 +348,14 @@ function drawTimelineLabel(vw, highlight) {
   const p = positionTimelineLabel(vw);
   const width = p.right - p.left;
   const height = p.bottom - p.top;
-  const brightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const textBrightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const lineBrightness = (highlight) ? 0.5 : 0.18;
   const btnSize = p.btnBottom - p.btnTop;
   const btnRadius = btnSize / 4;
 
   ctx.save();
   ctx.fillStyle = 'rgb(40,40,40)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeStyle = `rgba(255,255,255,${lineBrightness})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(p.left - 30, p.top, width + 36, height, 12);
@@ -363,7 +364,7 @@ function drawTimelineLabel(vw, highlight) {
   ctx.stroke();
 
   ctx.font = DRAW.TITLE_FONT;
-  ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${textBrightness})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(label, p.left + DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
@@ -393,7 +394,7 @@ function drawTimelineLabel(vw, highlight) {
 
 /***************************** Item bubbles and labels *****************************/
 
-function drawLabelText(label, x, y, fade) {
+function drawLabelText(label, x, y, brightness) {
   ctx.font = DRAW.LABEL_FONT;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -420,7 +421,7 @@ function drawLabelText(label, x, y, fade) {
     const left = x + b.left;
     const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
     
-    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${fade})` : 'rgba(106,166,255,1)';
+    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${brightness})` : 'rgba(106,166,255,1)';
     ctx.fillText(b.text, left, top);
 
     // underline any hyperlink blocks with matching link target
@@ -438,10 +439,13 @@ function drawLabelText(label, x, y, fade) {
 }
 
 function drawLabelBubble(i, left, width, top, height, highlight) {
+  const textBrightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const lineBrightness = (highlight) ? 0.5 : 0.18;
+  
   // label box
   ctx.save();
   ctx.fillStyle = 'rgb(40,40,40)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeStyle = `rgba(255,255,255,${lineBrightness})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(left, top, width, height, 8);
@@ -449,7 +453,7 @@ function drawLabelBubble(i, left, width, top, height, highlight) {
   ctx.fill();
   ctx.stroke();
 
-  drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
+  drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, textBrightness);
   if (i.image?.thumbnail) drawLabelThumb(i, left, top);
   ctx.restore();
 }
@@ -519,10 +523,11 @@ function drawLabelAbove(ip, highlight) {
   const p = getLabelPosition(ip, y);
   const spec = zoomSpec(i);
   const lineTop = y - (spec.size/2);
+  const brightness = highlight ? 0.8 : 0.4;
 
   // stem: from top of the item line/dot to bottom of label box
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.strokeStyle = `rgba(255,255,255,${brightness})`;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(p.x, lineTop);
@@ -551,7 +556,6 @@ function drawLabelBelow(ip, highlight) {
 /***************************** Item lines *****************************/
 
 function drawItemLine(ip, highlight) {
-
   const i = ip.item;
   const spec = zoomSpec(i);
   const height = spec.size;
