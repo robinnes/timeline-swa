@@ -28,7 +28,9 @@ export const DRAW = {
   DEFAULT_LINE_COLOR: "blue",
   THUMB_SIZE: 128,        // size in square pixes of native thumbnail image (54)
   THUMB_LABEL_SIZE: 36,  // size rendered on the canvas
-  THUMB_LABEL_ROWS: 2    // the number of rows in labels needed to accommodate a thumbnail
+  THUMB_LABEL_ROWS: 2,   // the number of rows in labels needed to accommodate a thumbnail
+  ALLOW_BUBBLE_OVERLAP: true,
+  MIN_VIEW_CEILING: 280  // minimum height above the selected view
 };
 
 export const ZOOM = {

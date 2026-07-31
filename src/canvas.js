@@ -224,18 +224,31 @@ export function throwCanvas() {
 }
 
 function zoom(dt) {
-  // incrementally move window offset and zoom toward new values
-  const dOffset = appState.zoom.newOffset - appState.offsetMs;
-  const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
+  let hZoomComplete = false;
+  if (appState.zoom.newOffset && appState.zoom.newMsPerPx) {
+    // incrementally move window offset and zoom toward new values
+    const dOffset = appState.zoom.newOffset - appState.offsetMs;
+    const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
 
-  appState.offsetMs += dOffset * dt * TIME.ZOOM_SPEED;
-  appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
-  appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
+    appState.offsetMs += dOffset * dt * TIME.ZOOM_SPEED;
+    appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
+    appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
-  const hZoomComplete = (Math.abs(dOffset) < appState.msPerPx);  // still zooming (horizontally)
-  let vZoomComplete = true;
+    hZoomComplete = (Math.abs(dOffset) < appState.msPerPx);  // still zooming (horizontally)
+
+    if (hZoomComplete) {
+      // set all to their target settings for good measure
+      appState.msPerPx = appState.zoom.newMsPerPx;
+      appState.offsetMs = appState.zoom.newOffset;
+      delete appState.zoom.newMsPerPx;
+      delete appState.zoom.newOffset;
+    }
+  } else {
+    hZoomComplete = true;
+  }
 
   // if views are repositioned, move those, too
+  let vZoomComplete = true;
   for (const vw of appState.views) {
     if (vw.newYPos) {
       const dCeiling = vw.newCeiling - vw.ceiling;
@@ -247,17 +260,17 @@ function zoom(dt) {
     }
   }
 
-  // stop when both horizontal and vertical zooming is done
-  if (hZoomComplete && vZoomComplete) {
-    // set all to their target settings for good measure
-    appState.msPerPx = appState.zoom.newMsPerPx;
-    appState.offsetMs = appState.zoom.newOffset;
+  if (vZoomComplete) {
     for (const vw of appState.views) {
       if (vw.newYPos) {
         vw.ceiling = vw.newCeiling; vw.yPos = vw.newYPos;
         vw.newCeiling = null; vw.newYPos = null;
       }
     }
+  }
+
+  // stop when both horizontal and vertical zooming is done
+  if (hZoomComplete && vZoomComplete) {
     appState.zoom.isZooming = false;
   }
   draw(true);
@@ -334,6 +347,7 @@ canvas.addEventListener('click', function (e) {
     const tl = timelineCache.get(vw.tlKey)
     appState.selected.view = vw;
     appState.selected.timeline = tl;
+    focusView(vw, false);
     openSelectedView(true);
 
   } else if (elem.type === 'button') {
@@ -521,7 +535,8 @@ function mouseZoom(x, factor) {
 };
 
 function compareItemsForSort(a, b) {
-  // sort rule is: _tFrom, _tTo (descending) then id
+  // sort rule is: _date, _tFrom, _tTo (descending) then id
+  if (a._date !== b._date) return a._date - b._date;
   if (a._tFrom !== b._tFrom) return a._tFrom - b._tFrom;
   if (a._tTo !== b._tTo) return b._tTo - a._tTo;
   if (a.id < b.id) return -1;
@@ -602,7 +617,8 @@ function zoomToItem(i, zoom) {
 
   } else {
     const vp = getCanvasViewport();  // need for canvas width
-    const ts = i.dateSpecification==='point' ? i._date : i._tFrom;  // center on timestamp: center of point or left side of range
+    //const ts = i.dateSpecification==='point' ? i._date : i._tFrom;  // center on timestamp: center of point or left side of range
+    const ts = i._date;  // center on timestamp: center of point or center of range
     const newOffset = ts - (appState.msPerPx * (vp.width/2)) - TIME.EPOCH;  // center on canvas
 
     appState.zoom = {
@@ -615,13 +631,7 @@ function zoomToItem(i, zoom) {
   }
 }
 
-export function zoomToView(view) {
-  const p = positionForView(view);
-  appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
-  positionViews(true);
-}
-
-function centerOnView(view) {
+export function centerOnView(view) {
   const p = positionForView(view);
   appState.offsetMs = p.offsetMs;
   appState.msPerPx = p.msPerPx;
@@ -644,6 +654,18 @@ function zoomToTick(t, t2) {
   };
 }
 
+export function focusView(view, zoom) {
+  appState.selected.view = view;
+  appState.selected.item = null;
+  positionViews(true);
+
+  if (zoom) {
+    const p = positionForView(view);
+    appState.zoom = {isZooming:true, origOffset:appState.offsetMs, newOffset:p.offsetMs, origMsPerPx:appState.msPerPx, newMsPerPx:p.msPerPx};
+  } else {
+    appState.zoom = {isZooming:true};
+  }
+}
 
 /* ------------------- View/Timeline management -------------------- */
 
@@ -653,8 +675,8 @@ export async function followHyperlink(file, tagID, origVw, forceDisplay) {
 
   const view = openView(tl, tagID, origVw);
   if (view) {
-    appState.selected.view = view;
-    appState.selected.item = null;
+//    appState.selected.view = view;
+//    appState.selected.item = null;
 
     const display = sidebarIsOpen() || forceDisplay;
     openSelectedView(display);
@@ -697,7 +719,7 @@ export async function getTimeline(file, reload) {
 export function openView(tl, tagID, origVw) {
   const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
   if (existingView) {
-    zoomToView(existingView);
+    focusView(existingView, true);
     return existingView;
   }
 
@@ -722,8 +744,7 @@ export function openView(tl, tagID, origVw) {
     appState.views.splice(origIdx+1, 0, newView);  // insert above currently selected view
   }
   saveSessionState();
-
-  zoomToView(newView);
+  focusView(newView, true);
   return newView;
 }
 
@@ -751,12 +772,13 @@ async function closeView(viewIdx) {
     closeSidebar();
     draw(false);
   } else {
-    const vwBelow = appState.views[Math.max(viewIdx-1, 0)]; // refocus on timeline below the deleted one
+    const vwBelow = appState.views[Math.max(viewIdx-1, 0)];
     if (appState.selected.view === view) {  // if selected view is the one closed...
-      appState.selected.view = vwBelow;
+      focusView(vwBelow, true);
       openSelectedView(false);
+    } else {
+      focusView(appState.selected.view, false);
     }
-    zoomToView(vwBelow);
   }
 }
 

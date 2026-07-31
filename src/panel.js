@@ -1,7 +1,7 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
-import {appState, draw, followHyperlink, zoomToView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
+import {appState, draw, followHyperlink, focusView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
@@ -215,7 +215,7 @@ async function cancelTimelineEdit() {
       appState.selected.view = vwBelow;
       appState.selected.item = null;
       openSelectedView(false);
-      zoomToView(vwBelow);  // closing the sidebar would conflict with the zoom animation
+      focusView(vwBelow, true);  // closing the sidebar would conflict with the zoom animation
     }
 
   } else if (tl._dirty) {
@@ -357,6 +357,7 @@ function showSubpanel(targetId) {
 
 }
 
+
 /* ------------------- Title/Label and Detail controls -------------------- */
 
 // hyperlink clicks within label and details
@@ -367,7 +368,7 @@ for (const txt of displayTextAreas) {
 
     const file = a.getAttribute("tl");
     const tagID = a.getAttribute("tag");
-    followHyperlink(file, tagID, appState.selected.view, true);
+    if (file || tagID) followHyperlink(file, tagID, appState.selected.view, true);
   });
 }
 
@@ -469,7 +470,7 @@ export function setSidebarItem(item) {
   // if details looks like HTML, show as HTML; otherwise plain-text
   const isHtml = /<[a-z][\s\S]*>/i.test(item.details);  // necessary?
   if (isHtml) $("item-details").innerHTML = item.details;
-  else $("item-details").innerText = item.details ?? '';
+  else $("item-details").textContent = item.details ?? '';
 
   // edit item panel
   editItemLabel.value = item.label ?? '';
@@ -505,7 +506,7 @@ export function setSidebarView(vw) {
   const details = (tag ? tag.details : tl.details) ?? '';  // details
   const isHtml = /<[a-z][\s\S]*>/i.test(details);
   if (isHtml) $("timeline-details").innerHTML = details;
-  else $("timeline-details").innerText = details;
+  else $("timeline-details").textContent = details;
 
   if (tag) updateThumbnailView(tag, "tag") 
     else updateThumbnailView(tl, "timeline");
@@ -546,7 +547,7 @@ function setSidebarTag(tag) {
 
   // tag details
   const details = tag?.details ?? '';
-  editTagDetails.textContent = details;
+  editTagDetails.value = details;
 
   // tag label (put on the subpanel button)
   const tabLabel = tag?.label ?? 'tag';

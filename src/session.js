@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, timelineCache, draw, zoomToView} from './canvas.js';
+import {appState, timelineCache, draw, centerOnView} from './canvas.js';
 import {loadTimeline, timelineString, initializeTimeline} from './timeline.js';
 import {positionViews} from './render.js';
 
@@ -141,7 +141,7 @@ export async function restoreSessionState() {
   } else {
     positionViews(false);
     draw(true);
-    if (appState.views.length > 0) zoomToView(appState.views[appState.views.length-1]);
+    if (appState.views.length > 0) centerOnView(appState.views[appState.views.length-1]);
   }
 
   // leave sessionStorage with light session profile

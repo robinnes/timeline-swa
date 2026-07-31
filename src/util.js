@@ -83,8 +83,6 @@ export function debugVars() {
   const i = tl?.items[0];
   if (!i) return;
 
-  display('userId', appState.authentication.userId); 
-
 /*
   display('date', fmtDate(i.date?.ts));
   display('_date', fmtDate(i._date));

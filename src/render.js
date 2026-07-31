@@ -348,22 +348,23 @@ function drawTimelineLabel(vw, highlight) {
   const p = positionTimelineLabel(vw);
   const width = p.right - p.left;
   const height = p.bottom - p.top;
-  const brightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const textBrightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const lineBrightness = (highlight) ? 0.5 : 0.18;
   const btnSize = p.btnBottom - p.btnTop;
   const btnRadius = btnSize / 4;
 
   ctx.save();
   ctx.fillStyle = 'rgb(40,40,40)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeStyle = `rgba(255,255,255,${lineBrightness})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(p.left - 30, p.top + 2, width + 36, height - 4, 12);
+  ctx.roundRect(p.left - 30, p.top, width + 36, height, 12);
   if (highlight) { ctx.shadowColor = DRAW.HIGHLIGHT_SHADOW; ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
   ctx.fill();
   ctx.stroke();
 
   ctx.font = DRAW.TITLE_FONT;
-  ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${textBrightness})`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(label, p.left + DRAW.EDGE_GAP, vw.yPos - DRAW.LABEL_LINE_HEIGHT);
@@ -393,7 +394,7 @@ function drawTimelineLabel(vw, highlight) {
 
 /***************************** Item bubbles and labels *****************************/
 
-function drawLabelText(label, x, y, fade) {
+function drawLabelText(label, x, y, brightness) {
   ctx.font = DRAW.LABEL_FONT;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -420,7 +421,7 @@ function drawLabelText(label, x, y, fade) {
     const left = x + b.left;
     const top = y + (DRAW.LABEL_LINE_HEIGHT * b.row);
     
-    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${fade})` : 'rgba(106,166,255,1)';
+    ctx.fillStyle = (!b.link) ? `rgba(255,255,255, ${brightness})` : 'rgba(106,166,255,1)';
     ctx.fillText(b.text, left, top);
 
     // underline any hyperlink blocks with matching link target
@@ -438,10 +439,13 @@ function drawLabelText(label, x, y, fade) {
 }
 
 function drawLabelBubble(i, left, width, top, height, highlight) {
+  const textBrightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
+  const lineBrightness = (highlight) ? 0.5 : 0.18;
+  
   // label box
   ctx.save();
   ctx.fillStyle = 'rgb(40,40,40)';
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.strokeStyle = `rgba(255,255,255,${lineBrightness})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(left, top, width, height, 8);
@@ -449,7 +453,7 @@ function drawLabelBubble(i, left, width, top, height, highlight) {
   ctx.fill();
   ctx.stroke();
 
-  drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, DRAW.LABEL_BRIGHTNESS);
+  drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, textBrightness);
   if (i.image?.thumbnail) drawLabelThumb(i, left, top);
   ctx.restore();
 }
@@ -519,10 +523,11 @@ function drawLabelAbove(ip, highlight) {
   const p = getLabelPosition(ip, y);
   const spec = zoomSpec(i);
   const lineTop = y - (spec.size/2);
+  const brightness = highlight ? 0.8 : 0.4;
 
   // stem: from top of the item line/dot to bottom of label box
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.strokeStyle = `rgba(255,255,255,${brightness})`;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(p.x, lineTop);
@@ -551,7 +556,6 @@ function drawLabelBelow(ip, highlight) {
 /***************************** Item lines *****************************/
 
 function drawItemLine(ip, highlight) {
-
   const i = ip.item;
   const spec = zoomSpec(i);
   const height = spec.size;
@@ -705,14 +709,18 @@ export function drawItems() {
   }
 
   // iterate through screenElements (items and their labels)
-  screenElements.filter(se => se.type==='line' || se.type==='bubble' || se.type==='label').forEach(se => {
-    const ip = se.itemPos;
-    const i = ip.item;
-    const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
-    if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
-    if (se.type === 'bubble') drawLabelAbove(ip, highlight);
-    if (se.type === 'label') drawLabelBelow(ip, highlight);
-  });
+  // sorting by bottom ensures stems don't overlap bubbles
+  screenElements
+    .filter(se => se.type==='line' || se.type==='bubble' || se.type==='label')
+    .sort((a, b) => a.bottom - b.bottom)
+    .forEach(se => {
+      const ip = se.itemPos;
+      const i = ip.item;
+      const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
+      if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
+      if (se.type === 'bubble') drawLabelAbove(ip, highlight);
+      if (se.type === 'label') drawLabelBelow(ip, highlight);
+    });
 
   // iterate views...
   for (const vw of appState.views) {
@@ -770,6 +778,7 @@ export function filterItemsForView(vw){
 }
 
 function positionLabelsForVw(vw){
+  const ceiling = (vw.ceiling * -1) + 52;
   filterItemsForView(vw);
 
   // find a place for each item, if possible - most important first
@@ -798,21 +807,23 @@ function positionLabelsForVw(vw){
       let open = false;
 
       scanUpwardLoop:
-      while (top > -200 && !open) {
-        // Check each already placed item (c) for overlap...
+      while (top > ceiling && !open) {
+        // Check each already placed item (item) for overlap...
         for (const itemPos of vw.itemPos) {
           const item = itemPos.item;
           if (item === i) continue; // self
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
-          
-          // if c's bubble is over e's stem (x) then can't display
-          if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }
 
-          // if c's bubble overlaps e's then move up and try again
+          // if item's bubble overlaps i's then move up and try again
           if (itemPos._left < right && itemPos._right > left && itemPos._top < bot && itemPos._bot > top) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
 
-          // if e's bubble would overlap c's stem then move up and try again
-          if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}
+          if (!DRAW.ALLOW_BUBBLE_OVERLAP) {
+            // if item's bubble is over i's stem (x) then can't display
+            if (itemPos._left < x && itemPos._right > x) { ip.yOffset = 0; break scanUpwardLoop; }  // allow overlap
+
+            // if i's bubble would overlap item's stem then move up and try again
+            if (itemPos._bot < top && item._x > left && item._x < right) { bot = itemPos._top - DRAW.EDGE_GAP; top = bot - height; continue scanUpwardLoop;}  // allow overlap
+          }
         }
         open = true;
       }
@@ -824,6 +835,8 @@ function positionLabelsForVw(vw){
         ip._right = right;
         ip._top = top;
         ip._bot = bot;
+      } else {
+        ip.yOffset = 0;
       }
     });
   }
@@ -835,24 +848,48 @@ export function positionLabels() {
 }
 
 export function positionViews(zoom) {
+  const view = appState.selected.view;
   const wh = window.innerHeight;
-  const c = appState.views.length;
-  const height = wh - TICK.TICK_TOP - TICK.TICK_LABEL_HEIGHT;
-  const h = (c===1) ? wh * 0.6 : ((height)/(c+1)) + ((height)/((c+1)*c*2));
-  let p = h;
+  let p = TICK.TICK_TOP + TICK.TICK_LABEL_HEIGHT;
+  let c = appState.views.length;
+  let reserve = 0;
+  let remain = wh - p;
+  let h = 0;
+
+  const calcRemaining = (height, count) => {
+    return (height/(count+1)) + (height/((count+1)*count*2));
+  };
+
+  if (c === 1) {
+    h = Math.round(remain * 0.6);
+  } else {
+    h = calcRemaining(remain, c);
+
+    if (view) {
+      const ceiling = Math.min(DRAW.MIN_VIEW_CEILING, remain * 0.6);
+      if (h < ceiling) {
+        reserve = ceiling;
+        remain -= reserve
+        h = calcRemaining(remain, c - 1);
+      }
+    }      
+  }
 
   // iterate through timelines in reverse
-  for (let i=c-1; i>=0; i--) {
+  for (let i=appState.views.length-1; i>=0; i--) {
     const vw = appState.views[i];
+    const ceiling = (vw === view) ? Math.max(reserve, h) : h;
+    p += ceiling;
+    
     if (zoom) {
       vw.origCeiling = vw.ceiling;
-      vw.newCeiling = h;
+      vw.newCeiling = ceiling;
       vw.origYPos = vw.yPos;
       vw.newYPos = Math.floor(p);
     } else {
-      vw.ceiling = h;  // to do: use ceiling to limit above labels
+      vw.ceiling = ceiling;
       vw.yPos = Math.floor(p);
     }
-    p += h;
+    
   }
 }
