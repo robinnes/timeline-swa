@@ -24,7 +24,6 @@ appMenuButton.addEventListener('click', () => {
 });
 
 function openAppMenu() {
-
   updateAppMenu();
   appMenu.classList.add('is-open');
   appMenuButton.setAttribute('aria-expanded', 'true');

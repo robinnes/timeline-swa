@@ -1,5 +1,5 @@
 import {TIME} from './constants.js';
-import {appState, getCanvasViewport, timelineCache} from './canvas.js';
+import {appState, getCanvasViewport, timelineCache, draw} from './canvas.js';
 
 // --- Helper functions
 
@@ -18,11 +18,17 @@ export function showGlobalBusyCursor() {
   style.id = 'global-busy-cursor';
   style.textContent = `* { cursor: wait !important; }`;
   document.head.appendChild(style);
+
+  appState.globalBusy = true;
+  draw(false);
 }
 
 export function hideGlobalBusyCursor() {
   const style = document.getElementById('global-busy-cursor');
   if (style) style.remove();
+
+  appState.globalBusy = false;
+  draw(false);
 }
 
 export function htmlToPlainText(html) {
@@ -46,6 +52,10 @@ export function removeTimelineFileExt(file) {
 
 export function addTimelineFileExt(file) {
   return `${file || ''}.json.gz`;
+}
+
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // **********************************************************************************************************************
@@ -79,11 +89,12 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
+  display('globalBusy', appState.globalBusy);
+  /*
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];
   if (!i) return;
 
-/*
   display('date', fmtDate(i.date?.ts));
   display('_date', fmtDate(i._date));
   display('', '');

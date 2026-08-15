@@ -128,7 +128,7 @@ export function initializeItem(i) {
     i._fRight = i.fadeRight._mid;
     i._tTo = tickSpec.get(i.dateTo.prec).inclusive ? tickSpec.get(i.dateTo.prec).step(i.dateTo.ts, 1) : i.dateTo.ts;
 
-    i._date = Math.round((i._tFrom + i._tTo) / 2);
+    i._date = Math.round((i._fLeft + i._fRight) / 2);
   }
 
 };

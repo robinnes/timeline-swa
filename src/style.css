@@ -510,6 +510,7 @@ h2.label {
 
 .details {
   padding: 14px 0;
+  white-space: pre-wrap;  /* accommodate line feeds */
 }
 
 /* View panels: details flow naturally with the rest of the content */
