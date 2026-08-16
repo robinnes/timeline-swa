@@ -9,7 +9,7 @@ export async function getAuthState() {
   // do not assign the retrieved userId to appState here; we need to retain it
   // as the *intended* logged user in case the session expires
 
-  Util.showGlobalBusyCursor();
+  //Util.showGlobalBusyCursor();
   
   try {
     let userId = null;
@@ -32,7 +32,7 @@ export async function getAuthState() {
     return userId;
 
   } finally {
-    Util.hideGlobalBusyCursor();
+    //Util.hideGlobalBusyCursor();
   }
 }
 

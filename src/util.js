@@ -89,7 +89,7 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  display('globalBusy', appState.globalBusy);
+  if (appState.globalBusy) display('', appState.globalBusy);
   /*
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];

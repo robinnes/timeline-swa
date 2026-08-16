@@ -33,7 +33,7 @@ const TIMELINE_FILE_EXT = '.json.gz';
 for (const btn of fileModalTabButtons) {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (btn.disabled) return;
+    if (btn.disabled || appState.globalBusy) return;
     const selectedScope = btn.dataset.target;
     setActiveFileScope(selectedScope);
     refreshTimelineList(selectedScope);
@@ -77,26 +77,30 @@ let openDialogSelectedName = null;
 let openDialogSort = { key: 'name', direction: 'asc' };
 
 async function refreshTimelineList(scope) {
-  try {
-    openDialogSelectedName = null;
-    openTimelineOpenBtn.disabled = true;
-    updateDeleteButtonState();
+  Util.showGlobalBusyCursor();
 
-    const blobs = await getTimelineList(scope);
-    openDialogBlobs = blobs || [];
+  openDialogSelectedName = null;
+  openTimelineOpenBtn.disabled = true;
+  updateDeleteButtonState();
+
+  try {
+    // return simulated list if running locally
+    if (await Util.isLocalEnv()) {    
+      const fakeBlobs = await tempSimulateList(scope);
+      openDialogBlobs = fakeBlobs || [];
+    } else {
+      const blobs = await getTimelineList(scope);
+      openDialogBlobs = blobs || [];
+    }
+
     renderOpenTimelineTable();
 
   } catch (err) {
-    if (await Util.isLocalEnv()) {
-      // return simulated list if running locally
-      const fakeBlobs = tempSimulateList(scope);
-      openDialogBlobs = fakeBlobs || [];
-      renderOpenTimelineTable();
-      return;
-    }
-
     console.error(err);
     openDialogBlobs = [];
+
+  } finally {
+    Util.hideGlobalBusyCursor();
   }
 }
 
@@ -160,6 +164,7 @@ function renderOpenTimelineTable() {
     tr.appendChild(lastModifiedTd);
 
     tr.addEventListener('click', () => {
+      if (appState.globalBusy) return;
       openDialogSelectedName = tr.dataset.blobName;
 
       // Highlight selected row
@@ -173,6 +178,7 @@ function renderOpenTimelineTable() {
 
     // double-click to open immediately
     tr.addEventListener('dblclick', () => {
+      if (appState.globalBusy) return;
       openDialogSelectedName = tr.dataset.blobName;
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
       updateDeleteButtonState();
@@ -445,7 +451,8 @@ openTimelineFilenameInput.addEventListener('input', () => {
 
 /******************************* temp *******************************/
 
-function tempSimulateList(scope) {
+async function tempSimulateList(scope) {
+  await Util.sleep(1000);
   if (scope === "public") {
     return([
       {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/Rob Innes.json.gz"}

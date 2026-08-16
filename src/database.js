@@ -141,16 +141,13 @@ export async function publishTimelineToPublic(file) {
 /******************* Timeline list *******************/
 
 export async function getTimelineList(scope) {
-  Util.showGlobalBusyCursor();
   try {
     const url = "/api/listTimelines" + (scope === "public" ? "?public" : "");
     const response = await fetch(url);
     const {prefix, items} = await response.json();
-    Util.hideGlobalBusyCursor();
     return items;
 
   } catch (err) {
-    Util.hideGlobalBusyCursor();
     throw new Error(`Failed to aquire list of timelines: ${err.message}`);
   }
 }

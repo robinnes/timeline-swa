@@ -434,11 +434,12 @@ aside.sidebar {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
 
-.action-btn:hover {
+.action-btn:not(:disabled):hover {
   opacity: 0.80;
 }
 
-.action-btn:disabled {
+.action-btn:disabled,
+.action-btn-secondary:disabled {
   opacity: 0.45;
   cursor: default;
   box-shadow: none;
@@ -450,7 +451,7 @@ aside.sidebar {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.action-btn-secondary:hover {
+.action-btn-secondary:not(:disable):hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--accent);
 }
