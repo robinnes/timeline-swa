@@ -20,7 +20,6 @@ export function showGlobalBusyCursor() {
   document.head.appendChild(style);
 
   appState.globalBusy = true;
-  draw(false);
 }
 
 export function hideGlobalBusyCursor() {
@@ -28,7 +27,6 @@ export function hideGlobalBusyCursor() {
   if (style) style.remove();
 
   appState.globalBusy = false;
-  draw(false);
 }
 
 export function htmlToPlainText(html) {
@@ -62,6 +60,7 @@ export function sleep(ms) {
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
+import { getTickSpec } from './ticks.js';
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
@@ -89,7 +88,13 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
-  if (appState.globalBusy) display('', appState.globalBusy);
+  const spec = getTickSpec();
+  display('', '');
+  display('', '');
+  display('mode', spec.mode);
+  display('cornerLabel', spec.cornerLabel);
+  display('majorLabel', spec.majorLabel);
+  
   /*
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];

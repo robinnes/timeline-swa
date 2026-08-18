@@ -510,7 +510,7 @@ h2.label {
 }
 
 .details {
-  padding: 14px 0;
+  padding: 2px 0;  /* 14px */
   white-space: pre-wrap;  /* accommodate line feeds */
 }
 

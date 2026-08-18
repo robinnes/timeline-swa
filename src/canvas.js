@@ -164,7 +164,7 @@ export function draw(reposition){
     //debugAppendText(err.stack);
     console.error(err.message);
   }
-  Util.debugVars();
+  //Util.debugVars();
   //debugDisplay();  // for mobile
 }
 

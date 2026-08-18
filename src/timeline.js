@@ -252,8 +252,9 @@ export async function saveTimeline(tl)
     tl._dirty = false;
   } catch (err) {
     console.error('Save failed:', err.message);
+  } finally {
+    Util.hideGlobalBusyCursor();
   }
-  Util.hideGlobalBusyCursor();
 }
 
 export async function publishTimeline(tl)
