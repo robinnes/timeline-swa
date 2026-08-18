@@ -2,7 +2,6 @@ import * as Util from './util.js';
 import {loadTimeline, saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
 import {appState, getTimeline, openView} from './canvas.js';
-//import {positionViews} from './render.js';
 import {updateSaveButton} from './panel.js';
 import {openModal, closeModal} from './appmenu.js';
 import {saveSessionState} from './session.js';
@@ -33,7 +32,7 @@ const TIMELINE_FILE_EXT = '.json.gz';
 for (const btn of fileModalTabButtons) {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (btn.disabled) return;
+    if (btn.disabled || appState.globalBusy) return;
     const selectedScope = btn.dataset.target;
     setActiveFileScope(selectedScope);
     refreshTimelineList(selectedScope);
@@ -77,26 +76,30 @@ let openDialogSelectedName = null;
 let openDialogSort = { key: 'name', direction: 'asc' };
 
 async function refreshTimelineList(scope) {
-  try {
-    openDialogSelectedName = null;
-    openTimelineOpenBtn.disabled = true;
-    updateDeleteButtonState();
+  Util.showGlobalBusyCursor();
 
-    const blobs = await getTimelineList(scope);
-    openDialogBlobs = blobs || [];
+  openDialogSelectedName = null;
+  openTimelineOpenBtn.disabled = true;
+  updateDeleteButtonState();
+
+  try {
+    // return simulated list if running locally
+    if (await Util.isLocalEnv()) {    
+      const fakeBlobs = await tempSimulateList(scope);
+      openDialogBlobs = fakeBlobs || [];
+    } else {
+      const blobs = await getTimelineList(scope);
+      openDialogBlobs = blobs || [];
+    }
+
     renderOpenTimelineTable();
 
   } catch (err) {
-    if (await Util.isLocalEnv()) {
-      // return simulated list if running locally
-      const fakeBlobs = tempSimulateList(scope);
-      openDialogBlobs = fakeBlobs || [];
-      renderOpenTimelineTable();
-      return;
-    }
-
     console.error(err);
     openDialogBlobs = [];
+
+  } finally {
+    Util.hideGlobalBusyCursor();
   }
 }
 
@@ -160,7 +163,12 @@ function renderOpenTimelineTable() {
     tr.appendChild(lastModifiedTd);
 
     tr.addEventListener('click', () => {
+      if (appState.globalBusy) return;
       openDialogSelectedName = tr.dataset.blobName;
+      if (fileDialogMode === FILE_DIALOG_MODE_SAVE_AS) {
+        openTimelineFilenameInput.value = openDialogSelectedName;
+        openTimelineOpenBtn.disabled = false;
+      }
 
       // Highlight selected row
       openTimelineTbody.querySelectorAll('.open-dialog__row').forEach((row) => {
@@ -173,6 +181,7 @@ function renderOpenTimelineTable() {
 
     // double-click to open immediately
     tr.addEventListener('dblclick', () => {
+      if (appState.globalBusy) return;
       openDialogSelectedName = tr.dataset.blobName;
       openTimelineOpenBtn.disabled = !openDialogSelectedName;
       updateDeleteButtonState();
@@ -270,9 +279,10 @@ async function handleOpenTimelineConfirm() {
 
     let filename = openTimelineFilenameInput.value.trim();
     if (!filename) return;
-    appState.selected.timeline._file = filename;
 
+    // To do: don't allow to overwrite existing timeline
     saveTimeline(appState.selected.timeline).then(() => {
+      appState.selected.timeline._file = filename;
       saveSessionState();
       updateSaveButton();
     });
@@ -287,13 +297,14 @@ async function handleOpenTimelineConfirm() {
 let deletePermissionRequest = 0;
 
 async function updateDeleteButtonState() {
-  if (!openTimelineDeleteBtn) return;
+  if (appState.globalBusy || fileDialogMode !== FILE_DIALOG_MODE_OPEN) return;
 
   const requestId = ++deletePermissionRequest;
-  openTimelineDeleteBtn.disabled = true;
-
-  if (fileDialogMode !== FILE_DIALOG_MODE_OPEN || !openDialogSelectedName) return;
-  if (appState.authentication.userId == null) return;
+  
+  if (!openDialogSelectedName || appState.authentication.userId == null) {
+    openTimelineDeleteBtn.disabled = true;
+    return
+  }
 
   const scope = getActiveFileScope();
 
@@ -381,6 +392,8 @@ function configureOpenTimelineDialogForOpen() {
 
 // Click handling inside Open Timeline modal
 openTimelineModal.addEventListener('click', (e) => {
+  if (appState.globalBusy) return;
+
   const target = e.target;
   const modalId = target.getAttribute('data-modal-target');
 
@@ -388,7 +401,7 @@ openTimelineModal.addEventListener('click', (e) => {
     closeModal(openTimelineModal);
   }
 
-  if (target.matches('[data-modal-action="cancel"]')) {
+  if (target.matches('[data-modal-action="cancel"]')) {  
     const el = document.getElementById(modalId);
     if (el) closeModal(el);
   }
@@ -396,6 +409,7 @@ openTimelineModal.addEventListener('click', (e) => {
 
 // Open button clicked
 openTimelineOpenBtn.addEventListener('click', () => {
+  if (appState.globalBusy) return;
   handleOpenTimelineConfirm();
 });
 
@@ -445,7 +459,8 @@ openTimelineFilenameInput.addEventListener('input', () => {
 
 /******************************* temp *******************************/
 
-function tempSimulateList(scope) {
+async function tempSimulateList(scope) {
+  await Util.sleep(1000);
   if (scope === "public") {
     return([
       {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/Rob Innes.json.gz"}

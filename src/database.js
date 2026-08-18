@@ -2,9 +2,11 @@ import * as Util from './util.js';
 
 /******************* Utility functions *******************/
 
+/*
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+*/
 
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
@@ -62,6 +64,8 @@ async function acquireBlobSas(scope, filename, mode) {
 
 export async function loadTimelineFromStorage(scope, file) {
 
+  Util.showGlobalBusyCursor();
+
   const isLocal = await Util.isLocalEnv();
   if (isLocal) return await tempSimulateLoadFile(scope, file);
 
@@ -76,10 +80,13 @@ export async function loadTimelineFromStorage(scope, file) {
     if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
     const text = await resp.text();
 
+    Util.hideGlobalBusyCursor();
+  
     // parse and return JSON
     return JSON.parse(text);
 
   } catch (e) {
+    Util.hideGlobalBusyCursor();
     console.error(`Failed to load ${file} from storage: ${e.message}`);
   }
 }
@@ -134,16 +141,13 @@ export async function publishTimelineToPublic(file) {
 /******************* Timeline list *******************/
 
 export async function getTimelineList(scope) {
-  Util.showGlobalBusyCursor();
   try {
     const url = "/api/listTimelines" + (scope === "public" ? "?public" : "");
     const response = await fetch(url);
     const {prefix, items} = await response.json();
-    Util.hideGlobalBusyCursor();
     return items;
 
   } catch (err) {
-    Util.hideGlobalBusyCursor();
     throw new Error(`Failed to aquire list of timelines: ${err.message}`);
   }
 }
@@ -245,6 +249,6 @@ async function tempSimulateLoadFile(scope, file) {
   const response = await fetch(`data/${file}.json.gz`);  // only works when a local server is running
   const tl = await response.json();
 
-  await sleep(350);  // simulate database access
+  await Util.sleep(1350);  // simulate database access
   return tl;
 }

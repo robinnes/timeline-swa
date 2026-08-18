@@ -1,5 +1,5 @@
 import {TIME} from './constants.js';
-import {appState, getCanvasViewport, timelineCache} from './canvas.js';
+import {appState, getCanvasViewport, timelineCache, draw} from './canvas.js';
 
 // --- Helper functions
 
@@ -18,11 +18,15 @@ export function showGlobalBusyCursor() {
   style.id = 'global-busy-cursor';
   style.textContent = `* { cursor: wait !important; }`;
   document.head.appendChild(style);
+
+  appState.globalBusy = true;
 }
 
 export function hideGlobalBusyCursor() {
   const style = document.getElementById('global-busy-cursor');
   if (style) style.remove();
+
+  appState.globalBusy = false;
 }
 
 export function htmlToPlainText(html) {
@@ -48,10 +52,15 @@ export function addTimelineFileExt(file) {
   return `${file || ''}.json.gz`;
 }
 
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // **********************************************************************************************************************
 
 import {DRAW} from './constants.js';
 import {zoomSpec} from './render.js';
+import { getTickSpec } from './ticks.js';
 
 export function debugVars() {
   const ctx = canvas.getContext('2d');
@@ -79,11 +88,18 @@ export function debugVars() {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
 
+  const spec = getTickSpec();
+  display('', '');
+  display('', '');
+  display('mode', spec.mode);
+  display('cornerLabel', spec.cornerLabel);
+  display('majorLabel', spec.majorLabel);
+  
+  /*
   const tl = timelineCache.values().next().value;  // the first timeline in the cache
   const i = tl?.items[0];
   if (!i) return;
 
-/*
   display('date', fmtDate(i.date?.ts));
   display('_date', fmtDate(i._date));
   display('', '');

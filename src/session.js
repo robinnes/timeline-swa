@@ -6,21 +6,34 @@ import {positionViews} from './render.js';
 /******************************* Authentication *******************************/
 
 export async function getAuthState() {
+  // do not assign the retrieved userId to appState here; we need to retain it
+  // as the *intended* logged user in case the session expires
 
-  // simulate logged-in state if running locally
-  if (await Util.isLocalEnv()) {
-    appState.authentication.userId = "simulated";
-    return appState.authentication.userId;
+  //Util.showGlobalBusyCursor();
+  
+  try {
+    let userId = null;
+
+    // simulate logged-in state if running locally
+    if (await Util.isLocalEnv()) {
+      await Util.sleep(500);
+      userId = "simulated";
+      
+    } else {
+      // retrieve identity block from the ./auth/me URL 
+      const res = await fetch('/.auth/me', {cache:'no-store'});
+
+      if (res.ok) {
+        const data = await res.json();
+        userId = data?.clientPrincipal?.userId ?? null;
+      }
+    }
+
+    return userId;
+
+  } finally {
+    //Util.hideGlobalBusyCursor();
   }
-
-  // retrieve identity block from the ./auth/me URL 
-  const res = await fetch('/.auth/me', {cache:'no-store'});
-  if (!res.ok) return false;
-
-  const data = await res.json();
-  const userId = data?.clientPrincipal?.userId;
-
-  return userId;
 }
 
 /******************************* Session management *******************************/

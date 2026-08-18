@@ -6,7 +6,7 @@ import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from '.
 import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
-import {closeAppMenu, closeModal} from './appmenu.js';
+import {closeAppMenu, closeModal, updateAppMenu} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getAuthState, saveSessionState, restoreSessionState} from './session.js';
 import {getConfiguration} from './database.js';
@@ -19,6 +19,7 @@ export const appState = {
   offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 1,  // date at left of the window; center near "now",
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
   isTouchScreen: null,
+  globalBusy: false,
   highlighted: {
     idx: -1,  // index in screenElements of currently highlighted item
     itemPos: null,
@@ -84,7 +85,7 @@ export async function initialLoad() {
 
   const userId = await getAuthState();
   appState.authentication.userId = userId;
-
+  
   // if there is a user session underway then restore
   await restoreSessionState();
 

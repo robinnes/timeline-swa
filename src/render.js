@@ -160,7 +160,7 @@ function drawAddItemButton(vw) {
   ctx.font = DRAW.TITLE_FONT;
   const btnText = "Add item";
   const textWidth = ctx.measureText(btnText).width;
-  const distance = 50;
+  const distance = 30;
   const width = 120;
   const height = 30;
   const vp = getCanvasViewport();
@@ -198,9 +198,9 @@ function drawDateHandles(itemPos) {
   const item = itemPos.item;
   const color = 'rgba(200,200,200,1)';
   const lineWidth = 2;
-  const majorHeight = 80;
+  const majorHeight = 60;
   const majorRadius = 14;
-  const minorHeight = 50;
+  const minorHeight = 30;
   const minorRadius = 8;
 
   ctx.save();
