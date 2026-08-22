@@ -580,21 +580,32 @@ function drawItemLine(ip, highlight) {
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
 
   ctx.save();
+  // curveLeft/Right = whether line ends are to be rendered as curves
   const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
   const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
     
-  const alphaLeft = (curveLeft) ? 0 : fade;
-  const alphaRight = (curveRight) ? 0 : fade;
-  let gradLeft = (right > left) ? (xFadeLeft - left) / width : 0;
-  let gradRight = (right > left) ? 1 - ((right - xFadeRight) / width) : 1;
+  // alphaLeft/Right = alpha (fade level) of the ends of the line
+  const alphaLeft = curveLeft ? 0 : fade;
+  const alphaRight = curveRight ? 0 : fade;
+
+  // extLeft/Right = distance beyond left and right to extend the gradient (so curves render better)
+  const extLeft = curveLeft ? height : 0;  // using line height arbitrarily
+  const extRight = curveRight ? height : 0;
+
+  // gradLeft/Right = x location of 'stops' of the gradiant (as % of shape width)
+  const totalWidth = width + extLeft + extRight;
+  let gradLeft = (right > left) ? (xFadeLeft - left) / totalWidth : 0;
+  let gradRight = (right > left) ? 1 - ((right - xFadeRight) / totalWidth) : 1;
 
   // check validity of gradiant parameters
   gradLeft = Math.max(Math.min(gradLeft, 1), 0);
   gradRight = Math.max(Math.min(gradRight, 1), 0);
   if (gradLeft > gradRight) gradLeft = gradRight;
 
-  const grad = ctx.createLinearGradient(left, y, right, y);
-  if (gradLeft > 0) grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
+  //const grad = ctx.createLinearGradient(left, y, right, y);
+  const grad = ctx.createLinearGradient(left - extLeft, y, right + extRight, y);
+  if (gradLeft > 0)
+    grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
     grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
     grad.addColorStop(gradRight, `rgba(${color},${fade})`);
     if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
