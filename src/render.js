@@ -147,6 +147,7 @@ function drawLabelThumb(i, left, top) {
   ctx.save();
   roundedRectPath(left + 4, top + 3, DRAW.THUMB_LABEL_SIZE, DRAW.THUMB_LABEL_SIZE, 4);
   ctx.clip();
+  // imageSmoothing didn't appear to change anything...
   ctx.drawImage(img, left + 4, top + 3, DRAW.THUMB_LABEL_SIZE, DRAW.THUMB_LABEL_SIZE);
   ctx.restore();
 }
@@ -562,14 +563,12 @@ function drawItemLine(ip, highlight) {
   const fade = spec.fade;
   const x = Util.timeToPx(i._date);
   const y = ip.yPos;
-  const left = Math.round(Util.timeToPx(i._tFrom));
-  const right = Math.round(Util.timeToPx(i._tTo));
-  const width = right - left;
-  const xFadeLeft = Math.round(Util.timeToPx(i._fLeft));
-  const xFadeRight = Math.round(Util.timeToPx(i._fRight));
-  const top = Math.round(y - height / 2);
-  const bottom = Math.round(y + height / 2);
-
+  const top = y - height / 2;  // looks better not rounded
+  const bottom = y + height / 2;
+  let xLeft = Util.timeToPx(i._tFrom);
+  let xRight = Util.timeToPx(i._tTo);
+  let xFadeLeft = Util.timeToPx(i._fLeft);
+  let xFadeRight = Util.timeToPx(i._fRight);
   const c = i.color ?? "white";
   const cl = i.colorLeft ?? "black";
   const cr = i.colorRight ?? "black";
@@ -579,10 +578,9 @@ function drawItemLine(ip, highlight) {
   const colorLeft = (cl === "black") ? color : colorTrunc(colorMix(colorRGB.get(cl), colorRGB.get(c)));
   const colorRight = (cr === "black") ? color : colorTrunc(colorMix(colorRGB.get(cr), colorRGB.get(c)));
 
-  ctx.save();
   // curveLeft/Right = whether line ends are to be rendered as curves
-  const curveLeft = (Math.abs(xFadeLeft - left) > 1) && (cl === "black");
-  const curveRight = (Math.abs(right - xFadeRight) > 1) && (cr === "black");
+  const curveLeft = (Math.abs(xFadeLeft - xLeft) >= 1) && (cl === "black");
+  const curveRight = (Math.abs(xRight - xFadeRight) >= 1) && (cr === "black");
     
   // alphaLeft/Right = alpha (fade level) of the ends of the line
   const alphaLeft = curveLeft ? 0 : fade;
@@ -592,45 +590,57 @@ function drawItemLine(ip, highlight) {
   const extLeft = curveLeft ? height : 0;  // using line height arbitrarily
   const extRight = curveRight ? height : 0;
 
-  // gradLeft/Right = x location of 'stops' of the gradiant (as % of shape width)
-  const totalWidth = width + extLeft + extRight;
-  let gradLeft = (right > left) ? (xFadeLeft - left) / totalWidth : 0;
-  let gradRight = (right > left) ? 1 - ((right - xFadeRight) / totalWidth) : 1;
+  // pin x locations for smooth transitions
+  xLeft = Math.round(xLeft);
+  xRight = Math.round(xRight);
+  xFadeLeft = Math.round(xFadeLeft);
+  xFadeRight = Math.round(xFadeRight);
 
-  // check validity of gradiant parameters
-  gradLeft = Math.max(Math.min(gradLeft, 1), 0);
-  gradRight = Math.max(Math.min(gradRight, 1), 0);
-  if (gradLeft > gradRight) gradLeft = gradRight;
-
-  //const grad = ctx.createLinearGradient(left, y, right, y);
-  const grad = ctx.createLinearGradient(left - extLeft, y, right + extRight, y);
-  if (gradLeft > 0)
-    grad.addColorStop(0, `rgba(${colorLeft},${alphaLeft})`);
-    grad.addColorStop(gradLeft, `rgba(${color},${fade})`);
-    grad.addColorStop(gradRight, `rgba(${color},${fade})`);
-    if (gradRight < 1) grad.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
-    ctx.fillStyle = grad;
-
+  ctx.save();
   if (highlight) { ctx.shadowColor = `rgba(${color},40)`;  ctx.shadowBlur = DRAW.HIGHLIGHT_GLOW; }
 
+  // middle section
+  ctx.fillStyle = `rgba(${color}, ${fade})`;
   ctx.beginPath();
   ctx.moveTo(xFadeLeft, top);
+  ctx.lineTo(xFadeRight, top);
+  ctx.lineTo(xFadeRight, bottom);
+  ctx.lineTo(xFadeLeft, bottom);
+  ctx.closePath();
+  ctx.fill();
+
+  // right section
+  const gradRight = ctx.createLinearGradient(xFadeRight, y, xRight + extRight, y);
+  gradRight.addColorStop(0, `rgba(${color},${fade})`);
+  gradRight.addColorStop(1, `rgba(${colorRight},${alphaRight})`);
+  ctx.fillStyle = gradRight;
+  ctx.beginPath();
+  ctx.moveTo(xFadeRight, top);
   if (curveRight) {
-    ctx.lineTo(xFadeRight, top);
-    ctx.quadraticCurveTo(right, top, right, y);
-    ctx.quadraticCurveTo(right, bottom, xFadeRight, bottom);
+    ctx.quadraticCurveTo(xRight, top, xRight, y);
+    ctx.quadraticCurveTo(xRight, bottom, xFadeRight, bottom);
   } else {
-    ctx.lineTo(right, top);
-    ctx.lineTo(right, bottom);
+    ctx.lineTo(xRight, top);
+    ctx.lineTo(xRight, bottom);
+    ctx.lineTo(xFadeRight, bottom);
   }
+  ctx.closePath();
+  ctx.fill();
+
+  // left section
+  const gradLeft = ctx.createLinearGradient(xFadeLeft, y, xLeft - extLeft, y);
+  gradLeft.addColorStop(0, `rgba(${color},${fade})`);
+  gradLeft.addColorStop(1, `rgba(${colorLeft},${alphaLeft})`);
+  ctx.fillStyle = gradLeft;
+  ctx.beginPath();
+  ctx.moveTo(xFadeLeft, top);
   if (curveLeft) {
-    ctx.lineTo(xFadeLeft, bottom);
-    ctx.quadraticCurveTo(left, bottom, left, y);
-    ctx.quadraticCurveTo(left, top, xFadeLeft, top);
+    ctx.quadraticCurveTo(xLeft, top, xLeft, y);
+    ctx.quadraticCurveTo(xLeft, bottom, xFadeLeft, bottom);
   } else {
-    ctx.lineTo(left, bottom);
-    ctx.lineTo(left, top);
-    ctx.lineTo(xFadeLeft, top);
+    ctx.lineTo(xLeft, top);
+    ctx.lineTo(xLeft, bottom);
+    ctx.lineTo(xFadeLeft, bottom);
   }
   ctx.closePath();
   ctx.fill();
