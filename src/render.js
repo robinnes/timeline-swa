@@ -558,17 +558,16 @@ function drawLabelBelow(ip, highlight) {
 
 function drawItemLine(ip, highlight) {
   const i = ip.item;
-  const spec = zoomSpec(i);
-  const height = spec.size;
-  const fade = spec.fade;
-  const x = Util.timeToPx(i._date);
-  const y = ip.yPos;
-  const top = y - height / 2;  // looks better not rounded
-  const bottom = y + height / 2;
   let xLeft = Util.timeToPx(i._tFrom);
   let xRight = Util.timeToPx(i._tTo);
   let xFadeLeft = Util.timeToPx(i._fLeft);
   let xFadeRight = Util.timeToPx(i._fRight);
+  const y = ip.yPos;
+  const spec = zoomSpec(i);
+  const height = Math.round(spec.size);
+  const fade = spec.fade;
+  const top = y - height / 2;  // looks better not rounded
+  const bottom = y + height / 2;
   const c = i.color ?? "white";
   const cl = i.colorLeft ?? "black";
   const cr = i.colorRight ?? "black";
@@ -627,6 +626,7 @@ function drawItemLine(ip, highlight) {
   ctx.closePath();
   ctx.fill();
 
+
   // left section
   const gradLeft = ctx.createLinearGradient(xFadeLeft, y, xLeft - extLeft, y);
   gradLeft.addColorStop(0, `rgba(${color},${fade})`);
@@ -647,6 +647,7 @@ function drawItemLine(ip, highlight) {
 
   // dot - display dot while the line appears too narrow to smooth transition
   if ((xFadeRight - xFadeLeft) < height && i.itemType==='event') {
+    const x = Util.timeToPx(i._date);
     ctx.fillStyle = `rgba(${color}, ${fade})`;
     ctx.beginPath();
     ctx.arc(x, y, (height/2), 0, Math.PI*2);
