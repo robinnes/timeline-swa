@@ -241,8 +241,7 @@ function zoom(dt) {
       // set all to their target settings for good measure
       appState.msPerPx = appState.zoom.newMsPerPx;
       appState.offsetMs = appState.zoom.newOffset;
-      delete appState.zoom.newMsPerPx;
-      delete appState.zoom.newOffset;
+      endZoom();
     }
   } else {
     hZoomComplete = true;
@@ -275,19 +274,19 @@ function zoom(dt) {
       if ("newYOffset" in ip) {
         bZoomComplete = false;
         const dOffset = ip.newYOffset - ip.yOffset;
-        if (Math.abs(dOffset) <= 1) {
+        const adjust = dOffset * Math.min(dt * TIME.ZOOM_SPEED * 2, 1);
+        ip.yOffset += adjust;
+        if (Math.abs(ip.newYOffset - ip.yOffset) <= 1) {
           ip.yOffset = ip.newYOffset;
           delete ip.newYOffset;
           delete ip.origYOffset;
-        } else {
-          ip.yOffset += dOffset * dt * 25;
         }
       }
     }
   }
 
-  // stop when both horizontal and vertical zooming is done
-  if (hZoomComplete && vZoomComplete) {
+  // stop when horizontal, view and bubble zooming is done
+  if (hZoomComplete && vZoomComplete && bZoomComplete) {
     appState.zoom.isZooming = false;
   }
   draw(true);
@@ -380,8 +379,8 @@ canvas.addEventListener('pointerdown', (e)=>{
   canvas.setPointerCapture(e.pointerId);
   canvas.focus();
 
-  appState.zoom.isZooming = false;  // stop any zooming in progress
-    
+  endZoom(); // stop any zooming in progress
+
   if (appState.highlighted.idx !== -1 && screenElements[appState.highlighted.idx].type === 'handle') {
     startDragging();
     return;
@@ -452,7 +451,8 @@ canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
   appState.fixedPanMode = null;
-  appState.zoom.isZooming = false;  // stop any zooming in progress
+  endZoom();  // stop any zooming in progress
+  
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(TIME.ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
@@ -547,6 +547,7 @@ function mouseZoom(x, factor) {
 
   // keep the date under the mouse fixed
   appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
+    //+ appState.momentum.vOffsetMs;
 
   draw(true);
 };
@@ -681,6 +682,11 @@ export function focusView(view, zoom) {
   } else {
     appState.zoom = {isZooming:true};
   }
+}
+
+function endZoom() {
+  appState.zoom.newMsPerPx = null;
+  appState.zoom.newOffset = null;
 }
 
 /* ------------------- View/Timeline management -------------------- */

@@ -154,7 +154,7 @@ export async function restoreSessionState() {
     
   } else {
     positionViews(false);
-    draw(true);
+//    draw(true);
     if (appState.views.length > 0) centerOnView(appState.views[appState.views.length-1]);
   }
 

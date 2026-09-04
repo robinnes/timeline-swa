@@ -793,6 +793,7 @@ export function drawItems() {
 function positionLabelsForVw(vw){
   const ceiling = (vw.ceiling * -1) + 52;
   const newItemPosArray = filteredItemsForView(vw);
+  const vp = getCanvasViewport();
 
   // find a place for each item, if possible - most important first
   for (let prom = DRAW.MAX_SIGNIFICANCE; prom > 0; prom--) {
@@ -856,12 +857,16 @@ function positionLabelsForVw(vw){
 
   // reconcile newItemPosArray with existing vw.itemPos
   for (const newIP of newItemPosArray) {
+    if (newIP._right < vp.left || newIP._left > vp.right) continue;  // no need to animate off the screen
     if (newIP.yOffset === -1) continue;
     const origIP = vw.itemPos.find((ip) => ip.item === newIP.item);
     if (origIP) {
-      if (newIP.yOffset != origIP.yOffset) {
-//console.log({origYOffset:origIP.yOffset, newYOffset:newIP.yOffset});
-        newIP.origYOffset = origIP.origYOffset ?? origIP.yOffset;
+      if (newIP.yOffset != origIP.yOffset) {  // need to reposition
+        if ("newYOffset" in origIP) {  // is currently being repositioned already
+          newIP.origYOffset = newIP.yOffset===origIP.newYOffset ? origIP.origYOffset : origIP.newYOffset;
+        } else {
+          newIP.origYOffset = origIP.yOffset;
+        }
         newIP.newYOffset = newIP.yOffset;
         newIP.yOffset = origIP.yOffset;
         appState.zoom.isZooming = true;
