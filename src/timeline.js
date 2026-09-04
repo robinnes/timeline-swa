@@ -177,6 +177,41 @@ export function initializeTimeline(tl) {
 
 }
 
+export function initializeView(vw) {
+  const itemPos = filteredItemsForView(vw);
+  var tFrom, tTo;
+  
+  // determine tFrom/tTo for the view from filtered items
+  itemPos.forEach(ip => {
+    if (!tFrom || ip.item._tFrom < tFrom) tFrom = ip.item._tFrom;
+    if (!tTo || ip.item._tTo > tTo) tTo = ip.item._tTo;
+  });
+  vw.tFrom = tFrom;
+  vw.tTo = tTo;
+  vw.itemPos = itemPos;
+}
+
+export function filteredItemsForView(vw) {
+  // return filtered array of items according vw.tagFilters
+  const tl = timelineCache.get(vw.tlKey);
+  const tagFilter = vw.tagFilter;
+  const items = tl.items;
+  let itemPos = [];
+  
+  items.forEach(i => {
+    // check item's tag assignments (allow all if !tagFilter)
+    if ((!tagFilter && i.include) || i.tagIds.includes(tagFilter)) {
+      itemPos.push({
+        item:   i,
+        yPos: vw.yPos,      // for convenience
+        yOffset: null       // the item label's distance from the view's y value (vw.yPos)
+      })
+    }
+  });
+  return itemPos;
+}
+
+
 /******************************* Timeline management *******************************/
 
 export async function loadTimeline(file) {

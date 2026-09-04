@@ -1,6 +1,6 @@
 import * as Util from './util.js';
 import {appState, timelineCache, draw, centerOnView} from './canvas.js';
-import {loadTimeline, timelineString, initializeTimeline} from './timeline.js';
+import {loadTimeline, timelineString, initializeTimeline, initializeView} from './timeline.js';
 import {positionViews} from './render.js';
 
 /******************************* Authentication *******************************/
@@ -139,7 +139,8 @@ export async function restoreSessionState() {
       file: v.file,
       scope: v.scope,
       tagFilter: v.tagFilter
-    }
+    };
+    initializeView(view);
     if (timelineCache.has(view.tlKey))  // somehow we get orphaned views (?)
       appState.views.push(view);
   });

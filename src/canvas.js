@@ -1,9 +1,9 @@
 import {TIME, TOUCH, ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
+import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
-import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
+import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal, updateAppMenu} from './appmenu.js';
@@ -260,12 +260,28 @@ function zoom(dt) {
       if (Math.abs(dYPos) > 1) vZoomComplete = false;  // still repositioning views (vertically
     }
   }
-
   if (vZoomComplete) {
     for (const vw of appState.views) {
       if (vw.newYPos) {
         vw.ceiling = vw.newCeiling; vw.yPos = vw.newYPos;
         vw.newCeiling = null; vw.newYPos = null;
+      }
+    }
+  }
+
+  let bZoomComplete = true;  // bubble zooming, of course
+  for (const vw of appState.views) {
+    for (const ip of vw.itemPos) {
+      if ("newYOffset" in ip) {
+        bZoomComplete = false;
+        const dOffset = ip.newYOffset - ip.yOffset;
+        if (Math.abs(dOffset) <= 1) {
+          ip.yOffset = ip.newYOffset;
+          delete ip.newYOffset;
+          delete ip.origYOffset;
+        } else {
+          ip.yOffset += dOffset * dt * 25;
+        }
       }
     }
   }
@@ -591,9 +607,8 @@ function positionForItem(i) {
 }
 
 function positionForView(vw) {
-  if (!vw.tFrom || !vw.tTo) {
+  if (!vw.tFrom || !vw.tTo) 
     return { offsetMs: appState.offsetMs, msPerPx: appState.msPerPx };
-  }
 
   const vp = getCanvasViewport();
   const width = vw.tTo - vw.tFrom;
@@ -735,7 +750,8 @@ export function openView(tl, tagID, origVw) {
     yPos: origVw?.yPos,
     ceiling: origVw?.ceiling
   }
-  filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
+  //filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
+initializeView(newView);
 
   if (!origVw) {
     appState.views.push(newView);
