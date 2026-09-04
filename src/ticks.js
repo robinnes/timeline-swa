@@ -206,47 +206,54 @@ function drawTickLine(x, width, style) {
 /* ------------------- Master functions -------------------- */
 
 export function drawTicks() {
+  ctx.font = TICK.TICK_FONT;  // need it here for calculating width
+  const vp = getCanvasViewport();
   const spec = getTickSpec();
   const majorSpec = tickSpec.get(spec.zoomOut);
-  const vp = getCanvasViewport();
   const t0 = Util.pxToTime(vp.left);
   const t1 = Util.pxToTime(vp.right);
   const tickWidth = spec.msPerTick / appState.msPerPx;
   let t = spec.start(t0);
   let majorT = majorSpec.start(t0);
-  ctx.font = TICK.TICK_FONT;  // need it here for calculating width
-
-  // Corner label (display year or month+year in top-left if necessary)
-  let cornerLabelX = vp.left + DRAW.EDGE_GAP;
-  let cornerLabelWidth = 0; 
+  
+  let cornerLabel = {};  // the static "major" tick label in the upper-left corner
+  let pushLabel = {};  // the "major" tick label pushing the previous one off the canvas
+  let uberLabel = {};  // the next "major" tick label which is also major to its own spec
   let pushing = false;
-  let pushingT = 0;
-  let pushingLabel = '';
-  let pushingX = 0;
-  let pushingWidth = 0;
   
   if (spec.cornerLabel) {
-    const cornerLabelText = spec.cornerLabel(majorT);
-    
-    // Determine whether a major tick is close to the corner label
-    const firstMajorTick = majorSpec.step(majorT, 1);
-    const firstMajorX = Util.timeToPx(firstMajorTick);
-    cornerLabelWidth = ctx.measureText(cornerLabelText).width;
-    const push_threshold = (cornerLabelWidth * 2) + TICK.PADDING;
+    cornerLabel.x = vp.left + DRAW.EDGE_GAP;
+    cornerLabel.text = spec.cornerLabel(majorT);
+    cornerLabel.width = ctx.measureText(cornerLabel.text).width;
 
-    if (firstMajorX < push_threshold) { 
-      cornerLabelX -= (push_threshold - firstMajorX); // push left if major tick is close
+    let majorLabel = {}; // the next "major" tick label
+    majorLabel.t = majorSpec.step(majorT, 1);
+    majorLabel.x = Util.timeToPx(majorLabel.t);
+
+    // Determine whether a major tick is close to the corner label
+    const push_threshold = (cornerLabel.width * 2) + TICK.PADDING;
+
+    if (majorLabel.x < vp.left + push_threshold) { 
+      cornerLabel.x -= (vp.left + push_threshold - majorLabel.x); // push left if major tick is close
       pushing = true;
-      pushingT = firstMajorTick;
-      pushingLabel = spec.cornerLabel(pushingT);
-      pushingWidth = ctx.measureText(pushingLabel).width; 
-      pushingX = Math.max(firstMajorX, DRAW.EDGE_GAP + (pushingWidth / 2));
+
+      pushLabel.t = majorLabel.t;
+      pushLabel.text = spec.cornerLabel(pushLabel.t);
+      pushLabel.width = ctx.measureText(pushLabel.text).width;
+      pushLabel.x = Math.max(majorLabel.x, vp.left + DRAW.EDGE_GAP + (pushLabel.width / 2));
     }
-    const cornerLabelT = majorT;
-    const cornerLabelMode = spec.zoomOut;
+    cornerLabel.t = majorT;
 
     // Draw corner label
-    drawTickLabel(cornerLabelText, cornerLabelX, cornerLabelWidth, TICK.MAX_TICK_LABEL_BRIGHT, cornerLabelT, cornerLabelMode);
+    drawTickLabel(cornerLabel.text, cornerLabel.x, cornerLabel.width, TICK.MAX_TICK_LABEL_BRIGHT, cornerLabel.t, spec.zoomOut);
+
+    // identify the next major tick's parent tick
+    const uberSpec = tickSpec.get(majorSpec.zoomOut);
+    uberLabel.t = uberSpec.start(t0);
+    uberLabel.t = uberSpec.step(uberLabel.t, 1);
+    uberLabel.text = spec.cornerLabel(uberLabel.t);
+    uberLabel.width = ctx.measureText(uberLabel.text).width;
+    uberLabel.x = Util.timeToPx(uberLabel.t);
   }
 
   // Tick lines and labels across the top
@@ -257,7 +264,7 @@ export function drawTicks() {
     const x = Util.timeToPx(t);
     
     // major = whether this is a "major" tick (1st of month, Jan 1, decade start, etc)
-    const major = (t===majorT);
+    const major = (t === majorT);
     const tag = (major) ? spec.zoomOut : spec.mode;  // drives what happens when label is clicked
 
     // draw the tick line
@@ -265,9 +272,11 @@ export function drawTicks() {
 
     // determine format of tick label
     let label = null;
-    let minWidth = spec.label[spec.label.length-1].minWidth;  // smallest minWidth for the spec
-    if (pushing && t===pushingT) {
-      label = pushingLabel;
+    let minWidth = spec.label[spec.label.length - 1].minWidth;  // smallest minWidth for the spec
+    if (pushing && t === pushLabel.t) {
+      label = pushLabel.text;
+    } else if (t === uberLabel.t) {
+      label = uberLabel.text;
     } else if (major) {
       label = spec.majorLabel(t);
     } else {
@@ -284,24 +293,27 @@ export function drawTicks() {
       const labelWidth = ctx.measureText(label).width;
         
       // position label on the line, but if it's pushing the corner label, move it right
-      const labelX = (pushing && t===pushingT) ? pushingX : x;
+      const labelX = (pushing && t === pushLabel.t) ? pushLabel.x : x;
       const left = labelX - (labelWidth / 2);
 
       // fade out label based on available space (tickWidth)
       let fadeFactor = major ? 0.85 : Math.min((tickWidth - minWidth) / minWidth, 0.85);
       
-      if (cornerLabelWidth > 0) {
+      if (cornerLabel.width > 0) {
         // fade out labels that overlap the corner label
-        if (left < cornerLabelX + cornerLabelWidth + TICK.PADDING)
-          fadeFactor = Math.min(fadeFactor, Math.max(0, ((left - (cornerLabelX + cornerLabelWidth)) / TICK.PADDING)));
+        if (left < cornerLabel.x + cornerLabel.width + TICK.PADDING)
+          fadeFactor = Math.min(fadeFactor, Math.max(0, ((left - (cornerLabel.x + cornerLabel.width)) / TICK.PADDING)));
 
-        // fade out labels that overlap the "pushing" tick
-        if (!(t===pushingT) && (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth / 2) < TICK.PADDING))
-          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushingX) - (labelWidth / 2) - (pushingWidth/2)) / TICK.PADDING));
+        // fade out labels that overlap the "push" tick
+        if (!(t === pushLabel.t) && (Math.abs(labelX - pushLabel.x) - (labelWidth / 2) - (pushLabel.width / 2) < TICK.PADDING))
+          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - pushLabel.x) - (labelWidth / 2) - (pushLabel.width/2)) / TICK.PADDING));
+
+        // fade out labels that overlap the "uber" label
+        if (!(t === uberLabel.t) && (Math.abs(labelX - uberLabel.x) - (labelWidth / 2) - (uberLabel.width / 2) < TICK.PADDING))
+          fadeFactor = Math.min(fadeFactor, Math.max(0, (Math.abs(labelX - uberLabel.x) - (labelWidth / 2) - (uberLabel.width/2)) / TICK.PADDING));
       }
       // draw the label
       if (fadeFactor > 0) drawTickLabel(label, left, labelWidth, fadeFactor, t, tag);
-      
     }
     t = spec.step(t, 1);
     const nextMajorT = majorSpec.step(majorT, 1);

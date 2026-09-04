@@ -1,6 +1,7 @@
 import {DRAW, TICK, ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {appState, timelineCache, screenElements, setPointerCursor, ctx, draw, getCanvasViewport} from './canvas.js';
+import {filteredItemsForView} from './timeline.js';
 
 const thumbCache = new Map(); // key: dataUrl, value: HTMLImageElement
 
@@ -439,7 +440,8 @@ function drawLabelText(label, x, y, brightness) {
   });
 }
 
-function drawLabelBubble(i, left, width, top, height, highlight) {
+function drawLabelBubble(ip, left, width, top, height, highlight, renderContent) {
+  const i = ip.item;
   const textBrightness = (highlight) ? DRAW.LABEL_BRIGHTNESS : 0.6;
   const lineBrightness = (highlight) ? 0.5 : 0.18;
   
@@ -454,19 +456,23 @@ function drawLabelBubble(i, left, width, top, height, highlight) {
   ctx.fill();
   ctx.stroke();
 
-  drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, textBrightness);
-  if (i.image?.thumbnail) drawLabelThumb(i, left, top);
+  if (renderContent) {
+    drawLabelText(i._parsedLabel, left + DRAW.EDGE_GAP, top + DRAW.EDGE_GAP, textBrightness);
+    if (i.image?.thumbnail) drawLabelThumb(i, left, top);
+  }
   ctx.restore();
 }
 
-function drawLabelHover(i, x, y) {
+function drawLabelHover(ip, x, y) {
+  const i = ip.item;
+
   // display label right where the item is drawn
   const width = Math.ceil(i._parsedWidth) + DRAW.EDGE_GAP*2;
   const height = Math.ceil(i._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
   const left = Math.round(x - width/2);
   const top = Math.round(y - height/2);
 
-  drawLabelBubble(i, left, width, top, height, true);
+  drawLabelBubble(ip, left, width, top, height, true, true);
 }
 
 function getLabelPosition(ip, y) {
@@ -477,13 +483,22 @@ function getLabelPosition(ip, y) {
 
   if (ip.yOffset > 0) {
     // bubble above y
-    const width = Math.ceil(i._parsedWidth) + DRAW.EDGE_GAP*2;
-    const height = Math.ceil(i._parsedRows * DRAW.LABEL_LINE_HEIGHT) + DRAW.EDGE_GAP;
+    
+    let bubbleZoomFactor = 1;
+    if ("newYOffset" in ip) {
+      if (ip.newYOffset === 0 || ip.origYOffset === 0) {
+        bubbleZoomFactor =  (ip.yOffset / Math.abs(ip.newYOffset - ip.origYOffset));
+        if (bubbleZoomFactor > 1) bubbleZoomFactor = 1; //console.log({bubbleZoomFactor});
+      }
+    }
+
+    const width = Math.ceil((i._parsedWidth + (DRAW.EDGE_GAP*2)) * bubbleZoomFactor);
+    const height = Math.ceil((i._parsedRows * DRAW.LABEL_LINE_HEIGHT + DRAW.EDGE_GAP) * bubbleZoomFactor);
     const left = Math.round(x - width/2);
     const right = left + width;
     const top = Math.round(y - DRAW.LABEL_STEM_HEIGHT - ip.yOffset);
     const bottom = top + height;
-    return {type:'bubble', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height};
+    return {type:'bubble', x:x, y:y, left:left, right:right, top:top, bottom:bottom, width:width, height:height, renderContent:(bubbleZoomFactor===1)};
 
   } else if (ip.yOffset === -1) {
     // label below y
@@ -536,7 +551,7 @@ function drawLabelAbove(ip, highlight) {
   ctx.stroke();
   ctx.restore();
 
-  drawLabelBubble(i, p.left, p.width, p.top, p.height, highlight);
+  drawLabelBubble(ip, p.left, p.width, p.top, p.height, highlight, p.renderContent);
 }
 
 function drawLabelBelow(ip, highlight) {
@@ -558,17 +573,16 @@ function drawLabelBelow(ip, highlight) {
 
 function drawItemLine(ip, highlight) {
   const i = ip.item;
-  const spec = zoomSpec(i);
-  const height = spec.size;
-  const fade = spec.fade;
-  const x = Util.timeToPx(i._date);
-  const y = ip.yPos;
-  const top = y - height / 2;  // looks better not rounded
-  const bottom = y + height / 2;
   let xLeft = Util.timeToPx(i._tFrom);
   let xRight = Util.timeToPx(i._tTo);
   let xFadeLeft = Util.timeToPx(i._fLeft);
   let xFadeRight = Util.timeToPx(i._fRight);
+  const y = ip.yPos;
+  const spec = zoomSpec(i);
+  const height = Math.round(spec.size);
+  const fade = spec.fade;
+  const top = y - height / 2;  // looks better not rounded
+  const bottom = y + height / 2;
   const c = i.color ?? "white";
   const cl = i.colorLeft ?? "black";
   const cr = i.colorRight ?? "black";
@@ -627,6 +641,7 @@ function drawItemLine(ip, highlight) {
   ctx.closePath();
   ctx.fill();
 
+
   // left section
   const gradLeft = ctx.createLinearGradient(xFadeLeft, y, xLeft - extLeft, y);
   gradLeft.addColorStop(0, `rgba(${color},${fade})`);
@@ -647,6 +662,7 @@ function drawItemLine(ip, highlight) {
 
   // dot - display dot while the line appears too narrow to smooth transition
   if ((xFadeRight - xFadeLeft) < height && i.itemType==='event') {
+    const x = Util.timeToPx(i._date);
     ctx.fillStyle = `rgba(${color}, ${fade})`;
     ctx.beginPath();
     ctx.arc(x, y, (height/2), 0, Math.PI*2);
@@ -765,7 +781,7 @@ export function drawItems() {
 
   // draw hover bubble over dot too small for above label
   const h = appState.highlighted.itemPos;
-  if (h?.yOffset===0) drawLabelHover(h.item, Util.timeToPx(h.item._date), h.yPos);
+  if (h?.yOffset===0) drawLabelHover(h, Util.timeToPx(h.item._date), h.yPos);
 
   // change pointer
   setPointerCursor();
@@ -774,39 +790,16 @@ export function drawItems() {
 
 /***************************** Positioning timelines and items *****************************/
 
-export function filterItemsForView(vw){
-  // reset vw.itemPos array according to vw.tagFilters
-  var tFrom, tTo;
-  const tl = timelineCache.get(vw.tlKey);
-  const tagFilter = vw.tagFilter;
-  const items = tl.items;
-
-  vw.itemPos = [];
-  items.forEach(i => {
-    // check item's tag assignments (allow all if !tagFilter)
-    if ((!tagFilter && i.include) || i.tagIds.includes(tagFilter)) {
-      vw.itemPos.push({
-        item:   i,
-        yPos: vw.yPos,      // for convenience
-        yOffset: null       // the item label's distance from the view's y value (vw.yPos)
-      })
-      if (!tFrom || i._tFrom < tFrom) tFrom = i._tFrom;
-      if (!tTo || i._tTo > tTo) tTo = i._tTo;
-    }
-  });
-  vw.tFrom = tFrom;
-  vw.tTo = tTo;
-}
-
 function positionLabelsForVw(vw){
   const ceiling = (vw.ceiling * -1) + 52;
-  filterItemsForView(vw);
+  const newItemPosArray = filteredItemsForView(vw);
+  const vp = getCanvasViewport();
 
   // find a place for each item, if possible - most important first
   for (let prom = DRAW.MAX_SIGNIFICANCE; prom > 0; prom--) {
     
     // process each item of this prominence
-    vw.itemPos.filter(ip => ip.item.prominence === prom).forEach(ip => {
+    newItemPosArray.filter(ip => ip.item.prominence === prom).forEach(ip => {
       const i = ip.item;
       const spec = zoomSpec(i);
 
@@ -830,7 +823,7 @@ function positionLabelsForVw(vw){
       scanUpwardLoop:
       while (top > ceiling && !open) {
         // Check each already placed item (item) for overlap...
-        for (const itemPos of vw.itemPos) {
+        for (const itemPos of newItemPosArray) {
           const item = itemPos.item;
           if (item === i) continue; // self
           if (!itemPos.yOffset || itemPos.yOffset === -1) continue; // not placed yet
@@ -861,6 +854,26 @@ function positionLabelsForVw(vw){
       }
     });
   }
+
+  // reconcile newItemPosArray with existing vw.itemPos
+  for (const newIP of newItemPosArray) {
+    if (newIP._right < vp.left || newIP._left > vp.right) continue;  // no need to animate off the screen
+    if (newIP.yOffset === -1) continue;
+    const origIP = vw.itemPos.find((ip) => ip.item === newIP.item);
+    if (origIP) {
+      if (newIP.yOffset != origIP.yOffset) {  // need to reposition
+        if ("newYOffset" in origIP) {  // is currently being repositioned already
+          newIP.origYOffset = newIP.yOffset===origIP.newYOffset ? origIP.origYOffset : origIP.newYOffset;
+        } else {
+          newIP.origYOffset = origIP.yOffset;
+        }
+        newIP.newYOffset = newIP.yOffset;
+        newIP.yOffset = origIP.yOffset;
+        appState.zoom.isZooming = true;
+      }
+    }
+  };
+  vw.itemPos = newItemPosArray;
 }
 
 export function positionLabels() {

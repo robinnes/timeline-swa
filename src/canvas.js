@@ -1,9 +1,9 @@
 import {TIME, TOUCH, ZOOM} from './constants.js';
 import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
-import {positionViews, positionLabels, filterItemsForView, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
+import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
-import {loadTimeline, closeTimeline, initializeItem} from './timeline.js';
+import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
 import {startDragging, stopDragging, drag} from './dragging.js';
 import {debugAppendText, debugDisplay} from './mobile.js';
 import {closeAppMenu, closeModal, updateAppMenu} from './appmenu.js';
@@ -241,8 +241,7 @@ function zoom(dt) {
       // set all to their target settings for good measure
       appState.msPerPx = appState.zoom.newMsPerPx;
       appState.offsetMs = appState.zoom.newOffset;
-      delete appState.zoom.newMsPerPx;
-      delete appState.zoom.newOffset;
+      endZoom();
     }
   } else {
     hZoomComplete = true;
@@ -260,7 +259,6 @@ function zoom(dt) {
       if (Math.abs(dYPos) > 1) vZoomComplete = false;  // still repositioning views (vertically
     }
   }
-
   if (vZoomComplete) {
     for (const vw of appState.views) {
       if (vw.newYPos) {
@@ -270,8 +268,25 @@ function zoom(dt) {
     }
   }
 
-  // stop when both horizontal and vertical zooming is done
-  if (hZoomComplete && vZoomComplete) {
+  let bZoomComplete = true;  // bubble zooming, of course
+  for (const vw of appState.views) {
+    for (const ip of vw.itemPos) {
+      if ("newYOffset" in ip) {
+        bZoomComplete = false;
+        const dOffset = ip.newYOffset - ip.yOffset;
+        const adjust = dOffset * Math.min(dt * TIME.ZOOM_SPEED * 2, 1);
+        ip.yOffset += adjust;
+        if (Math.abs(ip.newYOffset - ip.yOffset) <= 1) {
+          ip.yOffset = ip.newYOffset;
+          delete ip.newYOffset;
+          delete ip.origYOffset;
+        }
+      }
+    }
+  }
+
+  // stop when horizontal, view and bubble zooming is done
+  if (hZoomComplete && vZoomComplete && bZoomComplete) {
     appState.zoom.isZooming = false;
   }
   draw(true);
@@ -364,8 +379,8 @@ canvas.addEventListener('pointerdown', (e)=>{
   canvas.setPointerCapture(e.pointerId);
   canvas.focus();
 
-  appState.zoom.isZooming = false;  // stop any zooming in progress
-    
+  endZoom(); // stop any zooming in progress
+
   if (appState.highlighted.idx !== -1 && screenElements[appState.highlighted.idx].type === 'handle') {
     startDragging();
     return;
@@ -436,7 +451,8 @@ canvas.addEventListener('wheel', (e)=>{
   // gesturestart/gesturechange for touchscreens?
   e.preventDefault();
   appState.fixedPanMode = null;
-  appState.zoom.isZooming = false;  // stop any zooming in progress
+  endZoom();  // stop any zooming in progress
+  
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(TIME.ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
@@ -531,6 +547,7 @@ function mouseZoom(x, factor) {
 
   // keep the date under the mouse fixed
   appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
+    //+ appState.momentum.vOffsetMs;
 
   draw(true);
 };
@@ -591,9 +608,8 @@ function positionForItem(i) {
 }
 
 function positionForView(vw) {
-  if (!vw.tFrom || !vw.tTo) {
+  if (!vw.tFrom || !vw.tTo) 
     return { offsetMs: appState.offsetMs, msPerPx: appState.msPerPx };
-  }
 
   const vp = getCanvasViewport();
   const width = vw.tTo - vw.tFrom;
@@ -668,6 +684,11 @@ export function focusView(view, zoom) {
   }
 }
 
+function endZoom() {
+  appState.zoom.newMsPerPx = null;
+  appState.zoom.newOffset = null;
+}
+
 /* ------------------- View/Timeline management -------------------- */
 
 export async function followHyperlink(file, tagID, origVw, forceDisplay) {
@@ -735,7 +756,8 @@ export function openView(tl, tagID, origVw) {
     yPos: origVw?.yPos,
     ceiling: origVw?.ceiling
   }
-  filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
+  //filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
+initializeView(newView);
 
   if (!origVw) {
     appState.views.push(newView);
