@@ -191,16 +191,13 @@ export function tick(now) {
   const dt = (now - appState.momentum.lastTick) / 1000;
   appState.momentum.lastTick = now;
 
+  if (appState.zoom.isZooming) zoom(dt); 
+
   if (appState.pan.isPanning || appState.touch.isTouchPanning) {
     recordMomentumTick(0);  // record zero pointer movement
     return;
   }
-
-  if (appState.zoom.isZooming) {
-    zoom(dt); 
-    return;
-  }
-  
+ 
   // carry on momentum, if there is velocity
   if (appState.momentum.vOffsetMs === 0) return;
 
@@ -276,7 +273,7 @@ function zoom(dt) {
       if ("newYOffset" in ip) {
         bZoomComplete = false;
         const dOffset = ip.newYOffset - ip.yOffset;
-        const adjust = dOffset * Math.min(dt * TIME.ZOOM_SPEED * 2, 1);
+        const adjust = dOffset * Math.min(dt * TIME.ANIMATION_SPEED, 1);
         ip.yOffset += adjust;
         if (Math.abs(ip.newYOffset - ip.yOffset) <= 1) {
           ip.yOffset = ip.newYOffset;
@@ -814,7 +811,7 @@ function addNewItem(viewIdx) {
   const tl = timelineCache.get(vw.tlKey);
   
   const factor = Math.log10(appState.msPerPx);
-  let prom = 1;
+  let prom = 5;
   // smallest prominence that will fully render
   for (let p = 5; p > 0; p--) {
     if (ZOOM.EVENT_MASTER[p-1].threshold < factor) break;
