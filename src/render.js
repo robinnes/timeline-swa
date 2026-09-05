@@ -775,7 +775,7 @@ export function drawItems() {
       // if selected item displays to small for a label then show hover
       const sel = vw.itemPos.find((ip) => ip.item===appState.selected.item);
       if (sel?.yOffset===0)
-        drawLabelHover(sel.item, Util.timeToPx(sel.item._date), sel.yPos);
+        drawLabelHover(sel, Util.timeToPx(sel.item._date), sel.yPos);
     }
   }
 

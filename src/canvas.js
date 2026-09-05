@@ -74,6 +74,7 @@ export const timelineCache = new Map();
 export const itemImageBlobCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
+
 /* ------------------- Functions -------------------- */
 
 export async function initialLoad() {
@@ -180,6 +181,7 @@ export function identifyHoverElement() {
   appState.highlighted.idx = foundIdx;
   appState.highlighted.linkIdx = foundLinkIdx;
 };
+
 
 /* ------------------- Pan and momentum handling -------------------- */
 
@@ -689,6 +691,7 @@ function endZoom() {
   appState.zoom.newOffset = null;
 }
 
+
 /* ------------------- View/Timeline management -------------------- */
 
 export async function followHyperlink(file, tagID, origVw, forceDisplay) {
@@ -770,6 +773,7 @@ initializeView(newView);
   focusView(newView, true);
   return newView;
 }
+
 
 /* ------------------- Canvas button handling -------------------- */
 
