@@ -224,18 +224,18 @@ export function throwCanvas() {
 }
 
 function zoom(dt) {
+  // to do: separate "zooming" from "animating" (bubbles)
   let hZoomComplete = false;
   if (appState.zoom.newOffset && appState.zoom.newMsPerPx) {
     // incrementally move window offset and zoom toward new values
     const dOffset = appState.zoom.newOffset - appState.offsetMs;
     const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
 
-    appState.offsetMs += dOffset * dt * TIME.ZOOM_SPEED;
+    appState.offsetMs += dOffset * Math.min(dt * TIME.ZOOM_SPEED, 1);
     appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
     appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
-    hZoomComplete = (Math.abs(dOffset) < appState.msPerPx);  // still zooming (horizontally)
-
+    hZoomComplete = (Math.abs(dOffset) < (appState.msPerPx * 2));  // still zooming (horizontally)
     if (hZoomComplete) {
       // set all to their target settings for good measure
       appState.msPerPx = appState.zoom.newMsPerPx;
@@ -459,7 +459,6 @@ canvas.addEventListener('wheel', (e)=>{
 
 canvas.addEventListener('keydown', function (e) {
 
-  appState.zoom.isZooming = false; // stop any zooming in progress
   const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
   const itemNavMode = (appState.selected.item && appState.selected.view && sidebarIsOpen());
@@ -541,12 +540,16 @@ function mouseZoom(x, factor) {
   const newMsPerPx = appState.msPerPx * factor;
   const vp = getCanvasViewport();
 
+  if (appState.zoom.newOffset) {  // if zooming (to a new offset) then just flash to it first
+    appState.offsetMs = appState.zoom.newOffset;
+    endZoom();
+  }
+  
   // clamp zoom between min and max thresholds
   appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
   appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
-    //+ appState.momentum.vOffsetMs;
 
   draw(true);
 };
