@@ -753,7 +753,7 @@ export function drawItems() {
     .forEach(se => {
       const ip = se.itemPos;
       const i = ip.item;
-      const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
+      const highlight = (i===appState.highlighted.itemPos?.item || (i===appState.selected.item));
       if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
       if (se.type === 'bubble') drawLabelAbove(ip, highlight);
       if (se.type === 'label') drawLabelBelow(ip, highlight);
@@ -775,7 +775,7 @@ export function drawItems() {
       // if selected item displays to small for a label then show hover
       const sel = vw.itemPos.find((ip) => ip.item===appState.selected.item);
       if (sel?.yOffset===0)
-        drawLabelHover(sel.item, Util.timeToPx(sel.item._date), sel.yPos);
+        drawLabelHover(sel, Util.timeToPx(sel.item._date), sel.yPos);
     }
   }
 

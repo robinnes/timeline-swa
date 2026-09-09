@@ -74,6 +74,7 @@ export const timelineCache = new Map();
 export const itemImageBlobCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
+
 /* ------------------- Functions -------------------- */
 
 export async function initialLoad() {
@@ -181,6 +182,7 @@ export function identifyHoverElement() {
   appState.highlighted.linkIdx = foundLinkIdx;
 };
 
+
 /* ------------------- Pan and momentum handling -------------------- */
 
 export function tick(now) {
@@ -189,16 +191,13 @@ export function tick(now) {
   const dt = (now - appState.momentum.lastTick) / 1000;
   appState.momentum.lastTick = now;
 
+  if (appState.zoom.isZooming) zoom(dt); 
+
   if (appState.pan.isPanning || appState.touch.isTouchPanning) {
     recordMomentumTick(0);  // record zero pointer movement
     return;
   }
-
-  if (appState.zoom.isZooming) {
-    zoom(dt); 
-    return;
-  }
-  
+ 
   // carry on momentum, if there is velocity
   if (appState.momentum.vOffsetMs === 0) return;
 
@@ -225,18 +224,18 @@ export function throwCanvas() {
 }
 
 function zoom(dt) {
+  // to do: separate "zooming" from "animating" (bubbles)
   let hZoomComplete = false;
   if (appState.zoom.newOffset && appState.zoom.newMsPerPx) {
     // incrementally move window offset and zoom toward new values
     const dOffset = appState.zoom.newOffset - appState.offsetMs;
     const dMsPerPx = appState.zoom.newMsPerPx - appState.msPerPx;
 
-    appState.offsetMs += dOffset * dt * TIME.ZOOM_SPEED;
+    appState.offsetMs += dOffset * Math.min(dt * TIME.ZOOM_SPEED, 1);
     appState.msPerPx += dMsPerPx * dt * TIME.ZOOM_SPEED;
     appState.msPerPx = Math.max(appState.msPerPx, TIME.MIN_MS_PER_PX);
 
-    hZoomComplete = (Math.abs(dOffset) < appState.msPerPx);  // still zooming (horizontally)
-
+    hZoomComplete = (Math.abs(dOffset) < (appState.msPerPx * 2));  // still zooming (horizontally)
     if (hZoomComplete) {
       // set all to their target settings for good measure
       appState.msPerPx = appState.zoom.newMsPerPx;
@@ -274,7 +273,7 @@ function zoom(dt) {
       if ("newYOffset" in ip) {
         bZoomComplete = false;
         const dOffset = ip.newYOffset - ip.yOffset;
-        const adjust = dOffset * Math.min(dt * TIME.ZOOM_SPEED * 2, 1);
+        const adjust = dOffset * Math.min(dt * TIME.ANIMATION_SPEED, 1);
         ip.yOffset += adjust;
         if (Math.abs(ip.newYOffset - ip.yOffset) <= 1) {
           ip.yOffset = ip.newYOffset;
@@ -460,7 +459,6 @@ canvas.addEventListener('wheel', (e)=>{
 
 canvas.addEventListener('keydown', function (e) {
 
-  appState.zoom.isZooming = false; // stop any zooming in progress
   const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
   const itemNavMode = (appState.selected.item && appState.selected.view && sidebarIsOpen());
@@ -542,12 +540,16 @@ function mouseZoom(x, factor) {
   const newMsPerPx = appState.msPerPx * factor;
   const vp = getCanvasViewport();
 
+  if (appState.zoom.newOffset) {  // if zooming (to a new offset) then just flash to it first
+    appState.offsetMs = appState.zoom.newOffset;
+    endZoom();
+  }
+  
   // clamp zoom between min and max thresholds
   appState.msPerPx = Math.max(TIME.MIN_MS_PER_PX, Math.min(TIME.MAX_MS_PER_PX, newMsPerPx));
 
   // keep the date under the mouse fixed
   appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
-    //+ appState.momentum.vOffsetMs;
 
   draw(true);
 };
@@ -689,6 +691,7 @@ function endZoom() {
   appState.zoom.newOffset = null;
 }
 
+
 /* ------------------- View/Timeline management -------------------- */
 
 export async function followHyperlink(file, tagID, origVw, forceDisplay) {
@@ -771,6 +774,7 @@ initializeView(newView);
   return newView;
 }
 
+
 /* ------------------- Canvas button handling -------------------- */
 
 async function closeView(viewIdx) {
@@ -810,7 +814,7 @@ function addNewItem(viewIdx) {
   const tl = timelineCache.get(vw.tlKey);
   
   const factor = Math.log10(appState.msPerPx);
-  let prom = 1;
+  let prom = 5;
   // smallest prominence that will fully render
   for (let p = 5; p > 0; p--) {
     if (ZOOM.EVENT_MASTER[p-1].threshold < factor) break;
