@@ -753,7 +753,7 @@ export function drawItems() {
     .forEach(se => {
       const ip = se.itemPos;
       const i = ip.item;
-      const highlight = (ip===appState.highlighted.itemPos || (i===appState.selected.item));
+      const highlight = (i===appState.highlighted.itemPos?.item || (i===appState.selected.item));
       if (se.type === 'line') drawItemLine(ip, highlight || se.view===appState.highlighted.view);
       if (se.type === 'bubble') drawLabelAbove(ip, highlight);
       if (se.type === 'label') drawLabelBelow(ip, highlight);
