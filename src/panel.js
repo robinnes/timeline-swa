@@ -6,7 +6,7 @@ import {positionLabels} from './render.js';
 import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getImageThumbnail, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearImageBlobCache} from './image.js';
+import {openImageThumbnailDialog, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearImageBlobCache} from './image.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI, renderTagNavigation} from './tags.js';
 import {getAuthState, saveSessionState} from './session.js';
 
@@ -804,7 +804,7 @@ function editThumbnail(target) {
     return;
   }
 
-  getImageThumbnail(target);
+  openImageThumbnailDialog(target);
 }
 
 function deleteThumbnail(target) {
