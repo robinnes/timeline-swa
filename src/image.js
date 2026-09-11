@@ -199,13 +199,14 @@ function getImageThumbnail() {
 
       clearImageBlobCache(subject, tl);
 
+      const file = `${imageTarget.id}_thumb.webp`;
+      subject.image = { thumbnail, file, _unsaved:true };
+
   const objectUrl = URL.createObjectURL(blob);
   const key = imageCacheKey(subject, tl);
   itemImageBlobCache.set(key, objectUrl);
 
-      //const file = `${imageTarget.id}_thumb.webp`;
-      subject.image = {thumbnail}; //{ thumbnail, file };
-
+      
       tl._dirty = true;
 
       if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
