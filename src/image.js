@@ -202,9 +202,9 @@ function getImageThumbnail() {
       const file = `${imageTarget.id}_thumb.webp`;
       subject.image = { thumbnail, file, _pendingData };
 
-    const objectUrl = URL.createObjectURL(blob);
+    /*const objectUrl = URL.createObjectURL(blob);
     const key = imageCacheKey(subject, tl);
-    itemImageBlobCache.set(key, objectUrl);
+    itemImageBlobCache.set(key, objectUrl);*/
       
       tl._dirty = true;
 
