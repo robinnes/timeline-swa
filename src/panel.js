@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, draw, followHyperlink, focusView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
-import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle, exportTimeline} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {openImageThumbnailDialog, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearImageBlobCache} from './image.js';
@@ -44,6 +44,8 @@ const closeTimelineThumbnailBtn = document.getElementById('close-timeline-thumbn
 const selectTagThumbnailBtn = document.getElementById('select-tag-thumbnail-btn');
 const closeTagThumbnailBtn = document.getElementById('close-tag-thumbnail-btn');
 
+const importTimelineBtn = document.getElementById('timeline-import');
+const exportTimelineBtn = document.getElementById('timeline-export');
 
 /* ------------------- Sidebar -------------------- */
 
@@ -137,10 +139,6 @@ for (const btn of tabButtons) {
     if (!sidebar.classList.contains('open')) openSidebar();
     draw();
   });
-}
-
-export function isPanelOpen(id) {
-  return document.getElementById(id).classList.contains('is-active');
 }
 
 function showPanel(id) {
@@ -237,6 +235,7 @@ async function cancelTimelineEdit() {
 }
 
 timelineSaveBtn.addEventListener('click', (e) => {
+  if (appState.globalBusy) return;
   e.preventDefault();
   trySaveTimeline();
 });
@@ -304,6 +303,7 @@ function deleteSelectedItem() {
 }
 
 timelinePublishBtn.addEventListener('click', (e) => {
+  if (appState.globalBusy) return;
   e.preventDefault();
   tryPublishTimeline();
 });
@@ -355,6 +355,10 @@ function showSubpanel(targetId) {
     sp.toggleAttribute('inert', !isActive);
   }
 
+  // import/export button config varies by subpanel
+  if (!document.getElementById("panel-edit-timeline").hidden) {
+    updateImportExportButtons();
+  }
 }
 
 
@@ -533,6 +537,7 @@ export function setSidebarView(vw) {
   $("timeline-publish").disabled = !canPublish;
 
   updateSaveButton();
+  updateImportExportButtons();
 }
 
 function setSidebarTag(tag) {
@@ -851,7 +856,7 @@ export function updateThumbnailView(subject, prefix) {
     viewImg.removeAttribute('width');
     viewImg.removeAttribute('height');
     viewImg.hidden = false;
-    
+
   } else if (filename) {
 
     viewImg.hidden = false;
@@ -892,3 +897,40 @@ export function updateThumbnailView(subject, prefix) {
 initTagsUI();
 initTagPickerUI();
 
+
+/* ------------------- Import/Export buttons -------------------- */
+
+
+function getEditTimelineSubpanel() {
+  // identify the active Edit Timeline subpanel
+  const $ = (id) => document.getElementById(id);
+  return(
+    !$("subpanel-edit-timeline-main").hidden ? "main" :
+    !$("subpanel-edit-timeline-tags").hidden ? "tags" : 
+    !$("subpanel-edit-timeline-tag").hidden ? "tag" : "none"
+  );
+}
+
+function updateImportExportButtons() {
+  const subpanel = getEditTimelineSubpanel();
+
+  // adjust visibility/hover to currently selected Edit Timeline tab
+  const exportTitle = (subpanel === "tag") ? "Export view" : "Export timeline";
+  exportTimelineBtn.title = exportTitle;
+  exportTimelineBtn.setAttribute("aria-label", exportTitle);
+  exportTimelineBtn.hidden = (subpanel === "tags" || subpanel === "none");
+  importTimelineBtn.hidden = (subpanel != "main");
+}
+
+exportTimelineBtn.addEventListener('click', (e) => {
+  if (appState.globalBusy) return;
+
+  const subpanel = getEditTimelineSubpanel();
+  exportTimeline(appState.selected.timeline);
+});
+
+importTimelineBtn.addEventListener('click', (e) => {
+  if (appState.globalBusy) return;
+
+  console.log("Import timeline")
+});

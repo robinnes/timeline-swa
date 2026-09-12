@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {loadTimelineFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+import {loadTimelineFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages, loadItemImageFromStorage} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -26,7 +26,9 @@ function deserializeCompoundDate(d) {
   };
 }
 
-function serializeImage(image) {
+function serializeImageForSave(image) {
+  // saveTimeline will save to blob storage before the pending images are stripped away
+  // ensure that _pendingData is not written blob storage
   if (!image) return image;
 
   const { _pendingData, ...persistedImage } = image;
@@ -40,9 +42,20 @@ export function timelineString(tl) {
     id: tl.id,
     title: tl.title,
     details: tl.details,
-    image: serializeImage(tl.image),
-    tags: tl.tags.map(({id, label, parentId, order, image,                        details}) => ({
-                        id, label, parentId, order, image: serializeImage(image), details
+    image: serializeImageForSave(tl.image),
+    tags: tl.tags.map(({
+      id, 
+      label, 
+      parentId, 
+      order, 
+      image,
+      details}) => ({
+      id,
+      label,
+      parentId,
+      order,
+      image: serializeImageForSave(image),
+      details
     })),
     items: tl.items.map(item => {
       return {
@@ -60,7 +73,7 @@ export function timelineString(tl) {
         colorLeft: item.colorLeft,
         colorRight: item.colorRight,
         details: item.details,
-        image: serializeImage(item.image),
+        image: serializeImageForSave(item.image),
         tagIds: item.tagIds,
         include: item.include
       }
@@ -72,6 +85,7 @@ export function timelineString(tl) {
     2
   );
 }
+
 
 /******************************* Initialization *******************************/
 
@@ -375,4 +389,157 @@ function clearPendingImageData(tl) {
       delete subject.image._pendingData;
     }
   }
+}
+
+
+/******************************* Export/import *******************************/
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function serializeImageForExport(subject, tl) {
+
+  if (!subject?.image) return undefined;
+
+  let fullSizeData;
+
+  if (subject.image._pendingData) {
+    // Newly selected/replaced image that hasn't been saved yet
+    fullSizeData = subject.image._pendingData;
+
+  } else if (subject.image.file) {
+    // Existing saved image
+    const imageFile = `${tl._file}/${subject.image.file}`;
+
+    const blob = await loadItemImageFromStorage(
+      tl._scope,
+      imageFile
+    );
+
+    if (blob) {
+      fullSizeData = await blobToDataUrl(blob);
+    }
+  }
+
+  return fullSizeData
+    ? { thumbnail: fullSizeData }
+    : undefined;
+}
+
+async function timelineExportString(tl) {
+
+  const tags = await Promise.all(
+    tl.tags.map(async tag => ({
+      id: tag.id,
+      label: tag.label,
+      parentId: tag.parentId,
+      order: tag.order,
+      image: await serializeImageForExport(tag, tl),
+      details: tag.details
+    }))
+  );
+
+  const items = await Promise.all(
+    tl.items.map(async item => ({
+      id: item.id,
+      itemType: item.itemType,
+      dateSpecification: item.dateSpecification,
+      prominence: item.prominence,
+      label: item.label,
+      date: serializeCompoundDate(item.date),
+      dateFrom: serializeCompoundDate(item.dateFrom),
+      dateTo: serializeCompoundDate(item.dateTo),
+      fadeLeft: serializeCompoundDate(item.fadeLeft),
+      fadeRight: serializeCompoundDate(item.fadeRight),
+      color: item.color,
+      colorLeft: item.colorLeft,
+      colorRight: item.colorRight,
+      details: item.details,
+      image: await serializeImageForExport(item, tl),
+      tagIds: item.tagIds,
+      include: item.include
+    }))
+  );
+
+  const txt = {
+    id: tl.id,
+    title: tl.title,
+    details: tl.details,
+    image: await serializeImageForExport(tl, tl),
+    tags,
+    items
+  };
+
+  return JSON.stringify(
+    txt,
+    (key, value) => value === null ? undefined : value,
+    2
+  );
+}
+
+export async function exportTimeline(tl) {
+
+  if (!tl) return;
+
+  Util.showGlobalBusyCursor();
+
+  try {
+    const text = await timelineExportString(tl);
+
+    const blob = new Blob(
+      [text],
+      { type: 'application/json;charset=utf-8' }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportTimelineFilename(tl);
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 0);  // don't revoke object URL synchronously; this is safer
+
+  } catch (err) {
+    console.error('Export failed:', err);
+
+  } finally {
+    Util.hideGlobalBusyCursor();
+  }
+}
+
+function exportTimelineFilename(tl) {
+
+  let name = tl._file;
+
+  if (name) {
+    // Public files may contain a username/path
+    name = name.split('/').pop();
+
+    // Remove the storage extensions
+    name = name
+      .replace(/\.json\.gz$/i, '')
+      .replace(/\.json$/i, '')
+      .replace(/\.gz$/i, '');
+  } else {
+    name = tl.title || 'timeline';
+  }
+
+  // Remove characters that are troublesome in filenames
+  name = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+
+  if (!name) name = 'timeline';
+
+  return `${name}.json`;
 }

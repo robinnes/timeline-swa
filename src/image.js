@@ -171,7 +171,6 @@ function getImageThumbnail() {
       closeImageModal();
       return;
     }
-
     const subject = imageTarget.subject;
     const tl = imageTarget.timeline;
 
@@ -188,40 +187,26 @@ function getImageThumbnail() {
     const thumbnail = canvasThumbnail.toDataURL('image/webp', 0.9); // encode image string; last parameter is image quality (0...1)
     const _pendingData = canvasBlob.toDataURL('image/webp', 0.9);
 
-    /*canvasBlob.toBlob(async (blob) => {
-    if (!blob) {
-      console.error('Failed to create image blob');
-      closeImageModal();
-      return;
-    }*/
+    clearImageBlobCache(subject, tl);
 
-      //await saveImageToStorage(tl._scope, tl._file, imageTarget.id, blob);
-
-      clearImageBlobCache(subject, tl);
-
-      const file = `${imageTarget.id}_thumb.webp`;
-      subject.image = { thumbnail, file, _pendingData };
-
-    /*const objectUrl = URL.createObjectURL(blob);
-    const key = imageCacheKey(subject, tl);
-    itemImageBlobCache.set(key, objectUrl);*/
-      
-      tl._dirty = true;
-
-      if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
+    const file = `${imageTarget.id}_thumb.webp`;
+    subject.image = { thumbnail, file, _pendingData };  // full-size image is stored in _pendingData until timeline is saved
     
-      updateThumbnailView(imageTarget.subject, currentTarget);
-      updateThumbnailEdit(imageTarget.subject, currentTarget);
-      
-      updateSaveButton();
-      draw(true);
+    tl._dirty = true;
 
-    } catch (err) {
-      console.error(err);
-    } finally {
-      closeImageModal();
-    }
-  //}, 'image/webp', 0.9);
+    if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
+  
+    updateThumbnailView(imageTarget.subject, currentTarget);
+    updateThumbnailEdit(imageTarget.subject, currentTarget);
+    
+    updateSaveButton();
+    draw(true);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    closeImageModal();
+  }
 }
 
 export function removeImageThumbnail(target) {

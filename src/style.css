@@ -468,6 +468,17 @@ aside.sidebar {
   line-height: 13px;  /* approximately the width */
 }
 
+.action-btn-icon {
+  width: 26px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
 /********************************* Sidebar section *********************************/
 
 .sidebar__section + .sidebar__section {
