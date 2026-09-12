@@ -186,7 +186,7 @@ function getImageThumbnail() {
     });
 
     const thumbnail = canvasThumbnail.toDataURL('image/webp', 0.9); // encode image string; last parameter is image quality (0...1)
-    const _pendingData = canvasBlob.toDataUrl('image/webp', 0.9);
+    const _pendingData = canvasBlob.toDataURL('image/webp', 0.9);
 
     /*canvasBlob.toBlob(async (blob) => {
     if (!blob) {
