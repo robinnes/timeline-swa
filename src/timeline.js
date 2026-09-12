@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, itemImageBlobCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {loadTimelineFromStorage, saveTimelineToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+import {loadTimelineFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -26,6 +26,13 @@ function deserializeCompoundDate(d) {
   };
 }
 
+function serializeImage(image) {
+  if (!image) return image;
+
+  const { _pendingData, ...persistedImage } = image;
+  return persistedImage;
+}
+
 export function timelineString(tl) {
   // Additional properties have been added to the original timeline object;
   // reduce back to original form for export
@@ -33,9 +40,9 @@ export function timelineString(tl) {
     id: tl.id,
     title: tl.title,
     details: tl.details,
-    image: tl.image,
-    tags: tl.tags.map(({id, label, parentId, order, image, details}) => ({
-                        id, label, parentId, order, image, details
+    image: serializeImage(tl.image),
+    tags: tl.tags.map(({id, label, parentId, order, image,                        details}) => ({
+                        id, label, parentId, order, image: serializeImage(image), details
     })),
     items: tl.items.map(item => {
       return {
@@ -53,7 +60,7 @@ export function timelineString(tl) {
         colorLeft: item.colorLeft,
         colorRight: item.colorRight,
         details: item.details,
-        image: item.image,
+        image: serializeImage(item.image),
         tagIds: item.tagIds,
         include: item.include
       }
@@ -281,10 +288,17 @@ export async function saveTimeline(tl)
 {
   Util.showGlobalBusyCursor();
   try {
+    await savePendingImages(tl);
+
     const text = timelineString(tl);
     await saveTimelineToStorage("private", tl._file, text);
+
     await deleteOrphanedImages("private", tl._file);
+
+    clearPendingImageData(tl);
+
     tl._dirty = false;
+
   } catch (err) {
     console.error('Save failed:', err.message);
   } finally {
@@ -312,3 +326,53 @@ export function closeTimeline(tlKey) {
   timelineCache.delete(tlKey);
 }
 
+
+/******************************* Images *******************************/
+
+async function savePendingImages(tl) {
+
+  const subjects = [
+    tl,
+    ...tl.tags,
+    ...tl.items
+  ];
+
+  for (const subject of subjects) {
+
+    if (!subject.image?._pendingData) continue;
+
+    const imageId =
+      subject === tl
+        ? 'timeline'
+        : subject.id;
+
+    // Convert the persisted data URL back into a Blob
+    const response = await fetch(subject.image._pendingData);
+    const blob = await response.blob();
+
+    await saveImageToStorage(
+      tl._scope,
+      tl._file,
+      imageId,
+      blob
+    );
+
+    // Ensure the permanent image reference is present
+    subject.image.file = `${imageId}_thumb.webp`;
+  }
+}
+
+function clearPendingImageData(tl) {
+
+  const subjects = [
+    tl,
+    ...tl.tags,
+    ...tl.items
+  ];
+
+  for (const subject of subjects) {
+    if (subject.image) {
+      delete subject.image._pendingData;
+    }
+  }
+}
