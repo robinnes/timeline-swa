@@ -165,47 +165,46 @@ function getImageThumbnail() {
     return;
   }
 
-  const imageTarget = getImageTarget(currentTarget);
-  if (!imageTarget?.subject || !imageTarget?.timeline) {
-    closeImageModal();
-    return;
-  }
-
-  const subject = imageTarget.subject;
-  const tl = imageTarget.timeline;
-
-  const canvasThumbnail = cropper.getCroppedCanvas({
-    width: DRAW.THUMB_LABEL_SIZE,
-    height: DRAW.THUMB_LABEL_SIZE
-  });
-
-  const canvasBlob = cropper.getCroppedCanvas({
-    width: DRAW.THUMB_SIZE,
-    height: DRAW.THUMB_SIZE
-  });
-
-  const thumbnail = canvasThumbnail.toDataURL('image/webp', 0.9);
-
-  canvasBlob.toBlob(async (blob) => {
-    if (!blob) {
-      console.error('Failed to create image blob');
+  try {
+    const imageTarget = getImageTarget(currentTarget);
+    if (!imageTarget?.subject || !imageTarget?.timeline) {
       closeImageModal();
       return;
     }
 
-    
-    try {
+    const subject = imageTarget.subject;
+    const tl = imageTarget.timeline;
+
+    const canvasThumbnail = cropper.getCroppedCanvas({
+      width: DRAW.THUMB_LABEL_SIZE,
+      height: DRAW.THUMB_LABEL_SIZE
+    });
+
+    const canvasBlob = cropper.getCroppedCanvas({
+      width: DRAW.THUMB_SIZE,
+      height: DRAW.THUMB_SIZE
+    });
+
+    const thumbnail = canvasThumbnail.toDataURL('image/webp', 0.9); // encode image string; last parameter is image quality (0...1)
+    const _pendingData = canvasBlob.toDataUrl('image/webp', 0.9);
+
+    /*canvasBlob.toBlob(async (blob) => {
+    if (!blob) {
+      console.error('Failed to create image blob');
+      closeImageModal();
+      return;
+    }*/
+
       //await saveImageToStorage(tl._scope, tl._file, imageTarget.id, blob);
 
       clearImageBlobCache(subject, tl);
 
       const file = `${imageTarget.id}_thumb.webp`;
-      subject.image = { thumbnail, file, _unsaved:true };
+      subject.image = { thumbnail, file, _pendingData };
 
-  const objectUrl = URL.createObjectURL(blob);
-  const key = imageCacheKey(subject, tl);
-  itemImageBlobCache.set(key, objectUrl);
-
+    const objectUrl = URL.createObjectURL(blob);
+    const key = imageCacheKey(subject, tl);
+    itemImageBlobCache.set(key, objectUrl);
       
       tl._dirty = true;
 
@@ -222,8 +221,7 @@ function getImageThumbnail() {
     } finally {
       closeImageModal();
     }
-  }, 'image/webp', 0.9);
-
+  //}, 'image/webp', 0.9);
 }
 
 export function removeImageThumbnail(target) {

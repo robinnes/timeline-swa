@@ -840,12 +840,19 @@ export function updateThumbnailEdit(subject, prefix) {
 
 export function updateThumbnailView(subject, prefix) {
 
+  const pendingData = subject?.image?._pendingData;
   const thumb = subject?.image?.thumbnail ?? null;
   const filename = subject?.image?.file ?? null;
   const elemName = (prefix==='tag' ? 'timeline' : prefix) + '-thumb-view-img';
   const viewImg  = document.getElementById(elemName);
 
-  if (filename) {
+  if (pendingData) {
+    viewImg.src = pendingData;
+    viewImg.removeAttribute('width');
+    viewImg.removeAttribute('height');
+    viewImg.hidden = false;
+    
+  } else if (filename) {
 
     viewImg.hidden = false;
     viewImg.width = DRAW.THUMB_SIZE;
