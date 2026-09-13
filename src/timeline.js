@@ -178,6 +178,8 @@ export function initializeTimeline(tl) {
 
   initializeTitle(tl);
 
+  const validTagIds = new Set(tl.tags.map(tag => tag.id));  // for use below
+
   //if (tl.tags) tl.tags.forEach(initializeTag);
   for (const tag of tl.tags) {
     tag._timeline = tl;
@@ -185,6 +187,8 @@ export function initializeTimeline(tl) {
   }
   
   for (const item of tl.items) {
+    item._timeline = tl;
+
     // convert string dates loaded from storage to timestamps
     item.date = deserializeCompoundDate(item.date);
     item.dateFrom = deserializeCompoundDate(item.dateFrom);
@@ -192,8 +196,13 @@ export function initializeTimeline(tl) {
     item.fadeLeft = deserializeCompoundDate(item.fadeLeft);
     item.fadeRight = deserializeCompoundDate(item.fadeRight);
 
-    item._timeline = tl;
     initializeItem(item);
+
+    // Remove tag references that do not correspond to a timeline tag
+    item.tagIds = item.tagIds.filter(tagId => validTagIds.has(tagId));
+
+    // If no valid tags remain, force the item into the base timeline
+    if (item.tagIds.length === 0) item.include = true;
   }
 
 }
