@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, draw, followHyperlink, focusView, timelineCache, itemImageBlobCache, getCanvasViewport} from './canvas.js';
 import {positionLabels} from './render.js';
-import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle, exportTimeline} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle, exportTimeline, exportView} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {openImageThumbnailDialog, removeImageThumbnail, getImageObjectUrlfromStorage, getImageObjectUrlfromCache, clearImageBlobCache} from './image.js';
@@ -926,7 +926,11 @@ exportTimelineBtn.addEventListener('click', (e) => {
   if (appState.globalBusy) return;
 
   const subpanel = getEditTimelineSubpanel();
-  exportTimeline(appState.selected.timeline);
+  if (subpanel === "tag") {
+    exportView(appState.selected.view);
+  } else {
+    exportTimeline(appState.selected.timeline);
+  }
 });
 
 importTimelineBtn.addEventListener('click', (e) => {

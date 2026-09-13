@@ -392,7 +392,7 @@ function clearPendingImageData(tl) {
 }
 
 
-/******************************* Export/import *******************************/
+/******************************* Export timeline *******************************/
 
 function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
@@ -470,6 +470,10 @@ async function timelineExportString(tl) {
   );
 
   const txt = {
+    openTL: {
+      format: "timeline",
+      version: 1
+    },
     id: tl.id,
     title: tl.title,
     details: tl.details,
@@ -483,6 +487,31 @@ async function timelineExportString(tl) {
     (key, value) => value === null ? undefined : value,
     2
   );
+}
+
+function exportTimelineFilename(tl) {
+
+  let name = tl._file;
+
+  if (name) {
+    // Public files may contain a username/path
+    name = name.split('/').pop();
+
+    // Remove the storage extensions
+    name = name
+      .replace(/\.json\.gz$/i, '')
+      .replace(/\.json$/i, '')
+      .replace(/\.gz$/i, '');
+  } else {
+    name = tl.title || 'timeline';
+  }
+
+  // Remove characters that are troublesome in filenames
+  name = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+
+  if (!name) name = 'timeline';
+
+  return `${name}.json`;
 }
 
 export async function exportTimeline(tl) {
@@ -519,27 +548,128 @@ export async function exportTimeline(tl) {
   }
 }
 
-function exportTimelineFilename(tl) {
 
-  let name = tl._file;
+/******************************* Export view *******************************/
 
-  if (name) {
-    // Public files may contain a username/path
-    name = name.split('/').pop();
+async function viewExportString(vw, tl) {
 
-    // Remove the storage extensions
-    name = name
-      .replace(/\.json\.gz$/i, '')
-      .replace(/\.json$/i, '')
-      .replace(/\.gz$/i, '');
-  } else {
-    name = tl.title || 'timeline';
-  }
+  const tag = vw.tagFilter
+    ? tl.tags.find(t => t.id === vw.tagFilter)
+    : null;
 
-  // Remove characters that are troublesome in filenames
-  name = name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+  const sourceItems = tl.items.filter(item => {
+    if (vw.tagFilter) {
+      return item.tagIds.includes(vw.tagFilter);
+    }
+    return item.include;
+  });
+
+  const items = await Promise.all(
+    sourceItems.map(async item => ({
+      id: item.id,
+      itemType: item.itemType,
+      dateSpecification: item.dateSpecification,
+      prominence: item.prominence,
+      label: item.label,
+
+      date: serializeCompoundDate(item.date),
+      dateFrom: serializeCompoundDate(item.dateFrom),
+      dateTo: serializeCompoundDate(item.dateTo),
+      fadeLeft: serializeCompoundDate(item.fadeLeft),
+      fadeRight: serializeCompoundDate(item.fadeRight),
+
+      color: item.color,
+      colorLeft: item.colorLeft,
+      colorRight: item.colorRight,
+
+      details: item.details,
+      image: await serializeImageForExport(item, tl),
+
+      // A view export becomes an independent timeline.
+      // Do not preserve the source timeline's tag relationships.
+      tags: [],
+      include: true
+    }))
+  );
+
+  const subject = tag ?? tl;
+
+  const txt = {
+    openTL: {
+      format: "timeline",
+      version: 1
+    },
+
+    // No timeline ID. Importing this as a new timeline should
+    // cause OpenTL to assign its own identity.
+    title: subject.label ?? tl.title,
+    details: subject.details ?? tl.details,
+    image: await serializeImageForExport(subject, tl),
+
+    // Views deliberately do not carry tag definitions.
+    tags: [],
+
+    items
+  };
+
+  return JSON.stringify(
+    txt,
+    (key, value) => value === null ? undefined : value,
+    2
+  );
+}
+
+function exportViewFilename(vw, tl) {
+
+  const tag = vw.tagFilter
+    ? tl.tags.find(t => t.id === vw.tagFilter)
+    : null;
+
+  let name = tag?.label ?? tl.title ?? 'timeline';
+
+  name = name
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .trim();
 
   if (!name) name = 'timeline';
 
   return `${name}.json`;
 }
+
+export async function exportView(vw) {
+
+  if (!vw) return;
+
+  const tl = timelineCache.get(vw.tlKey);
+  if (!tl) return;
+
+  Util.showGlobalBusyCursor();
+
+  try {
+    const text = await viewExportString(vw, tl);
+
+    const blob = new Blob(
+      [text],
+      { type: 'application/json;charset=utf-8' }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportViewFilename(vw, tl);
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+
+  } catch (err) {
+    console.error('View export failed:', err);
+
+  } finally {
+    Util.hideGlobalBusyCursor();
+  }
+}
+
