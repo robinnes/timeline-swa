@@ -933,8 +933,16 @@ exportTimelineBtn.addEventListener('click', (e) => {
   }
 });
 
-importTimelineBtn.addEventListener('click', (e) => {
+importTimelineBtn.addEventListener('click', async (e) => {
   if (appState.globalBusy) return;
 
-  importTimeline(appState.selected.timeline);
+  e.preventDefault();
+
+  const imported = await importTimeline(
+    appState.selected.timeline
+  );
+
+  if (imported) {
+    openSelectedView(false);
+  }
 });
