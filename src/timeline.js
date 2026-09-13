@@ -750,24 +750,22 @@ function selectTimelineImportFile() {
 
     input.type = "file";
     input.accept = ".json,application/json";
+    input.hidden = true;
+
+    document.body.appendChild(input);
+
+    function finish(file) {
+      input.remove();
+      resolve(file);
+    }
 
     input.addEventListener("change", () => {
-      resolve(input.files?.[0] ?? null);
+      finish(input.files?.[0] ?? null);
     }, { once: true });
 
-    /*
-     * If the file dialog is cancelled, some browsers do not fire
-     * "change". The window receives focus again when the dialog closes.
-     */
-    const handleFocus = () => {
-      setTimeout(() => {
-        if (!input.files?.length) {
-          resolve(null);
-        }
-      }, 0);
-    };
-
-    window.addEventListener("focus", handleFocus, { once: true });
+    input.addEventListener("cancel", () => {
+      finish(null);
+    }, { once: true });
 
     input.click();
   });
