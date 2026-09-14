@@ -19,7 +19,7 @@ function destroyCropper() {
   }
 }
 
-export function getImageThumbnail(target = "item") {
+export function openImageThumbnailDialog(target = "item") {
   currentTarget = target;
   const input = document.createElement('input');
   input.type = 'file';
@@ -83,8 +83,8 @@ function closeImageModal() {
 }
 
 imageModal.addEventListener('click', (e) => {
+  e.preventDefault();
   const target = e.target;
-  //const modalId = target.getAttribute('data-modal-target');
 
   if (target.matches('[data-modal-close]')) {
     closeImageModal();
@@ -95,8 +95,9 @@ imageModal.addEventListener('click', (e) => {
   }
 
   if (target.matches('[data-modal-action="ok"]')) {
-    e.preventDefault();
-
+    getImageThumbnail();
+  }
+  /*
     if (!cropper) {
       closeImageModal();
       return;
@@ -155,7 +156,58 @@ imageModal.addEventListener('click', (e) => {
       }
     }, 'image/webp', 0.9);
   }
+  */
 });
+
+function getImageThumbnail() {
+  if (!cropper) {
+    closeImageModal();
+    return;
+  }
+
+  try {
+    const imageTarget = getImageTarget(currentTarget);
+    if (!imageTarget?.subject || !imageTarget?.timeline) {
+      closeImageModal();
+      return;
+    }
+    const subject = imageTarget.subject;
+    const tl = imageTarget.timeline;
+
+    const canvasThumbnail = cropper.getCroppedCanvas({
+      width: DRAW.THUMB_LABEL_SIZE,
+      height: DRAW.THUMB_LABEL_SIZE
+    });
+
+    const canvasBlob = cropper.getCroppedCanvas({
+      width: DRAW.THUMB_SIZE,
+      height: DRAW.THUMB_SIZE
+    });
+
+    const thumbnail = canvasThumbnail.toDataURL('image/webp', 0.9); // encode image string; last parameter is image quality (0...1)
+    const _pendingData = canvasBlob.toDataURL('image/webp', 0.9);
+
+    clearImageBlobCache(subject, tl);
+
+    const file = `${imageTarget.id}_thumb.webp`;
+    subject.image = { thumbnail, file, _pendingData };  // full-size image is stored in _pendingData until timeline is saved
+    
+    tl._dirty = true;
+
+    if (currentTarget  === "item") initializeItem(subject);  // label display must adjust
+  
+    updateThumbnailView(imageTarget.subject, currentTarget);
+    updateThumbnailEdit(imageTarget.subject, currentTarget);
+    
+    updateSaveButton();
+    draw(true);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    closeImageModal();
+  }
+}
 
 export function removeImageThumbnail(target) {
   const imageTarget = getImageTarget(target);
@@ -174,6 +226,7 @@ export function removeImageThumbnail(target) {
   updateSaveButton();
   draw(true);
 }
+
 
 /******************* Helpers *******************/
 

@@ -246,7 +246,6 @@
                 </div>
                 <!-- Tag subpanel -->
                 <div id="subpanel-edit-timeline-tag" class="subpanel" hidden inert>
-
                   <section class="sidebar__section">
                     <label for="select-tag-thumbnail-btn" class="control-label">Thumbnail</label>
                     <div class="thumb__section">
@@ -257,15 +256,47 @@
                       </div>
                     </div>
                   </section>
-
                   <section class="sidebar__section">
                     <label for="edit-tag-details" class="control-label">Details</label>
                     <textarea id="edit-tag-details" class="edit-textarea" rows="8"></textarea>
                   </section>
-
                 </div>
               </div>
               <div class="panel__footer">
+                <div class="panel__footer--left">
+                  <button id="timeline-export"
+                    class="action-btn-secondary action-btn-icon"
+                    aria-label="Export timeline"
+                    title="Export timeline">
+                    <svg viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        aria-hidden="true">
+                      <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <button id="timeline-import"
+                    class="action-btn-secondary action-btn-icon"
+                    aria-label="Import timeline"
+                    title="Import timeline">
+                    <svg viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        aria-hidden="true">
+                      <path d="M12 21V9m0 0 5 5m-5-5-5 5M5 6V3h14v3"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
                 <button id="timeline-save" class="action-btn" aria-label="Save changes" disabled>Save changes</button>
                 <button id="timeline-cancel" class="action-btn-secondary" aria-label="Cancel editing timeline">Cancel</button>
               </div>

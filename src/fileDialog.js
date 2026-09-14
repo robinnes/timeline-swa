@@ -280,9 +280,10 @@ async function handleOpenTimelineConfirm() {
     let filename = openTimelineFilenameInput.value.trim();
     if (!filename) return;
 
+    appState.selected.timeline._file = filename;
+    
     // To do: don't allow to overwrite existing timeline
     saveTimeline(appState.selected.timeline).then(() => {
-      appState.selected.timeline._file = filename;
       saveSessionState();
       updateSaveButton();
     });
