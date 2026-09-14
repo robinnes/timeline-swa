@@ -750,7 +750,6 @@ export function openView(tl, tagID, origVw) {
 
   const newView = {
     tlKey: tl._key,
-//    file: tl._file,  #temp
     scope: tl._scope,
     tFrom: null,
     tTo: null,
@@ -759,7 +758,6 @@ export function openView(tl, tagID, origVw) {
     yPos: origVw?.yPos,
     ceiling: origVw?.ceiling
   }
-  //filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
   initializeView(newView);
 
   if (!origVw) {

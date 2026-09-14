@@ -294,7 +294,6 @@ export function addNewTimeline(title) {
   // create view for timeline...
   const vw = {
     tlKey:     tl._key,
-//    file:      tl._file,  #temp
     scope:     tl._scope,
     tFrom:     null,
     tTo:       null,
@@ -554,7 +553,6 @@ function exportTimelineFilename(tl) {
 
   return `${name}.json`;
 }
-
 
 
 /******************************* Export view *******************************/
@@ -1118,12 +1116,7 @@ async function mergeImportedTimeline(tl, data, isEmpty) {
   }
 }
 
-function resolveImportedItemTags(
-  item,
-  tagIdByLabel,
-  importedTagIdMap
-) {
-
+function resolveImportedItemTags(item, tagIdByLabel, importedTagIdMap) {
   const result = [];
 
   // Portable representation:

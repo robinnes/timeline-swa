@@ -49,7 +49,6 @@ export function saveSessionState(complete = false) {
       userId: userId,
       openTimelines: Array.from(timelineCache.values(), tl => tl._file),
       openViews: appState.views
-//        .filter(v => v.file != null)  #temp
         .map(v => {
           return {
             tlKey: v.tlKey,
@@ -75,7 +74,6 @@ export function saveSessionState(complete = false) {
       openViews: appState.views.map(v => {
         return {
           tlKey: v.tlKey, 
-//          file: v.file,   #temp
           scope: v.scope,
           tagFilter: v.tagFilter
         }
