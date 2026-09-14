@@ -294,7 +294,7 @@ export function addNewTimeline(title) {
   // create view for timeline...
   const vw = {
     tlKey:     tl._key,
-    file:      tl._file,
+//    file:      tl._file,  #temp
     scope:     tl._scope,
     tFrom:     null,
     tTo:       null,

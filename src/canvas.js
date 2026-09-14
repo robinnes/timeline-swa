@@ -333,7 +333,7 @@ canvas.addEventListener('click', function (e) {
     const tl = element.getAttribute("tl");
     const tag = element.getAttribute("tag");
 
-    followHyperlink(tl || vw._file, tag, vw, false);
+    followHyperlink(tl, tag, vw, false);
     return;
   }
 
@@ -750,7 +750,7 @@ export function openView(tl, tagID, origVw) {
 
   const newView = {
     tlKey: tl._key,
-    file: tl._file,
+//    file: tl._file,  #temp
     scope: tl._scope,
     tFrom: null,
     tTo: null,
@@ -760,7 +760,7 @@ export function openView(tl, tagID, origVw) {
     ceiling: origVw?.ceiling
   }
   //filterItemsForView(newView);  // establish min/max dates for view (tFrom/tTo)
-initializeView(newView);
+  initializeView(newView);
 
   if (!origVw) {
     appState.views.push(newView);
