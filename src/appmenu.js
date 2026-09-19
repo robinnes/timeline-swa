@@ -1,9 +1,11 @@
 import * as Util from './util.js';
+import {TOUCH} from './constants.js';
 import {addNewTimeline} from './timeline.js';
-import {appState, canvas} from './canvas.js';
+import {appState} from './canvas.js';
 import {openOpenTimelineDialog} from './fileDialog.js';
 import {getAuthState, saveSessionState, clearSessionState} from './session.js';
 
+const canvas = document.getElementById('canvas');
 const appMenu = document.querySelector('.app-menu');
 const appMenuButton = document.getElementById('app-menu-button');
 const appMenuDropdown = document.getElementById('app-menu-dropdown');
@@ -74,6 +76,31 @@ newTimelineItem.addEventListener('click', () => {
 // "Open timeline..."
 openTimelineItem.addEventListener('click', () => {
   openOpenTimelineDialog();
+});
+
+
+/******************************* Cancel events *******************************/
+
+// Click the canvas
+canvas.addEventListener('click', function (e) {
+  if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
+  
+  if (appMenu.classList.contains('is-open'))
+    closeAppMenu();
+});
+
+// Escape key
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Escape') return;
+
+  const openModalEl = document.querySelector('.modal:not([hidden])');
+  if (openModalEl) {
+    closeModal(openModalEl);
+    return;
+  }
+
+  if (appMenu.classList.contains('is-open'))
+    closeAppMenu();
 });
 
 

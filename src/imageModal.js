@@ -1,11 +1,10 @@
-//import * as Util from './util.js';
-//import {DRAW} from './constants.js';
-import {appState, draw, itemImageBlobCache} from './canvas.js';
-//import {updateThumbnailView} from './panel.js';
-//import {updateThumbnailEdit} from './panelEdit.js';
-//import {initializeItem} from "./timeline.js";
-import {loadItemImageFromStorage} from './database.js';
-/*
+import {DRAW} from './constants.js';
+import {canvas, draw} from './canvas.js';
+import {updateThumbnailView} from './panel.js';
+import {updateSaveButton, updateThumbnailEdit} from './panelEdit.js';
+import {initializeItem} from "./timeline.js";
+import {getImageTarget, clearImageBlobCache} from "./image.js";
+
 const imageModal = document.getElementById('image-modal');
 const editImage = document.getElementById('edit-image');
 
@@ -166,93 +165,4 @@ export function removeImageThumbnail(target) {
   
   updateSaveButton();
   draw(true);
-}
-*/
-
-/******************* Helpers *******************/
-
-export function getImageTarget(target) {
-  const tl = appState.selected.timeline;
-
-  if (target === "timeline") {
-    return {
-      subject: tl,
-      timeline: tl,
-      id: "timeline"
-    };
-  }
-
-  if (target === "item") {
-    const item = appState.selected.item;
-    return {
-      subject: item,
-      timeline: tl ?? item._timeline,
-      id: item.id
-    };
-  }
-
-  if (target === "tag") {
-    const vw = appState.selected.view;
-    const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
-    return {
-      subject: tag,
-      timeline: tl,
-      id: tag.id
-    };
-  }
-}
-
-
-/******************* Image/thumbnail cache *******************/
-
-function imageCacheKey(subject, tl) {
-  return `${tl._scope}:${imageFilePath(subject, tl)}`;
-}
-
-function imageFilePath(subject, tl) {
-  return `${tl._file}/${subject.image.file}`;
-}
-
-export function getImageObjectUrlfromCache(subject, tl = subject._timeline ?? subject) {
-  const key = imageCacheKey(subject, tl);
-  return itemImageBlobCache.get(key);
-}
-
-export async function getImageObjectUrlfromStorage(subject, tl = subject._timeline ?? subject) {
-  const imageFile = imageFilePath(subject, tl);
-
-  const blob = await loadItemImageFromStorage(tl._scope, imageFile);
-  const objectUrl = URL.createObjectURL(blob);
-
-  const key = imageCacheKey(subject, tl);
-  itemImageBlobCache.set(key, objectUrl);
-
-  return objectUrl;
-}
-
-export function clearImageBlobCache(subject, tl) {
-  const imageFile = subject.image?.file ?? null;
-  if (!imageFile) return;
-
-  const key = imageCacheKey(subject, tl);
-  const objectUrl = itemImageBlobCache.get(key);
-
-  if (objectUrl) URL.revokeObjectURL(objectUrl);
-  itemImageBlobCache.delete(key);
-}
-
-export function clearItemImageBlobCache(item) {
-  clearImageBlobCache(item, item._timeline);
-}
-
-export function clearCachedImagesForTimeline(tl) {
-  // iterate cache keys and delete rows matching tl
-  const prefix = `${tl._scope}:${tl._file}`;
-
-  for (const [key, objectUrl] of itemImageBlobCache) {
-    if (!key.startsWith(prefix)) continue;
-
-    URL.revokeObjectURL(objectUrl);
-    itemImageBlobCache.delete(key);
-  }
 }

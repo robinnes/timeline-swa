@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenTL</title>
+    <meta name="keywords" content="timeline, history, interactive, dynamic, visual, milestone, event, era, period, chronology, maker, creator"/>
+    <meta name="description" content="OpenTL is an application for creating and exploring interactive timelines. Use OpenTL to visualize a historical topic or your own story."/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../style.css">
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="app">
+      <aside class="sidebar" id="sidebar" role="complementary" aria-hidden="true" aria-label="Item Details">
+        <button id="sidebar-close" class="sidebar__close" aria-label="Close panel">×</button>
+        <div class="sidebar__scroll">
+          <!-- Tabs sit below the header -->
+          <div class="panel__tabs" role="tablist" aria-label="Edit tabs">
+            <button class="tab-btn is-active" data-target="timeline" role="tab" aria-selected="true">Timeline</button>
+            <button class="tab-btn" data-target="item" role="tab" aria-selected="false">Item</button>
+          </div>
+          <div class="panel__tabs-sep" aria-hidden="true"></div>
+          <div class="panels-container">
+            <!-- View item panel -->
+            <div id="panel-view-item" class="panel">
+              <div class="panel__content panel__content--view">
+                <section class="sidebar__section">
+                  <div class="date" id="item-date"></div>
+                  <div class="thumblabel__section">
+                    <img class="thumbnail-img" id="item-thumb-view-img" alt="View item thumbnail"/>
+                    <h2 class="label display-textarea" id="item-label"></h2>
+                  </div>
+                </section>
+                <section class="sidebar__section">
+                  <div class="details display-textarea" id="item-details"></div>
+                </section>
+              </div>
+            </div>
+            <!-- View timeline panel -->
+            <div id="panel-view-timeline" class="panel" hidden inert>
+              <div class="panel__content panel__content--view">
+
+                <section class="sidebar__section">
+                  <div class="thumblabel__section">
+                    <img class="thumbnail-img" id="timeline-thumb-view-img" alt="View timeline thumbnail"/>
+                    <h2 class="label display-textarea" id="timeline-title"></h2>
+                  </div>
+                </section>
+
+                <section class="sidebar__section">
+                  <div class="details display-textarea" id="timeline-details"></div>
+                </section>
+                <section class="sidebar__section">
+                  <div class="display-textarea">
+                    <ul class="tagnavigate__tree" id="timeline-navigate-tags"></ul>
+                  </div>
+                </section>
+              </div>
+              <!--<div class="panel__footer" id="view-timeline-footer">
+                <div class="panel__footer--left">
+                  <button id="timeline-edit" class="action-btn" aria-label="Edit timeline">Edit</button>
+                </div>
+                <button id="timeline-publish" class="action-btn" aria-label="Publish timeline">Publish</button>
+              </div>-->
+            </div>
+          </div>
+        </div>
+      </aside>
+      <main class="main">
+        <canvas id="canvas" tabindex="0"></canvas>
+      </main>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -1,19 +1,40 @@
-import {canvas, resize, tick, initialLoad} from './canvas.js';
+import {appState, canvas, initializeCanvas, resize, tick, draw, followURLParams} from './canvas.js';
+import {getConfiguration} from './database.js';
+import {getAuthState, restoreSessionState} from './session.js';
+import {initializeDragging} from './dragging.js';
+import {editSelectedView, editSelectedItem} from './panelEdit.js';
+import {registerEditPanelHandlers} from './panel.js';
 
-resize();
-requestAnimationFrame(tick);
-canvas.focus();
-initialLoad();
+async function initializeApp() {
+  resize();
 
+  getConfiguration().then(config => {
+    if (config) appState.configuration = config;
+    draw();
+  });
 
-/*
-import {parseLabel, processLinks} from './label.js';
-const st = "Born to <a href=\"#\" tl=\"sherryinnes\">Sherry Innes</a>";
-//const st = "one two three four five six seven eight nine";
-const x = parseLabel(st, null);
-console.log(x.multiRow, x.multiWidth);
+  const userId = await getAuthState();
+  appState.authentication.userId = userId;
+  
+  // if there is a user session underway then restore
+  await restoreSessionState();
 
-const st = "Born to <a href=\"#\" tl=\"sherryinnes\" tag=\"werioupwerytpwepiu\">Sherry Innes</a>";
-const {words, totalWidth} = processLinks(st);
-console.log(words[2].link);
-*/
+  followURLParams();
+
+  requestAnimationFrame(tick);
+  canvas.focus();
+}
+
+appState.mode = "app";
+
+// allows embed mode to avoid loading panelEdit and its dependents
+registerEditPanelHandlers({
+  editSelectedView,
+  editSelectedItem
+});
+
+// order counts here - dragging events must happen first
+initializeDragging();
+initializeCanvas();
+
+initializeApp();

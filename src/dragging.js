@@ -1,10 +1,14 @@
 import * as Util from './util.js';
 import * as Calendar from './calendar.js';
-import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
+import {TOUCH} from './constants.js';
+//import {appState, screenElements, draw, setPointerCursor} from './canvas.js';
+import {appState, canvas, screenElements, draw, setPointerCursor} from './canvas.js';
 import {initializeItem} from './timeline.js';
-import {markDirty, forceEditItemMain} from './panel.js';
+import {markDirty, forceEditItemMain} from './panelEdit.js';
 import {positionLabels} from './render.js';
 import {getTickSpec, startOfTick, nextTick, tickSpec} from './ticks.js';
+
+/* ------------------- Dragging -------------------- */
 
 export function startDragging() {
   // start dragging a handle
@@ -82,4 +86,66 @@ export function drag(e) {
   markDirty(appState.selected.timeline);
   positionLabels();
   draw();
+}
+
+/* ------------------- Mouse and keyboard events -------------------- */
+
+export function initializeDragging() {
+  canvas.addEventListener('pointerdown', dragPointerDown);
+  canvas.addEventListener('pointermove', dragPointerMove, {passive:false});
+  canvas.addEventListener('pointerup', dragPointerUp);
+  document.addEventListener('keydown', dragKeyDown);
+}
+
+function dragPointerDown(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
+
+  const idx = appState.highlighted.idx;
+
+  // This handler is interested only in item handles.
+  if (idx === -1 || screenElements[idx].type !== 'handle') return;
+
+  // Don't let the normal canvas pointerdown handler start panning.
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  canvas.setPointerCapture(e.pointerId);
+  canvas.focus();
+
+  startDragging();
+}
+
+function dragPointerMove(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
+  if (!appState.drag.isDragging) return;
+
+  // Don't let the normal canvas pointermove handler process this movement.
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  drag(e);
+}
+
+function dragPointerUp(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
+  if (!appState.drag.isDragging) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  stopDragging(false);
+}
+
+function dragKeyDown(e) {
+  if (e.key !== 'Escape') return;
+  if (!appState.drag.isDragging) return;
+
+  // Let an open modal retain ownership of Escape.
+  const confirmDialog = document.getElementById('confirm-dialog');
+  if (confirmDialog?.open) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  stopDragging(true);
 }

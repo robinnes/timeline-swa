@@ -4,9 +4,6 @@ import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
 import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
 import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
-import {startDragging, stopDragging, drag} from './dragging.js';
-import {debugAppendText, debugDisplay} from './mobile.js';
-import {closeAppMenu, closeModal, updateAppMenu} from './appmenu.js';
 import {showModalDialog} from './confirmDialog.js';
 import {getAuthState, saveSessionState, restoreSessionState} from './session.js';
 import {getConfiguration} from './database.js';
@@ -15,6 +12,7 @@ export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');
 
 export const appState = {
+  mode: "app",
   msPerPx: TIME.MS_PER_DAY * 1,  // controls zoom; shifts timeline relative to EPOCH at x=0
   offsetMs: (Date.now() - TIME.EPOCH) - (window.innerWidth * 0.9) * TIME.MS_PER_DAY * 1,  // date at left of the window; center near "now",
   mouseX: 0, mouseY:0,  // to access mouse location outside of event handlers
@@ -75,29 +73,7 @@ export const itemImageBlobCache = new Map();
 export const screenElements = [];  // Elements currently rendered on screen that can be interacted with  
 
 
-/* ------------------- Functions -------------------- */
-
-export async function initialLoad() {
-
-  getConfiguration().then(config => {
-    if (config) appState.configuration = config;
-    draw();
-  });
-
-  const userId = await getAuthState();
-  appState.authentication.userId = userId;
-  
-  // if there is a user session underway then restore
-  await restoreSessionState();
-
-  // open public timeline indicated param "tl" if present
-  const params = new URLSearchParams(window.location.search);
-  const tl = params.get("tl");
-  if (tl) {
-    const tag = params.get("tag");
-    followHyperlink(tl, tag, null, false);
-  }
-}
+/* ------------------- Utilities -------------------- */
 
 export function getCanvasViewport() {
   // the effective area of the canvas will shrink when the side panel is opened
@@ -133,7 +109,6 @@ export function resize(){
   positionViews(false);
   draw(true);
 }
-window.addEventListener('resize', resize);
 
 export function setPointerCursor() {
   // change pointer is appropriate
@@ -311,14 +286,22 @@ function getMomentum() {
 
 /* ------------------- Mouse and keyboard events -------------------- */
 
-canvas.addEventListener('click', function (e) {
+export function initializeCanvas() {
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('click', canvasClick);
+  canvas.addEventListener('pointerdown', canvasPointerDown);
+  canvas.addEventListener('pointermove', canvasPointerMove, {passive:false});
+  canvas.addEventListener('pointerup', canvasPointerUp);
+  canvas.addEventListener('wheel', canvasWheel, {passive:false});
+  canvas.addEventListener('keydown', canvasKeyDown);
+  document.addEventListener('keydown', documentKeyDown);
+}
+
+function canvasClick(e) {
   if (e.pointerType==="mouse" && TOUCH.SIMULATE_MODE) return;  // when simulating touch, only allow simulated click
   
   appState.isTouchScreen = (!e.pointerType);
   if (appState.pan.ignoreClick) return;
-
-  if (document.querySelector('.app-menu').classList.contains('is-open'))
-    closeAppMenu();
 
   if (appState.highlighted.linkIdx > -1) {
     // hyperlink clicked
@@ -370,95 +353,78 @@ canvas.addEventListener('click', function (e) {
     else if (elem.subType === 'add-item') addNewItem(elem.view);
     else if (elem.subType === 'About') window.open("./about/", "_blank", "noopener");
   }
-});
+}
 
-canvas.addEventListener('pointerdown', (e)=>{
-  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
-  e.preventDefault();  // prevent focus, text selection, etc (necessary?)
+function canvasPointerDown(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
+
+  e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
   canvas.focus();
 
-  endZoom(); // stop any zooming in progress
+  endZoom();
 
-  if (appState.highlighted.idx !== -1 && screenElements[appState.highlighted.idx].type === 'handle') {
-    startDragging();
-    return;
+  // start panning
+  appState.pan.isPanning = true;
+  appState.momentum.vOffsetMs = 0;
+  appState.momentum.lastX = e.clientX;
+  appState.pan.ignoreClick = false;
+}
 
-  } else {
-    // start panning
-    appState.pan.isPanning = true;
-    appState.momentum.vOffsetMs = 0;
-    appState.momentum.lastX = e.clientX;
-    appState.pan.ignoreClick = false;
-    return;
-  }
-});
+function canvasPointerMove(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
 
-canvas.addEventListener('pointermove', (e)=>{
-  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
   appState.mouseX = e.clientX;
   appState.mouseY = e.clientY;
-  if (Math.abs(e.clientX - appState.momentum.lastX) >= TIME.MAX_CLICK_MOVE) appState.pan.ignoreClick = true;
+
+  if (Math.abs(e.clientX - appState.momentum.lastX) >= TIME.MAX_CLICK_MOVE)
+    appState.pan.ignoreClick = true;
 
   if (appState.pan.isPanning) {
     appState.fixedPanMode = null;
 
-    // drag and momentum
     const dx = e.clientX - appState.momentum.lastX;
 
     appState.momentum.lastX = e.clientX;
-    appState.offsetMs -= dx * appState.msPerPx; // drag right -> move timeline left
+    appState.offsetMs -= dx * appState.msPerPx;
+
     recordMomentumTick(dx);
     draw(false);
     return;
 
-  } else if (appState.drag.isDragging) {
-    drag(e);
-    return;
-
   } else {
-    // determine element pointer is over (if any) and if it's changed...
     const beforeIdx = appState.highlighted.idx;
     const beforeLinkIdx = appState.highlighted.linkIdx;
+
     identifyHoverElement();
-    
-    // if so then draw, which will reset screenElements and highlight the one under mouseX/mouseY
-    if (beforeIdx !== appState.highlighted.idx || beforeLinkIdx !== appState.highlighted.linkIdx) {
+
+    if (beforeIdx !== appState.highlighted.idx ||
+        beforeLinkIdx !== appState.highlighted.linkIdx) {
       draw(false);
     }
-    return;
   }
+}
 
-}, { passive:false });
-
-canvas.addEventListener('pointerup', (e)=>{
-  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;  // leave to mobile.js (unless simulating mobile)
+function canvasPointerUp(e) {
+  if (e.pointerType !== 'mouse' || TOUCH.SIMULATE_MODE) return;
 
   if (appState.pan.isPanning) {
     appState.pan.isPanning = false;
     throwCanvas();
-    return;
   }
+}
 
-  if (appState.drag.isDragging) {
-    stopDragging(false);
-    return;
-  }
-});
-
-canvas.addEventListener('wheel', (e)=>{
-  // gesturestart/gesturechange for touchscreens?
+function canvasWheel(e) {
   e.preventDefault();
   appState.fixedPanMode = null;
-  endZoom();  // stop any zooming in progress
-  
+  endZoom();
+
   const direction = e.deltaY > 0 ? 1 : -1;
   const factor = Math.pow(TIME.ZOOM_FACTOR, direction);
   mouseZoom(e.clientX, factor);
-}, { passive:false });
+}
 
-canvas.addEventListener('keydown', function (e) {
-
+function canvasKeyDown(e) {
   const midX = getCanvasMidX();
   const midT = Util.pxToTime(midX);
   const itemNavMode = (appState.selected.item && appState.selected.view && sidebarIsOpen());
@@ -502,35 +468,19 @@ canvas.addEventListener('keydown', function (e) {
     else if (e.key === 'ArrowRight') appState.momentum.vOffsetMs -= TIME.PAN_FACTOR * appState.msPerPx
     else if (e.key === 'ArrowLeft') appState.momentum.vOffsetMs += TIME.PAN_FACTOR * appState.msPerPx;
   }
-});
+}
 
-document.addEventListener('keydown', (ev) => {
-  // Escape key handling
+function documentKeyDown(ev) {
   if (ev.key !== 'Escape') return;
 
   // Ignore if modal dialog is displayed; it handles Escape itself
-  if (document.getElementById('confirm-dialog').open) return;
+  if (document.getElementById('confirm-dialog')?.open) return;
 
-  if (appState.drag.isDragging) {
-    stopDragging(true);
-    return;
-  }
-  if (document.querySelector('.app-menu').classList.contains('is-open')) {
-    closeAppMenu();
-    return;
-  }
-  const openModalEl = document.querySelector('.modal:not([hidden])');
-  if (openModalEl) {
-    closeModal(openModalEl);
-    return;
-  }
   if (sidebar.classList.contains('open')) {
     closeSidebar();
     return;
   }
-  //ev.stopPropagation();
-  //ev.preventDefault();
-});
+}
 
 
 /* ------------------- General navigation -------------------- */
@@ -552,7 +502,7 @@ function mouseZoom(x, factor) {
   appState.offsetMs = tAtMouse - TIME.EPOCH - ((x - vp.left) * appState.msPerPx);
 
   draw(true);
-};
+}
 
 function compareItemsForSort(a, b) {
   // sort rule is: _date, _tFrom, _tTo (descending) then id
@@ -694,20 +644,6 @@ function endZoom() {
 
 /* ------------------- View/Timeline management -------------------- */
 
-export async function followHyperlink(file, tagID, origVw, forceDisplay) {
-
-  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw?.tlKey);
-
-  const view = openView(tl, tagID, origVw);
-  if (view) {
-//    appState.selected.view = view;
-//    appState.selected.item = null;
-
-    const display = sidebarIsOpen() || forceDisplay;
-    openSelectedView(display);
-  }
-}
-
 export async function getTimeline(file, reload) {
   // locate timeline indicated by file in timelineCache (can't use the map's key)
   let tlKey = null;
@@ -741,7 +677,7 @@ export async function getTimeline(file, reload) {
   return newTL;
 }
 
-export function openView(tl, tagID, origVw) {
+export function openView(tl, tagID, origVw, focus=true) {
   const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
   if (existingView) {
     focusView(existingView, true);
@@ -768,8 +704,30 @@ export function openView(tl, tagID, origVw) {
     appState.views.splice(origIdx+1, 0, newView);  // insert above currently selected view
   }
   saveSessionState();
-  focusView(newView, true);
+  if (focus) focusView(newView, true);
   return newView;
+}
+
+export async function followHyperlink(file, tagID, origVw, forceDisplay, focus=true) {
+
+  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw?.tlKey);
+
+  const view = openView(tl, tagID, origVw, focus);
+  if (view && focus) {
+    const display = sidebarIsOpen() || forceDisplay;
+    openSelectedView(display);
+  }
+}
+
+export async function followURLParams() {
+  // parse URL parameters and open timeline/view (if appropriate) without zoom
+  const params = new URLSearchParams(window.location.search);
+  const tl = params.get("tl");
+  if (tl) {
+    const tag = params.get("tag");
+    await followHyperlink(tl, tag, null, false, false);
+    if (appState.views.length > 0) centerOnView(appState.views[appState.views.length-1]);
+  }
 }
 
 
