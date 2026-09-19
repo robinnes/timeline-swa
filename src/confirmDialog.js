@@ -1,11 +1,20 @@
-const confirmDialog = document.getElementById('confirm-dialog');
-const messageEl = document.getElementById('confirm-dialog-message');
-const okBtn = document.getElementById('confirm-btn-ok');
-const cancelBtn = document.getElementById('confirm-btn-cancel');
+export function showModalDialog({
+  message = 'Are you sure?',
+  showCancelBtn = true
+} = {}) {
 
-export function showModalDialog({message = 'Are you sure?', showCancelBtn = true} = {}) {
+  // not defined outside the function - embed mode will lack these DOM elements
+  const confirmDialog = document.getElementById('confirm-dialog');
+  const messageEl = document.getElementById('confirm-dialog-message');
+  const okBtn = document.getElementById('confirm-btn-ok');
+  const cancelBtn = document.getElementById('confirm-btn-cancel');
 
-  if (messageEl) messageEl.textContent = message;
+  if (!confirmDialog || !messageEl || !okBtn || !cancelBtn) {
+    console.error('Confirmation dialog is not available.');
+    return Promise.resolve(false);
+  }
+
+  messageEl.textContent = message;
   cancelBtn.hidden = !showCancelBtn;
 
   return new Promise((resolve) => {
@@ -15,7 +24,6 @@ export function showModalDialog({message = 'Are you sure?', showCancelBtn = true
     };
 
     const resolveFromReturnValue = () => {
-      // returnValue comes from the clicked <button value="..."> in form[method=dialog]
       const rv = (confirmDialog.returnValue || '').toLowerCase();
       resolve(rv === 'ok');
     };
@@ -25,11 +33,11 @@ export function showModalDialog({message = 'Are you sure?', showCancelBtn = true
       resolveFromReturnValue();
     };
 
-    const onCancel = (e) => {
+    const onCancel = () => {
       confirmDialog.returnValue = 'cancel';
     };
 
-    confirmDialog.addEventListener('close', onClose, { once: true });
+    confirmDialog.addEventListener('close', onClose, {once: true});
     confirmDialog.addEventListener('cancel', onCancel);
 
     confirmDialog.showModal();

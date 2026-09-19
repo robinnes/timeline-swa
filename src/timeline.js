@@ -245,7 +245,6 @@ export function filteredItemsForView(vw) {
 /******************************* Timeline management *******************************/
 
 export async function loadTimeline(file) {
-
   // if file does not include a slash ("/") then it's private, otherwise public
   const scope = file.includes('/') ? 'public' : 'private';  
   

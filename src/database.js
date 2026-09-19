@@ -1,4 +1,5 @@
 import * as Util from './util.js';
+import {appState} from './canvas.js';
 
 /******************* Utility functions *******************/
 
@@ -32,12 +33,15 @@ async function gzipText(text) {
 /******************* Instance configuration *******************/
 
 export async function getConfiguration() {
-  // fetch configuration settings from the server
-  const res = await fetch('/api/getConfiguration');
-  if (!res.ok) return {environment: 'unknown'};
-  //if (!res.ok) return {environment: 'unknown', canPublish: true, canUseThumbnails: true};
-  
-  return await res.json();
+  try {
+    // fetch configuration settings from the server
+    const res = await fetch('/api/getConfiguration');
+    return await res.json();
+
+  } catch (err) {
+    return {environment: 'unknown'};
+    //return {environment: 'unknown', canPublish: true, canUseThumbnails: true};
+  }
 }
 
 
@@ -63,8 +67,7 @@ async function acquireBlobSas(scope, filename, mode) {
 /******************* Timeline management *******************/
 
 export async function loadTimelineFromStorage(scope, file) {
-
-  Util.showGlobalBusyCursor();
+  //Util.showGlobalBusyCursor();
 
   const isLocal = await Util.isLocalEnv();
   if (isLocal) return await tempSimulateLoadFile(scope, file);
@@ -80,13 +83,13 @@ export async function loadTimelineFromStorage(scope, file) {
     if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
     const text = await resp.text();
 
-    Util.hideGlobalBusyCursor();
+    //Util.hideGlobalBusyCursor();
   
     // parse and return JSON
     return JSON.parse(text);
 
   } catch (e) {
-    Util.hideGlobalBusyCursor();
+    //Util.hideGlobalBusyCursor();
     console.error(`Failed to load ${file} from storage: ${e.message}`);
   }
 }
@@ -246,9 +249,12 @@ export async function deleteOrphanedImages(scope, file) {
 
 async function tempSimulateLoadFile(scope, file) {
   // return local file if running locally
-  const response = await fetch(`data/${file}.json.gz`);  // only works when a local server is running
+  const response = (appState.mode==="embed") ? 
+    await fetch(`../data/${file}.json.gz`) :    // only works when a local server is running  debug
+    await fetch(`data/${file}.json.gz`);
+
   const tl = await response.json();
 
-  await Util.sleep(1350);  // simulate database access
+  await Util.sleep(350);  // simulate database access
   return tl;
 }

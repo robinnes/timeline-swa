@@ -1,8 +1,8 @@
 import * as Util from './util.js';
-import {loadTimeline, saveTimeline} from './timeline.js';
+import {saveTimeline} from './timeline.js';
 import {getTimelineList} from './database.js';
 import {appState, getTimeline, openView} from './canvas.js';
-import {updateSaveButton} from './panel.js';
+import {updateSaveButton} from './panelEdit.js';
 import {openModal, closeModal} from './appmenu.js';
 import {saveSessionState} from './session.js';
 import {showModalDialog} from './confirmDialog.js';
