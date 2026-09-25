@@ -5,8 +5,7 @@ import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, dra
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
 import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
 import {showModalDialog} from './confirmDialog.js';
-import {getAuthState, saveSessionState, restoreSessionState} from './session.js';
-import {getConfiguration} from './database.js';
+import {saveSessionState} from './session.js';
 
 export const canvas = document.getElementById('canvas');
 export const ctx = canvas.getContext('2d');

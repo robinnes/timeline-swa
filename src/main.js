@@ -4,6 +4,7 @@ import {getAuthState, restoreSessionState} from './session.js';
 import {initializeDragging} from './dragging.js';
 import {editSelectedView, editSelectedItem} from './panelEdit.js';
 import {registerEditPanelHandlers} from './panel.js';
+import {initializeMobileCanvas} from './mobile.js';
 
 async function initializeApp() {
   resize();
@@ -36,5 +37,6 @@ registerEditPanelHandlers({
 // order counts here - dragging events must happen first
 initializeDragging();
 initializeCanvas();
+initializeMobileCanvas();
 
 initializeApp();
