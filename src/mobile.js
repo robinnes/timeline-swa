@@ -112,10 +112,20 @@ function updatePan(pointer) {
   draw(false);
 }
 
-
 /* ------------------- Touch handlers -------------------- */
 
-canvas.addEventListener('pointerdown', (e) => {
+export function initializeMobileCanvas() {
+  canvas.addEventListener('pointerdown', canvasPointerDown, {passive:false});
+  canvas.addEventListener('pointermove', canvasPointerMove, {passive:false});
+  canvas.addEventListener('pointerup', endPointer, {passive:false});
+  canvas.addEventListener('pointercancel', endPointer, {passive:false});
+  canvas.addEventListener('pointerleave', canvasPointerLeave, {passive:false});
+}
+
+
+/* ------------------- Pointer actions -------------------- */
+
+function canvasPointerDown(e) {
   if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
@@ -145,9 +155,9 @@ canvas.addEventListener('pointerdown', (e) => {
   } else if (active.size === 2) {
     beginPinch();
   }
-}, { passive: false });
+};
 
-canvas.addEventListener('pointermove', (e) => {
+function canvasPointerMove(e) {
   if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
   if (!active.has(e.pointerId)) return;
   const t = appState.touch;
@@ -182,7 +192,11 @@ canvas.addEventListener('pointermove', (e) => {
       updatePan(p);
     }
   }
-}, { passive: false });
+};
+
+function canvasPointerLeave(e) {
+  if (active.has(e.pointerId)) endPointer(e);
+}
 
 function endPointer(e) {
   if (e.pointerType !== 'touch' && !TOUCH.SIMULATE_MODE) return;  // leave to canvas.js (unless simulating touch)
@@ -227,12 +241,6 @@ function endPointer(e) {
     queueSyntheticClick(x, y);
   }
 }
-
-canvas.addEventListener('pointerup', endPointer, { passive: false });
-canvas.addEventListener('pointercancel', endPointer, { passive: false });
-canvas.addEventListener('pointerleave', (e) => {
-  if (active.has(e.pointerId)) endPointer(e);
-}, { passive: false });
 
 
 /* ------------------- Debug -------------------- */
