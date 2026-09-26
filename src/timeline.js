@@ -1309,8 +1309,8 @@ async function deserializeImportedImage(image, imageId) {
 
   const thumbnail = await resizeImportedImage(
     fullSizeData,
-    THUMB_LABEL_SIZE,
-    THUMB_LABEL_SIZE
+    DRAW.THUMB_LABEL_SIZE,
+    DRAW.THUMB_LABEL_SIZE
   );
 
   return {
