@@ -3,12 +3,6 @@ import {appState} from './canvas.js';
 
 /******************* Utility functions *******************/
 
-/*
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-*/
-
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
   const encodedFile = (file || '')
@@ -200,37 +194,6 @@ export async function loadItemImageFromStorage(scope, imageFile) {
     throw new Error(`Failed to load item image ${imageFile}: ${e.message}`);
   }
 }
-/*
-export async function getItemImageUrl(scope, imageFile) {
-  try {
-    if (!imageFile) return null;
-
-    const {url} = await acquireBlobSas(scope, imageFile, "read");
-
-    // For <img src>, return the temporary browser-readable SAS URL.
-    // Do not persist this value in JSON.
-    return url;
-
-  } catch (e) {
-    throw new Error(`Failed to get item image URL ${imageFile}: ${e.message}`);
-  }
-}
-*/
-/*
-export async function deleteItemImageFromStorage(scope, imageFile) {
-  if (!imageFile) return false;
-
-  const { url } = await acquireBlobSas(scope, imageFile, "delete");
-
-  const resp = await fetch(url, { method: 'DELETE' });
-
-  if (resp.status === 404) return false;
-  if (!resp.ok) {
-    throw new Error(`Failed to delete image blob: ${resp.status} ${resp.statusText}`);
-  }
-  return true;
-}
-*/
 
 export async function deleteOrphanedImages(scope, file) {
   const filename = Util.addTimelineFileExt(file);

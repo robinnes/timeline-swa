@@ -9,7 +9,7 @@ import {clearImageBlobCache} from './image.js';
 import {openImageThumbnailDialog, removeImageThumbnail} from './imageModal.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tagsEdit.js';
 import {getAuthState, saveSessionState} from './session.js';
-import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarView, setSidebarItem} from './panel.js';
+import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarViewReadOnly, setSidebarItemReadOnly} from './panel.js';
 
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
 
@@ -82,9 +82,9 @@ function showSubpanel(targetId) {
 }
 
 
-/* ------------------- Open view/item -------------------- */
+/* ------------------- Open view/item: all fields -------------------- */
 
-export function editSelectedView(display) {
+export function openSelectedViewAll(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   appState.selected.timeline = tl;
@@ -96,20 +96,20 @@ export function editSelectedView(display) {
 
   if (editMode && vw.tagFilter) showSubpanel('subpanel-edit-timeline-tag');
 
-  setSidebarEditView(vw);
+  setSidebarViewAll(vw);
   
   if (display) openSidebar();
 
   //if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
-export function editSelectedItem(forceMainSubpanel) {
+export function openSelectedItemAll(forceMainSubpanel) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   const editMode = (tl._mode==="edit");
 
-  setSidebarEditItem(appState.selected.item);
-  setSidebarEditView(vw);
+  setSidebarItemAll(appState.selected.item);
+  setSidebarViewAll(vw);
 
   const panel = editMode ? "panel-edit-item" : "panel-view-item";
   showPanel(panel);
@@ -121,9 +121,9 @@ export function editSelectedItem(forceMainSubpanel) {
   if (editMode && forceMainSubpanel && !appState.isTouchScreen) editItemLabel.focus(); 
 }
 
-function setSidebarEditItem(item) {
+function setSidebarItemAll(item) {
   
-  setSidebarItem(item);
+  setSidebarItemReadOnly(item);
 
   // update sidebar (all panels) to selected item
   const $ = (id) => document.getElementById(id);
@@ -164,26 +164,14 @@ function setSidebarEditItem(item) {
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
-function setSidebarEditView(vw) {
+function setSidebarViewAll(vw) {
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
   const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
 
-  setSidebarView(vw);
+  // Read-only fields
+  setSidebarViewReadOnly(vw);
 
-  /*
-  // View Timeline panel
-  const title = (tag ? tag.label : tl.title) ?? '';  // title/label
-  $("timeline-title").textContent = title;
-
-  const details = (tag ? tag.details : tl.details) ?? '';  // details
-  const isHtml = /<[a-z][\s\S]*>/i.test(details);
-  if (isHtml) $("timeline-details").innerHTML = details;
-  else $("timeline-details").textContent = details;
-
-  if (tag) updateThumbnailView(tag, "tag") 
-    else updateThumbnailView(tl, "timeline");
-*/
   // tag (that the view is filtered by)
   setSidebarTag(tag);
 
@@ -195,7 +183,6 @@ function setSidebarEditView(vw) {
   updateThumbnailEdit(tl, "timeline");
 
   // tags
-  //renderTagNavigation(vw);  // navigation
   renderTagsUI(tl);         // definition
 
   // display 'Edit' and 'Publish' buttons for private timelines
@@ -456,7 +443,7 @@ for (const r of itemTypeButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    setSidebarItem(item);
+    setSidebarItemReadOnly(item);
     draw(true);
   });
 }
@@ -473,7 +460,7 @@ for (const r of dateSpecificationButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    setSidebarItem(item);
+    setSidebarItemReadOnly(item);
     draw(true);
   });
 }

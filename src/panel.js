@@ -95,7 +95,7 @@ for (const btn of tabButtons) {
       panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-timeline' : 'panel-view-timeline');
     } else if (target === 'item') {
       panelId = ((appState.selected.timeline._mode === "edit") ? 'panel-edit-item' : 'panel-view-item');
-      if (appState.selected.item) setSidebarItem(appState.selected.item);
+      if (appState.selected.item) setSidebarItemReadOnly(appState.selected.item);
     }
     if (panelId) showPanel(panelId);
 
@@ -137,75 +137,63 @@ function updateTabStates() {
 }
 
 
-/* ------------------- Open view/item -------------------- */
+/* ------------------- Reconcile limited (embed) or full (all) functions -------------------- */
 
 // Dynamic open function definitions allow us to redirect to panelEdits for the full app
-let editSelectedView = null;
-let editSelectedItem = null;
+let openSelectedViewAll = null;
+let openSelectedItemAll = null;
 
 export function registerEditPanelHandlers(handlers) {
-    editSelectedView = handlers.editSelectedView;
-    editSelectedItem = handlers.editSelectedItem;
+    openSelectedViewAll = handlers.openSelectedViewAll;
+    openSelectedItemAll = handlers.openSelectedItemAll;
 }
 
 export function openSelectedView(display) {
-    const tl = timelineCache.get(appState.selected.view.tlKey);
 
-    if (tl._mode === 'edit' && editSelectedView) {
-        editSelectedView(display);
-        return;
-    }
+  if (openSelectedViewAll) {
+    openSelectedViewAll(display);
+    return;
+  }
 
-    openSelectedViewPanel(display);
-}
-
-export function openSelectedItem(forceMainSubpanel) {
-    const tl = timelineCache.get(appState.selected.view.tlKey);
-
-    if (tl._mode === 'edit' && editSelectedItem) {
-        editSelectedItem(forceMainSubpanel);
-        return;
-    }
-
-    openSelectedItemPanel();
-}
-
-export function openSelectedViewPanel(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   appState.selected.timeline = tl;
-  const editMode = (tl._mode==="edit");
 
-  setSidebarView(vw);
+  setSidebarViewReadOnly(vw);
 
-  const panel = editMode ? "panel-edit-timeline" : "panel-view-timeline";
-  showPanel(panel);
+  showPanel('panel-view-timeline');
   setActiveEditTab('timeline');
 
   if (display) openSidebar();
 }
 
-export function openSelectedItemPanel(forceMainSubpanel) {
+export function openSelectedItem(forceMainSubpanel) {
+
+  if (openSelectedItemAll) {
+    openSelectedItemAll(forceMainSubpanel);
+    return;
+  }
+
   const vw = appState.selected.view;
-  const tl = timelineCache.get(vw.tlKey);
-  const editMode = (tl._mode==="edit");
 
-  setSidebarItem(appState.selected.item);
-  setSidebarView(vw);
+  setSidebarItemReadOnly(appState.selected.item);
+  setSidebarViewReadOnly(vw);
 
-  const panel = editMode ? "panel-edit-item" : "panel-view-item";
-  showPanel(panel);
+  showPanel('panel-view-item');
   setActiveEditTab('item');
 
   openSidebar();
 }
 
-export function setSidebarItem(item) {
-  // update sidebar (all panels) to selected item
+
+/* ------------------- Open view/item: read-only fields -------------------- */
+
+export function setSidebarItemReadOnly(item) {
+  // update read-only fields to item
   const $ = (id) => document.getElementById(id);
   
   // view item panel
-  //$("item-label").textContent = e.label ?? '';
+  //$("item-label").textContent = item.label ?? '';
   $("item-label").innerHTML = item.label;
 
   $("item-date").innerHTML = Calendar.formatItemDates(item);;
@@ -218,7 +206,8 @@ export function setSidebarItem(item) {
   updateThumbnailView(item, "item");
 }
 
-export function setSidebarView(vw) {
+export function setSidebarViewReadOnly(vw) {
+  // update read-only fields to vw
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
   const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
@@ -236,7 +225,7 @@ export function setSidebarView(vw) {
     else updateThumbnailView(tl, "timeline");
 
   // tags
-  renderTagNavigation(vw);  // navigation
+  renderTagNavigation(vw);
 }
 
 

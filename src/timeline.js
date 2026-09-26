@@ -775,6 +775,44 @@ function selectTimelineImportFile() {
   });
 }
 
+function validateImportedTags(data) {
+
+  const tags = data.tags ?? [];
+
+  // IDs, when supplied, must always be unique.
+  const ids = new Set();
+
+  for (const tag of tags) {
+    if (!tag.id) continue;
+
+    if (ids.has(tag.id)) {
+      throw new Error(`Duplicate tag ID: "${tag.id}".`);
+    }
+
+    ids.add(tag.id);
+  }
+
+  // Labels only have to be unique if the import actually uses
+  // labels to identify tags.
+  const usesTagLabels =
+    tags.some(tag => tag.parent) ||
+    (data.items ?? []).some(item => Array.isArray(item.tags));
+
+  if (usesTagLabels) {
+    const labels = new Set();
+
+    for (const tag of tags) {
+      if (labels.has(tag.label)) {
+        throw new Error(
+          `Duplicate tag label "${tag.label}" is ambiguous because this file uses tag labels for relationships.`
+        );
+      }
+
+      labels.add(tag.label);
+    }
+  }
+}
+
 function validateTimelineImport(data) {
 
   if (!data || typeof data !== "object" || Array.isArray(data)) {
@@ -812,7 +850,8 @@ function validateTimelineImport(data) {
   /*
    * Labels are portable tag identifiers, so they must be unique
    * within the imported file.
-   */
+   *
+  
   const labels = new Set();
 
   for (const tag of data.tags ?? []) {
@@ -834,7 +873,9 @@ function validateTimelineImport(data) {
     }
 
     labels.add(label);
-  }
+  } */
+
+  validateImportedTags(data);
 
   for (const item of data.items) {
 
@@ -924,7 +965,12 @@ async function mergeImportedTimeline(tl, data, isEmpty) {
       details: source.details ?? null
     };
 
-    tagIdByLabel.set(tag.label, id);
+    if (!tagIdByLabel.has(tag.label)) {
+      tagIdByLabel.set(tag.label, id);
+    } else {
+      // A null value means this label is ambiguous.
+      tagIdByLabel.set(tag.label, null);
+    }
 
     if (source.id) {
       importedTagIdMap.set(source.id, id);
@@ -973,11 +1019,29 @@ async function mergeImportedTimeline(tl, data, isEmpty) {
 
     } else if (source.parentId) {
 
-      const parentId = importedTagIdMap.get(source.parentId);
+        const parentId = importedTagIdMap.get(source.parentId);
+
+        if (!parentId) {
+          throw new Error(
+            `Tag "${tag.label}" refers to unknown parent ID "${source.parentId}".`
+          );
+        }
+
+        tag.parentId = parentId;
+
+    } else if (source.parent) {
+
+      if (!tagIdByLabel.has(source.parent)) {
+        throw new Error(
+          `Tag "${tag.label}" refers to unknown parent "${source.parent}".`
+        );
+      }
+
+      const parentId = tagIdByLabel.get(source.parent);
 
       if (!parentId) {
         throw new Error(
-          `Tag "${tag.label}" refers to an unknown parent ID.`
+          `Tag "${tag.label}" refers to ambiguous parent label "${source.parent}".`
         );
       }
 
@@ -985,10 +1049,6 @@ async function mergeImportedTimeline(tl, data, isEmpty) {
 
     } else {
 
-      /*
-       * When merging into an existing timeline, imported root tags live
-       * beneath the automatically generated import grouping.
-       */
       tag.parentId = importTag?.id ?? null;
     }
   }
@@ -1118,29 +1178,58 @@ async function mergeImportedTimeline(tl, data, isEmpty) {
 function resolveImportedItemTags(item, tagIdByLabel, importedTagIdMap) {
   const result = [];
 
-  // Portable representation:
-  // "tags": ["Politics", "Paris"]
-  if (Array.isArray(item.tags)) {
-
-    for (const label of item.tags) {
-
-      const id = tagIdByLabel.get(label);
-
-      if (id && !result.includes(id)) {
-        result.push(id);
-      }
-    }
-  }
-
-  // Compatibility with current OpenTL exports:
-  // "tagIds": ["...", "..."]
+  /*
+   * ID-based relationships are authoritative when present.
+   *
+   * This permits duplicate tag labels because each tag is identified
+   * unambiguously by its source ID.
+   */
   if (Array.isArray(item.tagIds)) {
 
     for (const sourceId of item.tagIds) {
 
       const id = importedTagIdMap.get(sourceId);
 
-      if (id && !result.includes(id)) {
+      if (!id) {
+        throw new Error(
+          `Item "${item.label}" refers to unknown tag ID "${sourceId}".`
+        );
+      }
+
+      if (!result.includes(id)) {
+        result.push(id);
+      }
+    }
+
+    return result;
+  }
+
+  /*
+   * Portable/AI-generated representation:
+   *
+   *   "tags": ["Politics", "Paris"]
+   *
+   * Labels can be used only when they identify exactly one imported tag.
+   */
+  if (Array.isArray(item.tags)) {
+
+    for (const label of item.tags) {
+
+      if (!tagIdByLabel.has(label)) {
+        throw new Error(
+          `Item "${item.label}" refers to unknown tag "${label}".`
+        );
+      }
+
+      const id = tagIdByLabel.get(label);
+
+      if (!id) {
+        throw new Error(
+          `Item "${item.label}" refers to ambiguous tag label "${label}".`
+        );
+      }
+
+      if (!result.includes(id)) {
         result.push(id);
       }
     }
@@ -1220,8 +1309,8 @@ async function deserializeImportedImage(image, imageId) {
 
   const thumbnail = await resizeImportedImage(
     fullSizeData,
-    36,
-    36
+    THUMB_LABEL_SIZE,
+    THUMB_LABEL_SIZE
   );
 
   return {
