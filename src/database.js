@@ -51,40 +51,56 @@ async function acquireBlobSas(scope, filename, mode) {
 
     const {sasUrl, sasKey, blobName} = await response.json();
 
-    return {url:sasUrl, sasKey};
+    return {
+      url: sasUrl,
+      sasKey,
+      file: blobName
+    };
 
   } catch (err) {
-    throw new Error(`Failed to aquire SAS token: ${err.message}`);
+    throw new Error(`Failed to acquire SAS token: ${err.message}`);
   }
 }
 
 /******************* Timeline management *******************/
 
 export async function loadTimelineFromStorage(scope, file) {
-  //Util.showGlobalBusyCursor();
 
   const isLocal = await Util.isLocalEnv();
-  if (isLocal) return await tempSimulateLoadFile(scope, file);
+  if (isLocal) {
+    const timeline = await tempSimulateLoadFile(scope, file);
+    return {
+      timeline,
+      file
+    };
+  }
 
   try {
     const filename = Util.addTimelineFileExt(file);
 
-    // acquire SAS token
-    const {url, sasKey} = await acquireBlobSas(scope, filename, "read");
+    // Acquire SAS token. The file returned by the server is authoritative.
+    const {url, file: blobName} =
+      await acquireBlobSas(scope, filename, "read");
 
-    // fetch the blob
+    // Fetch the blob.
     const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
+    if (!resp.ok) {
+      throw new Error(
+        `Failed to fetch blob: ${resp.status} ${resp.statusText}`
+      );
+    }
+
     const text = await resp.text();
 
-    //Util.hideGlobalBusyCursor();
-  
-    // parse and return JSON
-    return JSON.parse(text);
+    return {
+      timeline: JSON.parse(text),
+      file: Util.removeTimelineFileExt(blobName)
+    };
 
   } catch (e) {
-    //Util.hideGlobalBusyCursor();
-    console.error(`Failed to load ${file} from storage: ${e.message}`);
+    console.error(
+      `Failed to load ${file} from storage: ${e.message}`
+    );
   }
 }
 

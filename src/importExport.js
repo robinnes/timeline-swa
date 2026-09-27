@@ -456,34 +456,6 @@ function validateTimelineImport(data) {
     throw new Error('"tags" must be an array.');
   }
 
-  /*
-   * Labels are portable tag identifiers, so they must be unique
-   * within the imported file.
-   *
-  
-  const labels = new Set();
-
-  for (const tag of data.tags ?? []) {
-
-    if (!tag || typeof tag !== "object") {
-      throw new Error("Invalid tag definition.");
-    }
-
-    const label = tag.label?.trim();
-
-    if (!label) {
-      throw new Error("Every imported tag must have a label.");
-    }
-
-    if (labels.has(label)) {
-      throw new Error(
-        `Duplicate tag label "${label}". Imported tag labels must be unique.`
-      );
-    }
-
-    labels.add(label);
-  } */
-
   validateImportedTags(data);
 
   for (const item of data.items) {
