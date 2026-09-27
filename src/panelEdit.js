@@ -2,7 +2,7 @@ import * as Calendar from './calendar.js';
 import {DRAW} from './constants.js';
 import {appState, draw, focusView, timelineCache} from './canvas.js';
 import {positionLabels} from './render.js';
-import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle, exportTimeline, exportView, importTimeline} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {clearImageBlobCache} from './image.js';
@@ -10,6 +10,7 @@ import {openImageThumbnailDialog, removeImageThumbnail} from './imageModal.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tagsEdit.js';
 import {getAuthState, saveSessionState} from './session.js';
 import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarViewReadOnly, setSidebarItemReadOnly} from './panel.js';
+import {exportTimeline, exportView, importTimeline} from './importExport.js';
 
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
 
