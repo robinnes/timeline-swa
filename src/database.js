@@ -69,10 +69,11 @@ export async function loadTimelineFromStorage(scope, file) {
   const isLocal = await Util.isLocalEnv();
   if (isLocal) {
     const timeline = await tempSimulateLoadFile(scope, file);
-    return {
+    return timeline;
+/*    return {  todo
       timeline,
       file
-    };
+    };*/
   }
 
   try {
@@ -92,10 +93,11 @@ export async function loadTimelineFromStorage(scope, file) {
 
     const text = await resp.text();
 
-    return {
+    /*return {  todo
       timeline: JSON.parse(text),
       file: Util.removeTimelineFileExt(blobName)
-    };
+    };*/
+    return JSON.parse(text);
 
   } catch (e) {
     console.error(
