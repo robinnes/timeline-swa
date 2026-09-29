@@ -159,7 +159,7 @@ export function initializeItem(i) {
 export function initializeTitle(tl) {
   // establish labelWidth
   const ctx = canvas.getContext('2d');
-  ctx.font = TIME.TITLE_FONT;
+  ctx.font = DRAW.TITLE_FONT;
   tl._labelWidth = ctx.measureText(tl.title).width;
 }
 
