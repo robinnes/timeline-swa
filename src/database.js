@@ -64,44 +64,69 @@ async function acquireBlobSas(scope, filename, mode) {
 
 /******************* Timeline management *******************/
 
+async function loadTimelineFromSas(url, blobName) {
+  const resp = await fetch(url);
+
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch blob: ${resp.status} ${resp.statusText}`
+    );
+  }
+
+  const text = await resp.text();
+
+  return {
+    timeline: JSON.parse(text),
+    file: Util.removeTimelineFileExt(blobName)
+  };
+}
+
 export async function loadTimelineFromStorage(scope, file) {
 
   const isLocal = await Util.isLocalEnv();
   if (isLocal) {
     const timeline = await tempSimulateLoadFile(scope, file);
-    return timeline;
-/*    return {  todo
-      timeline,
-      file
-    };*/
+    return {timeline, file};
   }
 
   try {
     const filename = Util.addTimelineFileExt(file);
 
-    // Acquire SAS token. The file returned by the server is authoritative.
     const {url, file: blobName} =
       await acquireBlobSas(scope, filename, "read");
 
-    // Fetch the blob.
-    const resp = await fetch(url);
-    if (!resp.ok) {
-      throw new Error(
-        `Failed to fetch blob: ${resp.status} ${resp.statusText}`
-      );
-    }
-
-    const text = await resp.text();
-
-    /*return {  todo
-      timeline: JSON.parse(text),
-      file: Util.removeTimelineFileExt(blobName)
-    };*/
-    return JSON.parse(text);
+    return await loadTimelineFromSas(url, blobName);
 
   } catch (e) {
     console.error(
       `Failed to load ${file} from storage: ${e.message}`
+    );
+  }
+}
+
+export async function loadPublicTimelineByIdFromStorage(id) {
+  try {
+    const response = await fetch(
+      `/api/getPublicTimelineById?id=${encodeURIComponent(id)}`,
+      {
+        method: 'GET',
+        headers: {'Accept': 'application/json'}
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to resolve public timeline ID: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const {sasUrl, blobName} = await response.json();
+
+    return await loadTimelineFromSas(sasUrl, blobName);
+
+  } catch (e) {
+    console.error(
+      `Failed to load public timeline ${id}: ${e.message}`
     );
   }
 }

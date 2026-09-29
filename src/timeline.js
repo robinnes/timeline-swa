@@ -3,7 +3,8 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {loadTimelineFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+import {loadTimelineFromStorage, loadPublicTimelineByIdFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
 import {clearCachedImagesForTimeline} from './image.js';
@@ -246,17 +247,51 @@ export function filteredItemsForView(vw) {
 /******************************* Timeline management *******************************/
 
 export async function loadTimeline(file) {
-  // if file does not include a slash ("/") then it's private, otherwise public
-  const scope = file.includes('/') ? 'public' : 'private';  
-  
+
+  // Existing convention: no slash = private; slash = public.
+  const scope = file.includes('/') ? 'public' : 'private';
+
   Util.showGlobalBusyCursor();
-  const tl = await loadTimelineFromStorage(scope, file);  // retrieve from storage
+
+  const result =
+    await loadTimelineFromStorage(scope, file);
+
   Util.hideGlobalBusyCursor();
 
-  if (!tl) return;
+  if (!result) return;
 
-  if (tl.id === undefined) tl.id = Util.uuid();  // assign unique ID if not present
-  tl._file = (file.endsWith('.json')) ? `${file}.gz` : file;
+  return finishLoadedTimeline(
+    result.timeline,
+    result.file,
+    scope
+  );
+}
+
+export async function loadPublicTimelineById(id) {
+
+  Util.showGlobalBusyCursor();
+
+  const result =
+    await loadPublicTimelineByIdFromStorage(id);
+
+  Util.hideGlobalBusyCursor();
+
+  if (!result) return;
+
+  return finishLoadedTimeline(
+    result.timeline,
+    result.file,
+    'public'
+  );
+}
+
+function finishLoadedTimeline(tl, file, scope) {
+
+  if (tl.id === undefined) {
+    tl.id = Util.uuid();
+  }
+
+  tl._file = file;
   tl._scope = scope;
   tl._mode = 'view';
 

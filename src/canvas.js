@@ -3,7 +3,7 @@ import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
 import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
-import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
+import {loadTimeline, loadPublicTimelineById, closeTimeline, initializeItem, initializeView} from './timeline.js';
 import {showModalDialog} from './confirmDialog.js';
 import {saveSessionState} from './session.js';
 
