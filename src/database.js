@@ -74,28 +74,33 @@ async function loadTimelineFromSas(url, blobName, scope) {
 
   const text = await resp.text();
 
-  // Convert physical blob name to OpenTL's logical filename.
-  // e.g.
-  //   private/French Revolution.json.gz
-  //       -> French Revolution
-  //
-  //   public/wrob/French Revolution.json.gz
-  //       -> wrob/French Revolution
-  const prefix = `${scope}/`;
+  const parts = blobName.split('/');
 
-  if (!blobName.startsWith(prefix)) {
-    throw new Error(
-      `Unexpected ${scope} blob name: ${blobName}`
-    );
+  let file;
+
+  if (scope === 'private') {
+    // private/<username>/<file>
+    if (parts.length < 3 || parts[0] !== 'private') {
+      throw new Error(`Unexpected private blob name: ${blobName}`);
+    }
+
+    file = parts.slice(2).join('/');
+
+  } else if (scope === 'public') {
+    // public/<username>/<file>
+    if (parts.length < 3 || parts[0] !== 'public') {
+      throw new Error(`Unexpected public blob name: ${blobName}`);
+    }
+
+    file = parts.slice(1).join('/');
+
+  } else {
+    throw new Error(`Invalid timeline scope: ${scope}`);
   }
-
-  const file = Util.removeTimelineFileExt(
-    blobName.slice(prefix.length)
-  );
 
   return {
     timeline: JSON.parse(text),
-    file
+    file: Util.removeTimelineFileExt(file)
   };
 }
 
