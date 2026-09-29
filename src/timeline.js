@@ -3,7 +3,7 @@ import * as Calendar from './calendar.js';
 import {TIME, DRAW} from './constants.js';
 import {appState, timelineCache, draw} from './canvas.js';
 import {positionViews} from './render.js';
-import {loadTimelineFromStorage, loadPublicTimelineByIdFromStorage, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
+import {loadTimelineFromStorage, loadTimelineFromStorageById, saveTimelineToStorage, saveImageToStorage, publishTimelineToPublic, deleteOrphanedImages} from './database.js';
 
 import {parseLabel} from './label.js';
 import {tickSpec} from './ticks.js';
@@ -272,7 +272,7 @@ export async function loadPublicTimelineById(id) {
   Util.showGlobalBusyCursor();
 
   const result =
-    await loadPublicTimelineByIdFromStorage(id);
+    await loadTimelineFromStorageById(id);
 
   Util.hideGlobalBusyCursor();
 

@@ -644,36 +644,59 @@ function endZoom() {
 /* ------------------- View/Timeline management -------------------- */
 
 export async function getTimeline(file, reload) {
-  // locate timeline indicated by file in timelineCache (can't use the map's key)
-  let tlKey = null;
-  for (const [key, tl] of timelineCache.entries()) {
-    if (tl._file === file) {
-      tlKey = key;
-      break;
-    }
-  }
+  // Locate timeline indicated by file in timelineCache.
+  const existingTL = [...timelineCache.values()]
+    .find(tl => tl._file === file);
 
-  if (tlKey) {
-    const existingTL = timelineCache.get(tlKey);
+  return await getTimelineCommon(
+    existingTL,
+    reload,
+    () => loadTimeline(file)
+  );
+}
+
+export async function getTimelineById(id, reload) {
+  // ID lookup is specifically for the public version.
+  const tlKey = JSON.stringify({
+    id,
+    scope: 'public'
+  });
+
+  const existingTL = timelineCache.get(tlKey);
+
+  return await getTimelineCommon(
+    existingTL,
+    reload,
+    () => loadPublicTimelineById(id)
+  );
+}
+
+async function getTimelineCommon(existingTL, reload, loader) {
+
+  if (existingTL) {
     if (!reload) return existingTL;
 
-    // check before reloading timeline that's being edited
+    // Check before reloading timeline that's being edited.
     if (existingTL._dirty) {
-      const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
+      const ok = await showModalDialog({
+        message: 'Abandon changes to timeline and revert to saved version?'
+      });
       if (!ok) return;
     }
-    // delete present timeline and all views pointing to it before reloading
+
+    // Delete present timeline and all views pointing to it.
+    const tlKey = existingTL._key;
+
     timelineCache.delete(tlKey);
-    let view = appState.views.find(vw => vw.tlKey === tlKey);
-    while (view) {
-      const idx = appState.views.indexOf(view);
-      appState.views.splice(idx, 1);
-      view = appState.views.find(vw => vw.tlKey === tlKey);
+
+    for (let i = appState.views.length - 1; i >= 0; i--) {
+      if (appState.views[i].tlKey === tlKey) {
+        appState.views.splice(i, 1);
+      }
     }
   }
 
-  const newTL = await loadTimeline(file);  // retrieve timeline from storage
-  return newTL;
+  return await loader();
 }
 
 export function openView(tl, tagID, origVw, focus=true) {

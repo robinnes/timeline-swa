@@ -62,9 +62,8 @@ async function acquireBlobSas(scope, filename, mode) {
   }
 }
 
-/******************* Timeline management *******************/
-
 async function loadTimelineFromSas(url, blobName) {
+  // use acquired blob SAS URL to perform the actual fetch
   const resp = await fetch(url);
 
   if (!resp.ok) {
@@ -80,6 +79,10 @@ async function loadTimelineFromSas(url, blobName) {
     file: Util.removeTimelineFileExt(blobName)
   };
 }
+
+
+/******************* Timeline management *******************/
+
 
 export async function loadTimelineFromStorage(scope, file) {
 
@@ -104,7 +107,8 @@ export async function loadTimelineFromStorage(scope, file) {
   }
 }
 
-export async function loadPublicTimelineByIdFromStorage(id) {
+export async function loadTimelineFromStorageById(id) {
+  // works for public timelines only
   try {
     const response = await fetch(
       `/api/getPublicTimelineById?id=${encodeURIComponent(id)}`,
