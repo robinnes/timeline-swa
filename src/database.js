@@ -62,7 +62,7 @@ async function acquireBlobSas(scope, filename, mode) {
   }
 }
 
-async function loadTimelineFromSas(url, blobName) {
+async function loadTimelineFromSas(url, blobName, scope) {
   // use acquired blob SAS URL to perform the actual fetch
   const resp = await fetch(url);
 
@@ -74,9 +74,28 @@ async function loadTimelineFromSas(url, blobName) {
 
   const text = await resp.text();
 
+  // Convert physical blob name to OpenTL's logical filename.
+  // e.g.
+  //   private/French Revolution.json.gz
+  //       -> French Revolution
+  //
+  //   public/wrob/French Revolution.json.gz
+  //       -> wrob/French Revolution
+  const prefix = `${scope}/`;
+
+  if (!blobName.startsWith(prefix)) {
+    throw new Error(
+      `Unexpected ${scope} blob name: ${blobName}`
+    );
+  }
+
+  const file = Util.removeTimelineFileExt(
+    blobName.slice(prefix.length)
+  );
+
   return {
     timeline: JSON.parse(text),
-    file: Util.removeTimelineFileExt(blobName)
+    file
   };
 }
 
@@ -98,7 +117,11 @@ export async function loadTimelineFromStorage(scope, file) {
     const {url, file: blobName} =
       await acquireBlobSas(scope, filename, "read");
 
-    return await loadTimelineFromSas(url, blobName);
+    return await loadTimelineFromSas(
+      url,
+      blobName,
+      scope
+    );
 
   } catch (e) {
     console.error(
@@ -126,7 +149,11 @@ export async function loadTimelineFromStorageById(id) {
 
     const {sasUrl, blobName} = await response.json();
 
-    return await loadTimelineFromSas(sasUrl, blobName);
+    return await loadTimelineFromSas(
+      sasUrl,
+      blobName,
+      'public'
+    );
 
   } catch (e) {
     console.error(

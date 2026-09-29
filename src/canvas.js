@@ -730,11 +730,28 @@ export function openView(tl, tagID, origVw, focus=true) {
   return newView;
 }
 
-export async function followHyperlink(file, tagID, origVw, forceDisplay, focus=true) {
+function isTimelineId(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
-  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw?.tlKey);
+export async function followHyperlink(locator, tagID, origVw, forceDisplay, focus=true) {
+
+  let tl;
+
+  if (!locator) {
+    tl = timelineCache.get(origVw?.tlKey);
+
+  } else if (isTimelineId(locator)) {
+    tl = await getTimelineById(locator, false);
+
+  } else {
+    tl = await getTimeline(locator, false);
+  }
+
+  if (!tl) return;
 
   const view = openView(tl, tagID, origVw, focus);
+
   if (view && focus) {
     const display = sidebarIsOpen() || forceDisplay;
     openSelectedView(display);
