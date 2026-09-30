@@ -1,4 +1,4 @@
-import {appState, draw, timelineCache, followHyperlink} from './canvas.js';
+import {appState, timelineCache} from './canvas.js';
 
 const expandedNavigateTagIds = new Set();
 

@@ -297,6 +297,6 @@ async function tempSimulateLoadFile(scope, file) {
 
   const tl = await response.json();
 
-  await Util.sleep(350);  // simulate database access
+  await Util.sleep(35);  // simulate database access
   return tl;
 }

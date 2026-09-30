@@ -312,10 +312,12 @@ function canvasClick(e) {
     const element = new DOMParser()
       .parseFromString(link, "text/html")
       .querySelector("a");
-    const tl = element.getAttribute("tl");
-    const tag = element.getAttribute("tag");
-
-    followHyperlink(tl, tag, vw, false);
+    const locator = {
+      tl: element.getAttribute("tl"),
+      tag: element.getAttribute("tag"),
+      item: element.getAttribute("item")
+    };
+    followHyperlink(locator, true, vw, false);
     return;
   }
 
@@ -699,12 +701,11 @@ async function getTimelineCommon(existingTL, reload, loader) {
   return await loader();
 }
 
-export function openView(tl, tagID, origVw, focus=true) {
+export function getView(tl, tagID, origVw=null) {
+
+  // return matching view if already present
   const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
-  if (existingView) {
-    focusView(existingView, true);
-    return existingView;
-  }
+  if (existingView) return existingView;
 
   const newView = {
     tlKey: tl._key,
@@ -726,36 +727,78 @@ export function openView(tl, tagID, origVw, focus=true) {
     appState.views.splice(origIdx+1, 0, newView);  // insert above currently selected view
   }
   saveSessionState();
-  if (focus) focusView(newView, true);
+  
   return newView;
+}
+
+export function openView(tl, tagID, origVw=null) {
+  const view = getView(tl, tagID, origVw);
+  if (!view) return;
+
+  focusView(view, true);
+
+  return view;
 }
 
 function isTimelineId(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-export async function followHyperlink(locator, tagID, origVw, forceDisplay, focus=true) {
+export async function followHyperlink(locator, focus=false, origVw=null, forceDisplay=false, ) {
+  /*
+   * locator:      {tl, tag, item}
+   * focus/origVw: (optional) whether to focus on new view, animate from origVw
+   * forceDisplay: (optional) whether to force side panel open for target
+   */
 
+  // identify/load timeline
   let tl;
 
-  if (!locator) {
+  if (!locator.tl) {
     tl = timelineCache.get(origVw?.tlKey);
 
-  } else if (isTimelineId(locator)) {
-    tl = await getTimelineById(locator, false);
+  } else if (isTimelineId(locator.tl)) {
+    tl = await getTimelineById(locator.tl, false);
 
   } else {
-    tl = await getTimeline(locator, false);
+    tl = await getTimeline(locator.tl, false);
   }
 
   if (!tl) return;
 
-  const view = openView(tl, tagID, origVw, focus);
+  if (!locator.item) {
+    // identify and potentially load view
+    const vw = openView(tl, locator.tag, origVw);
 
-  if (view && focus) {
-    const display = sidebarIsOpen() || forceDisplay;
-    openSelectedView(display);
+    if (vw && focus) {
+      const display = sidebarIsOpen() || forceDisplay;
+      openSelectedView(display);
+    }
+
+  } else {
+    // zoom to the item
+    const items = tl.items.filter(i => i.id === locator.item);
+    if (items.length === 0) return;
+    const item = items[0];
+
+    const vw = getView(tl, locator.tag, origVw);
+    if (!vw) return;
+
+    positionViews(true);
+    appState.selected.view = vw;
+    appState.selected.item = item;
+
+    if (item.itemType==="period") {
+      // zoom to the period item
+      zoomToItem(item, true);
+    } else {
+      // do not "zoom" to the event, but move to it and open the side panel
+      zoomToItem(item, false);
+      openSelectedItem(true);
+    }
   }
+
+
 }
 
 export async function followURLParams() {
@@ -763,8 +806,12 @@ export async function followURLParams() {
   const params = new URLSearchParams(window.location.search);
   const tl = params.get("tl");
   if (tl) {
-    const tag = params.get("tag");
-    await followHyperlink(tl, tag, null, false, false);
+    const locator = {
+      tl,
+      tag: params.get("tag"),
+      item: params.get("item")
+    };
+    await followHyperlink(locator);
     if (appState.views.length > 0) centerOnView(appState.views[appState.views.length-1]);
   }
 }

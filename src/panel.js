@@ -237,9 +237,14 @@ for (const txt of displayTextAreas) {
     const a = e.target.closest("a");
     if (!a) return;
 
-    const file = a.getAttribute("tl");
-    const tagID = a.getAttribute("tag");
-    if (file || tagID) followHyperlink(file, tagID, appState.selected.view, true);
+    const tl = a.getAttribute("tl");
+    const tag = a.getAttribute("tag");
+    const item = a.getAttribute("item");
+    
+    if (tl || tag || item) {
+      const locator = {tl, tag, item};
+      followHyperlink(locator, true, appState.selected.view, true);
+    }
   });
 }
 

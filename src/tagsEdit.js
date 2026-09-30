@@ -1,5 +1,5 @@
 import * as Util from './util.js';
-import {appState, draw, timelineCache, followHyperlink} from './canvas.js';
+import {appState, draw, followHyperlink} from './canvas.js';
 import {markDirty} from './panelEdit.js';
 import {initializeTag} from './timeline.js';
 
@@ -227,8 +227,8 @@ function copyLink(tagID) {
   const link = `<a href="#" tag="${tagID}">${label}</a>`;
   navigator.clipboard.writeText(link);
 
-  const vw = appState.selected.view;
-  followHyperlink(tl._file, tagID, vw, false);
+  const locator = {tl:tl._file, tag:tagID, item:null};
+  followHyperlink(locator, true, appState.selected.view, false);
 }
 
 function beginRename(tagId) {
