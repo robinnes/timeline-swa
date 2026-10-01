@@ -710,6 +710,10 @@ async function getTimelineCommon(existingTL, reload, loader) {
 
 export function getView(tl, tagID, origVw=null) {
 
+  // check that tagID exists in tl.tags
+  const matchingTag = tl.tags.find(t => t.id === tagID);
+  if (!matchingTag) return;
+
   // return matching view if already present
   const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
   if (existingView) return existingView;
@@ -803,7 +807,6 @@ export async function followHyperlink(locator, focus=false, origVw=null, forceDi
       openSelectedItem(false);
     }
   }
-
 }
 
 export async function followURLParams() {
