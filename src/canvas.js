@@ -323,7 +323,14 @@ function canvasClick(e) {
 
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
-    if (sidebarIsOpen()) closeSidebar();
+    if (sidebarIsOpen()) {
+      closeSidebar();
+    } else {
+      if (appState.selected.item) {  // there can be a selected item but sidebar not open
+        appState.selected.item = null;
+        draw();
+      }
+    }
     return;
   }
 
@@ -731,7 +738,7 @@ export function getView(tl, tagID, origVw=null) {
   return newView;
 }
 
-export function openView(tl, tagID, origVw=null) {
+export function openView(tl, tagID=null, origVw=null) {
   const view = getView(tl, tagID, origVw);
   if (!view) return;
 
@@ -786,18 +793,16 @@ export async function followHyperlink(locator, focus=false, origVw=null, forceDi
 
     positionViews(true);
     appState.selected.view = vw;
+    appState.selected.timeline = tl;
     appState.selected.item = item;
 
-    if (item.itemType==="period") {
-      // zoom to the period item
-      zoomToItem(item, true);
-    } else {
-      // do not "zoom" to the event, but move to it and open the side panel
-      zoomToItem(item, false);
-      openSelectedItem(true);
+    const zoom = (item.itemType==="period");
+    zoomToItem(item, zoom);
+    
+    if (sidebarIsOpen()) {
+      openSelectedItem(false);
     }
   }
-
 
 }
 
