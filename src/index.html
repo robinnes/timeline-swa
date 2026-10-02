@@ -51,6 +51,13 @@
                   <div class="details display-textarea" id="item-details"></div>
                 </section>
               </div>
+              <div class="panel__footer" id="view-item-footer" hidden>
+                <button id="item-share"
+                        class="action-btn"
+                        aria-label="Share item">
+                  Share
+                </button>
+              </div>
             </div>
             <!-- Edit item panel -->
             <div id="panel-edit-item" class="panel" hidden inert>
@@ -180,14 +187,12 @@
             <!-- View timeline panel -->
             <div id="panel-view-timeline" class="panel" hidden inert>
               <div class="panel__content panel__content--view">
-
                 <section class="sidebar__section">
                   <div class="thumblabel__section">
                     <img class="thumbnail-img" id="timeline-thumb-view-img" alt="View timeline thumbnail"/>
                     <h2 class="label display-textarea" id="timeline-title"></h2>
                   </div>
                 </section>
-
                 <section class="sidebar__section">
                   <div class="details display-textarea" id="timeline-details"></div>
                 </section>
@@ -201,6 +206,12 @@
                 <div class="panel__footer--left">
                   <button id="timeline-edit" class="action-btn" aria-label="Edit timeline">Edit</button>
                 </div>
+                <button id="timeline-share"
+                  class="action-btn"
+                  aria-label="Share timeline"
+                  hidden>
+                    Share
+                </button>
                 <button id="timeline-publish" class="action-btn" aria-label="Publish timeline">Publish</button>
               </div>
             </div>
@@ -394,6 +405,34 @@
         <footer class="modal__footer">
           <button type="button" class="action-btn-secondary" data-modal-action="cancel" data-modal-target="image-modal">Cancel</button>
           <button type="button" class="action-btn" data-modal-action="ok" data-modal-target="image-modal" id="image-ok-btn">OK</button>
+        </footer>
+      </div>
+    </div>
+    <!-- Share link dialog -->
+    <div id="share-link-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="share-link-modal-title" hidden>
+      <div class="modal__backdrop" data-modal-close="share-link-modal"></div>
+      <div class="modal__dialog" role="document">
+        <header class="modal__header">
+          <h2 id="share-link-modal-title" class="modal__title">Share</h2>
+        </header>
+        <div class="modal__body share-link__body">
+          <label for="share-link-label" class="control-label">Label</label>
+          <input type="text" id="share-link-label" class="edit-text">
+          <label class="control-label share-link__type-label">Type</label>
+          <div class="share-link__types">
+            <label>
+              <input type="radio" name="share-link-type" value="link" checked>Link</label>
+            <label>
+              <input type="radio" name="share-link-type" value="url">URL</label>
+            <label id="share-link-embed-option">
+              <input type="radio" name="share-link-type" value="embed">Embed</label>
+          </div>
+          <label for="share-link-value" class="control-label share-link__value-label">Value</label>
+          <textarea id="share-link-value" class="edit-textarea share-link__value" rows="4" readonly></textarea>
+        </div>
+        <footer class="modal__footer">
+          <button type="button" class="action-btn-secondary" id="share-link-cancel">Cancel</button>
+          <button type="button" class="action-btn" id="share-link-copy">Copy</button>
         </footer>
       </div>
     </div>

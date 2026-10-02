@@ -11,6 +11,7 @@ import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './ta
 import {getAuthState, saveSessionState} from './session.js';
 import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarViewReadOnly, setSidebarItemReadOnly} from './panel.js';
 import {exportTimeline, exportView, importTimeline} from './importExport.js';
+import {showShareLinkDialog} from './shareLink.js';
 
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
 
@@ -18,11 +19,15 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const timelinePublishBtn = document.getElementById('timeline-publish');
+const timelineShareBtn = document.getElementById('timeline-share');
+
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
+const viewItemFooter = document.getElementById('view-item-footer');
 const importTimelineBtn = document.getElementById('timeline-import');
 const exportTimelineBtn = document.getElementById('timeline-export');
 
 const itemDeleteBtn = document.getElementById('item-delete');
+const itemShareBtn = document.getElementById('item-share');
 const editItemLabel = document.getElementById('edit-item-label');
 const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
@@ -186,8 +191,21 @@ function setSidebarViewAll(vw) {
   // tags
   renderTagsUI(tl);         // definition
 
-  // display 'Edit' and 'Publish' buttons for private timelines
-  viewTimelineFooter.toggleAttribute('hidden', tl._scope==='public');
+  // View panel footer configuration
+  const isPublic = (tl._scope === 'public');
+  const isLoggedIn = !!appState.authentication.userId;
+  const canShare = isPublic && isLoggedIn;
+
+  // Private timeline controls
+  timelineEditBtn.hidden = isPublic;
+  timelinePublishBtn.hidden = isPublic;
+
+  // Public timeline Share controls
+  timelineShareBtn.hidden = !canShare;
+  viewItemFooter.hidden = !canShare;
+
+  // Timeline footer is needed for either private controls or Share
+  viewTimelineFooter.hidden = isPublic && !canShare;
 
   // enable/disable Publish button
   const canPublish = (appState.configuration?.canPublish ?? false);
@@ -226,7 +244,45 @@ export function forceEditItemMain() {
 }
 
 
-/* ------------------- Edit/save/delete/publish buttons -------------------- */
+/* ------------------- Panel action buttons -------------------- */
+
+timelineShareBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const tl = appState.selected.timeline;
+  const vw = appState.selected.view;
+  let label;
+  let locator;
+
+  if (vw.tagFilter) {
+    const tag = tl.tags.find(t => t.id === vw.tagFilter);
+    label = tag?.label;
+    locator = {tl:tl.id, tag:tag.id};
+  } else {
+    label = tl.title;
+    locator = {tl:tl.id};
+  }
+
+  showShareLinkDialog({label, locator, allowEmbed: true});
+});
+
+itemShareBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const tl = appState.selected.timeline;
+  const vw = appState.selected.view;
+  const item = appState.selected.item;
+  let locator;
+
+  if (vw.tagFilter) {
+    const tag = tl.tags.find(t => t.id === vw.tagFilter);
+    locator = {tl:tl.id, tag:tag.id, item:item.id};
+  } else {
+    locator = {tl:tl.id, item:item.id};
+  }
+  
+  showShareLinkDialog({label:item.label, locator, allowEmbed: false});
+});
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
