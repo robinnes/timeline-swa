@@ -52,11 +52,7 @@
                 </section>
               </div>
               <div class="panel__footer" id="view-item-footer" hidden>
-                <button id="item-share"
-                        class="action-btn"
-                        aria-label="Share item">
-                  Share
-                </button>
+                <button id="item-share" class="action-btn" aria-label="Share item">Share</button>
               </div>
             </div>
             <!-- Edit item panel -->
@@ -69,9 +65,18 @@
                 </div>
                 <!-- Main subpanel -->
                 <div id="subpanel-edit-item-main" class="subpanel">
+                  
                   <!-- Label section -->
                   <section class="sidebar__section">
-                    <label for="edit-item-label" class="control-label">Label</label>
+                    <div class="control-label-row">
+                      <label for="edit-item-label" class="control-label">Label</label>
+
+                      <button id="item-copy-link"
+                              type="button"
+                              class="tagmgr__iconbtn"
+                              title="Copy link"
+                              aria-label="Copy link">🔗︎</button>
+                    </div>
                     <textarea id="edit-item-label" class="edit-textarea" rows="2"></textarea>
                   </section>
 
@@ -206,12 +211,7 @@
                 <div class="panel__footer--left">
                   <button id="timeline-edit" class="action-btn" aria-label="Edit timeline">Edit</button>
                 </div>
-                <button id="timeline-share"
-                  class="action-btn"
-                  aria-label="Share timeline"
-                  hidden>
-                    Share
-                </button>
+                <button id="timeline-share" class="action-btn" aria-label="Share timeline" hidden>Share</button>
                 <button id="timeline-publish" class="action-btn" aria-label="Publish timeline">Publish</button>
               </div>
             </div>

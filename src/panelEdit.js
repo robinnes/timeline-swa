@@ -1,4 +1,5 @@
 import * as Calendar from './calendar.js';
+import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, focusView, timelineCache} from './canvas.js';
 import {positionLabels} from './render.js';
@@ -29,6 +30,7 @@ const exportTimelineBtn = document.getElementById('timeline-export');
 const itemDeleteBtn = document.getElementById('item-delete');
 const itemShareBtn = document.getElementById('item-share');
 const editItemLabel = document.getElementById('edit-item-label');
+const itemCopyLinkBtn = document.getElementById('item-copy-link');
 const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
@@ -245,6 +247,21 @@ export function forceEditItemMain() {
 
 
 /* ------------------- Panel action buttons -------------------- */
+
+itemCopyLinkBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const vw = appState.selected.view;
+  const item = appState.selected.item;
+  const label = Util.htmlToPlainText(item.label);
+
+  const params = (vw.tagFilter) ?
+    `tag="${vw.tagFilter}" item="${item.id}"` :
+    `item="${item.id}"`;
+  const link = `<a href="#" ${params}>${label}</a>`;
+  
+  navigator.clipboard.writeText(link);
+});
 
 timelineShareBtn.addEventListener('click', (e) => {
   e.preventDefault();
