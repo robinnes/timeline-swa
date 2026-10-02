@@ -1006,3 +1006,20 @@ h2.label {
 .tagpick__row input[type="checkbox"] {
   transform: translateY(1px);
 }
+
+
+/* ---------------- Control label row (top of Edit Item panel) ---------------- */
+
+.control-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.control-label-row .control-label {
+  margin-bottom: 6px;
+}
+
+.control-label-row .tagmgr__iconbtn {
+  margin-bottom: 6px;
+}

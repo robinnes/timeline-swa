@@ -270,7 +270,7 @@ async function handleOpenTimelineConfirm() {
 
     //await openTimeline(openDialogSelectedName, true);
     const tl = await getTimeline(openDialogSelectedName, true);
-    if (tl) openView(tl, null);
+    if (tl) openView(tl);
     
     closeModal(openTimelineModal);
 
@@ -461,7 +461,7 @@ openTimelineFilenameInput.addEventListener('input', () => {
 /******************************* temp *******************************/
 
 async function tempSimulateList(scope) {
-  await Util.sleep(1000);
+  await Util.sleep(100);
   if (scope === "public") {
     return([
       {lastModified:"Mon, 17 Nov 2025 03:04:39 GMT", name:"wrob/Rob Innes.json.gz"}

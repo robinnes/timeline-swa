@@ -1,15 +1,18 @@
 import * as Calendar from './calendar.js';
+import * as Util from './util.js';
 import {DRAW} from './constants.js';
 import {appState, draw, focusView, timelineCache} from './canvas.js';
 import {positionLabels} from './render.js';
-import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle, exportTimeline, exportView, importTimeline} from './timeline.js';
+import {closeTimeline, loadTimeline, saveTimeline, publishTimeline, initializeItem, initializeTitle} from './timeline.js';
 import {openSaveAsTimelineDialog} from './fileDialog.js';
 import {showModalDialog} from './confirmDialog.js';
 import {clearImageBlobCache} from './image.js';
 import {openImageThumbnailDialog, removeImageThumbnail} from './imageModal.js';
 import {initTagsUI, renderTagsUI, initTagPickerUI, renderTagPickerUI} from './tagsEdit.js';
 import {getAuthState, saveSessionState} from './session.js';
-import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarView, setSidebarItem} from './panel.js';
+import {openSelectedView, openSidebar, closeSidebar, showPanel, setActiveEditTab, setSidebarViewReadOnly, setSidebarItemReadOnly} from './panel.js';
+import {exportTimeline, exportView, importTimeline} from './importExport.js';
+import {showShareLinkDialog} from './shareLink.js';
 
 const subpanelTabs = document.querySelectorAll('.subpanel__tabs');
 
@@ -17,12 +20,17 @@ const timelineEditBtn = document.getElementById('timeline-edit');
 const timelineCancelBtn = document.getElementById('timeline-cancel');
 const timelineSaveBtn = document.getElementById('timeline-save');
 const timelinePublishBtn = document.getElementById('timeline-publish');
+const timelineShareBtn = document.getElementById('timeline-share');
+
 const viewTimelineFooter = document.getElementById('view-timeline-footer');
+const viewItemFooter = document.getElementById('view-item-footer');
 const importTimelineBtn = document.getElementById('timeline-import');
 const exportTimelineBtn = document.getElementById('timeline-export');
 
 const itemDeleteBtn = document.getElementById('item-delete');
+const itemShareBtn = document.getElementById('item-share');
 const editItemLabel = document.getElementById('edit-item-label');
+const itemCopyLinkBtn = document.getElementById('item-copy-link');
 const editItemDetails = document.getElementById('edit-item-details');
 const editTimelineTitle = document.getElementById('edit-timeline-title');
 const editTimelineDetails = document.getElementById('edit-timeline-details');
@@ -82,9 +90,9 @@ function showSubpanel(targetId) {
 }
 
 
-/* ------------------- Open view/item -------------------- */
+/* ------------------- Open view/item: all fields -------------------- */
 
-export function editSelectedView(display) {
+export function openSelectedViewAll(display) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   appState.selected.timeline = tl;
@@ -96,20 +104,20 @@ export function editSelectedView(display) {
 
   if (editMode && vw.tagFilter) showSubpanel('subpanel-edit-timeline-tag');
 
-  setSidebarEditView(vw);
+  setSidebarViewAll(vw);
   
   if (display) openSidebar();
 
   //if (editMode && !appState.isTouchScreen) editTimelineTitle.focus();
 }
 
-export function editSelectedItem(forceMainSubpanel) {
+export function openSelectedItemAll(forceMainSubpanel) {
   const vw = appState.selected.view;
   const tl = timelineCache.get(vw.tlKey);
   const editMode = (tl._mode==="edit");
 
-  setSidebarEditItem(appState.selected.item);
-  setSidebarEditView(vw);
+  setSidebarItemAll(appState.selected.item);
+  setSidebarViewAll(vw);
 
   const panel = editMode ? "panel-edit-item" : "panel-view-item";
   showPanel(panel);
@@ -121,9 +129,9 @@ export function editSelectedItem(forceMainSubpanel) {
   if (editMode && forceMainSubpanel && !appState.isTouchScreen) editItemLabel.focus(); 
 }
 
-function setSidebarEditItem(item) {
+function setSidebarItemAll(item) {
   
-  setSidebarItem(item);
+  setSidebarItemReadOnly(item);
 
   // update sidebar (all panels) to selected item
   const $ = (id) => document.getElementById(id);
@@ -164,26 +172,14 @@ function setSidebarEditItem(item) {
   updateSaveButton();  // disable if timeline is not 'dirty'
 }
 
-function setSidebarEditView(vw) {
+function setSidebarViewAll(vw) {
   const $ = (id) => document.getElementById(id);
   const tl = timelineCache.get(vw.tlKey);
   const tag = (vw.tagFilter) ? tl.tags.find(t => t.id === vw.tagFilter) : null;
 
-  setSidebarView(vw);
+  // Read-only fields
+  setSidebarViewReadOnly(vw);
 
-  /*
-  // View Timeline panel
-  const title = (tag ? tag.label : tl.title) ?? '';  // title/label
-  $("timeline-title").textContent = title;
-
-  const details = (tag ? tag.details : tl.details) ?? '';  // details
-  const isHtml = /<[a-z][\s\S]*>/i.test(details);
-  if (isHtml) $("timeline-details").innerHTML = details;
-  else $("timeline-details").textContent = details;
-
-  if (tag) updateThumbnailView(tag, "tag") 
-    else updateThumbnailView(tl, "timeline");
-*/
   // tag (that the view is filtered by)
   setSidebarTag(tag);
 
@@ -195,11 +191,23 @@ function setSidebarEditView(vw) {
   updateThumbnailEdit(tl, "timeline");
 
   // tags
-  //renderTagNavigation(vw);  // navigation
   renderTagsUI(tl);         // definition
 
-  // display 'Edit' and 'Publish' buttons for private timelines
-  viewTimelineFooter.toggleAttribute('hidden', tl._scope==='public');
+  // View panel footer configuration
+  const isPublic = (tl._scope === 'public');
+  const isLoggedIn = !!appState.authentication.userId;
+  const canShare = isPublic && isLoggedIn;
+
+  // Private timeline controls
+  timelineEditBtn.hidden = isPublic;
+  timelinePublishBtn.hidden = isPublic;
+
+  // Public timeline Share controls
+  timelineShareBtn.hidden = !canShare;
+  viewItemFooter.hidden = !canShare;
+
+  // Timeline footer is needed for either private controls or Share
+  viewTimelineFooter.hidden = isPublic && !canShare;
 
   // enable/disable Publish button
   const canPublish = (appState.configuration?.canPublish ?? false);
@@ -238,7 +246,60 @@ export function forceEditItemMain() {
 }
 
 
-/* ------------------- Edit/save/delete/publish buttons -------------------- */
+/* ------------------- Panel action buttons -------------------- */
+
+itemCopyLinkBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const vw = appState.selected.view;
+  const item = appState.selected.item;
+  const label = Util.htmlToPlainText(item.label);
+
+  const params = (vw.tagFilter) ?
+    `tag="${vw.tagFilter}" item="${item.id}"` :
+    `item="${item.id}"`;
+  const link = `<a href="#" ${params}>${label}</a>`;
+  
+  navigator.clipboard.writeText(link);
+});
+
+timelineShareBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const tl = appState.selected.timeline;
+  const vw = appState.selected.view;
+  let label;
+  let locator;
+
+  if (vw.tagFilter) {
+    const tag = tl.tags.find(t => t.id === vw.tagFilter);
+    label = tag?.label;
+    locator = {tl:tl.id, tag:tag.id};
+  } else {
+    label = tl.title;
+    locator = {tl:tl.id};
+  }
+
+  showShareLinkDialog({label, locator, allowEmbed: true});
+});
+
+itemShareBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const tl = appState.selected.timeline;
+  const vw = appState.selected.view;
+  const item = appState.selected.item;
+  let locator;
+
+  if (vw.tagFilter) {
+    const tag = tl.tags.find(t => t.id === vw.tagFilter);
+    locator = {tl:tl.id, tag:tag.id, item:item.id};
+  } else {
+    locator = {tl:tl.id, item:item.id};
+  }
+  
+  showShareLinkDialog({label:item.label, locator, allowEmbed: false});
+});
 
 timelineEditBtn.addEventListener('click', (e) => {
   e.preventDefault();
@@ -456,7 +517,7 @@ for (const r of itemTypeButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    setSidebarItem(item);
+    setSidebarItemReadOnly(item);
     draw(true);
   });
 }
@@ -473,7 +534,7 @@ for (const r of dateSpecificationButtons) {
     initializeItem(item);
     if (tl?._mode === 'edit') markDirty(tl);
 
-    setSidebarItem(item);
+    setSidebarItemReadOnly(item);
     draw(true);
   });
 }

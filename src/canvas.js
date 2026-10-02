@@ -3,7 +3,7 @@ import * as Util from './util.js';
 import {drawTicks, tickSpec, getTickSpec, startOfTick} from './ticks.js';
 import {positionViews, positionLabels, drawItems, isMouseOver, drawEnvAlert, drawAboutFooter} from './render.js';
 import {sidebarIsOpen, closeSidebar, openSelectedView, openSelectedItem} from './panel.js';
-import {loadTimeline, closeTimeline, initializeItem, initializeView} from './timeline.js';
+import {loadTimeline, loadPublicTimelineById, closeTimeline, initializeItem, initializeView} from './timeline.js';
 import {showModalDialog} from './confirmDialog.js';
 import {saveSessionState} from './session.js';
 
@@ -312,16 +312,25 @@ function canvasClick(e) {
     const element = new DOMParser()
       .parseFromString(link, "text/html")
       .querySelector("a");
-    const tl = element.getAttribute("tl");
-    const tag = element.getAttribute("tag");
-
-    followHyperlink(tl, tag, vw, false);
+    const locator = {
+      tl: element.getAttribute("tl"),
+      tag: element.getAttribute("tag"),
+      item: element.getAttribute("item")
+    };
+    followHyperlink(locator, true, vw, false);
     return;
   }
 
   if (appState.highlighted.idx === -1) {
     // clicked in open space; if side panel is open then close it
-    if (sidebarIsOpen()) closeSidebar();
+    if (sidebarIsOpen()) {
+      closeSidebar();
+    } else {
+      if (appState.selected.item) {  // there can be a selected item but sidebar not open
+        appState.selected.item = null;
+        draw();
+      }
+    }
     return;
   }
 
@@ -644,44 +653,72 @@ function endZoom() {
 /* ------------------- View/Timeline management -------------------- */
 
 export async function getTimeline(file, reload) {
-  // locate timeline indicated by file in timelineCache (can't use the map's key)
-  let tlKey = null;
-  for (const [key, tl] of timelineCache.entries()) {
-    if (tl._file === file) {
-      tlKey = key;
-      break;
-    }
-  }
+  // Locate timeline indicated by file in timelineCache.
+  const existingTL = [...timelineCache.values()]
+    .find(tl => tl._file === file);
 
-  if (tlKey) {
-    const existingTL = timelineCache.get(tlKey);
-    if (!reload) return existingTL;
-
-    // check before reloading timeline that's being edited
-    if (existingTL._dirty) {
-      const ok = await showModalDialog({message:'Abandon changes to timeline and revert to saved version?'});
-      if (!ok) return;
-    }
-    // delete present timeline and all views pointing to it before reloading
-    timelineCache.delete(tlKey);
-    let view = appState.views.find(vw => vw.tlKey === tlKey);
-    while (view) {
-      const idx = appState.views.indexOf(view);
-      appState.views.splice(idx, 1);
-      view = appState.views.find(vw => vw.tlKey === tlKey);
-    }
-  }
-
-  const newTL = await loadTimeline(file);  // retrieve timeline from storage
-  return newTL;
+  return await getTimelineCommon(
+    existingTL,
+    reload,
+    () => loadTimeline(file)
+  );
 }
 
-export function openView(tl, tagID, origVw, focus=true) {
-  const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
-  if (existingView) {
-    focusView(existingView, true);
-    return existingView;
+export async function getTimelineById(id, reload) {
+  // ID lookup is specifically for the public version.
+  const tlKey = JSON.stringify({
+    id,
+    scope: 'public'
+  });
+
+  const existingTL = timelineCache.get(tlKey);
+
+  return await getTimelineCommon(
+    existingTL,
+    reload,
+    () => loadPublicTimelineById(id)
+  );
+}
+
+async function getTimelineCommon(existingTL, reload, loader) {
+
+  if (existingTL) {
+    if (!reload) return existingTL;
+
+    // Check before reloading timeline that's being edited.
+    if (existingTL._dirty) {
+      const ok = await showModalDialog({
+        message: 'Abandon changes to timeline and revert to saved version?'
+      });
+      if (!ok) return;
+    }
+
+    // Delete present timeline and all views pointing to it.
+    const tlKey = existingTL._key;
+
+    timelineCache.delete(tlKey);
+
+    for (let i = appState.views.length - 1; i >= 0; i--) {
+      if (appState.views[i].tlKey === tlKey) {
+        appState.views.splice(i, 1);
+      }
+    }
   }
+
+  return await loader();
+}
+
+export function getView(tl, tagID, origVw=null) {
+
+  if (tagID) {
+    // check that tagID exists in tl.tags
+    const matchingTag = tl.tags.find(t => t.id === tagID);
+    if (!matchingTag) return;
+  }
+
+  // return matching view if already present
+  const existingView = appState.views.find(vw => vw.tlKey === tl._key && vw.tagFilter === tagID);
+  if (existingView) return existingView;
 
   const newView = {
     tlKey: tl._key,
@@ -703,18 +740,74 @@ export function openView(tl, tagID, origVw, focus=true) {
     appState.views.splice(origIdx+1, 0, newView);  // insert above currently selected view
   }
   saveSessionState();
-  if (focus) focusView(newView, true);
+  
   return newView;
 }
 
-export async function followHyperlink(file, tagID, origVw, forceDisplay, focus=true) {
+export function openView(tl, tagID=null, origVw=null) {
+  const view = getView(tl, tagID, origVw);
+  if (!view) return;
 
-  const tl = (file) ? await getTimeline(file, false) : timelineCache.get(origVw?.tlKey);
+  focusView(view, true);
 
-  const view = openView(tl, tagID, origVw, focus);
-  if (view && focus) {
-    const display = sidebarIsOpen() || forceDisplay;
-    openSelectedView(display);
+  return view;
+}
+
+function isTimelineId(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+export async function followHyperlink(locator, focus=false, origVw=null, forceDisplay=false, ) {
+  /*
+   * locator:      {tl, tag, item}
+   * focus/origVw: (optional) whether to focus on new view, animate from origVw
+   * forceDisplay: (optional) whether to force side panel open for target
+   */
+
+  // identify/load timeline
+  let tl;
+
+  if (!locator.tl) {
+    tl = timelineCache.get(origVw?.tlKey);
+
+  } else if (isTimelineId(locator.tl)) {
+    tl = await getTimelineById(locator.tl, false);
+
+  } else {
+    tl = await getTimeline(locator.tl, false);
+  }
+
+  if (!tl) return;
+
+  if (!locator.item) {
+    // identify and potentially load view
+    const vw = openView(tl, locator.tag, origVw);
+
+    if (vw && focus) {
+      const display = sidebarIsOpen() || forceDisplay;
+      openSelectedView(display);
+    }
+
+  } else {
+    // zoom to the item
+    const items = tl.items.filter(i => i.id === locator.item);
+    if (items.length === 0) return;
+    const item = items[0];
+
+    const vw = getView(tl, locator.tag, origVw);
+    if (!vw) return;
+
+    positionViews(true);
+    appState.selected.view = vw;
+    appState.selected.timeline = tl;
+    appState.selected.item = item;
+
+    const zoom = (item.itemType==="period");
+    zoomToItem(item, zoom);
+    
+    if (sidebarIsOpen()) {
+      openSelectedItem(false);
+    }
   }
 }
 
@@ -723,8 +816,12 @@ export async function followURLParams() {
   const params = new URLSearchParams(window.location.search);
   const tl = params.get("tl");
   if (tl) {
-    const tag = params.get("tag");
-    await followHyperlink(tl, tag, null, false, false);
+    const locator = {
+      tl,
+      tag: params.get("tag"),
+      item: params.get("item")
+    };
+    await followHyperlink(locator);
     if (appState.views.length > 0) centerOnView(appState.views[appState.views.length-1]);
   }
 }

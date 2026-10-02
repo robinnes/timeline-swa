@@ -1,31 +1,3 @@
-/*
-module.exports = {
-    extractConnectionStringParts: function(connectionString) {
-        const parts = connectionString.split(';');
-        let protocol, endpointSuffix, accountName, accountKey;
-
-        for (const part of parts) {
-            const [key, value] = part.split('=', 2);
-            if (!key) continue;
-            if (key === 'AccountName') accountName = value;
-            if (key === 'AccountKey') accountKey = value;
-            if (key === 'DefaultEndpointsProtocol') protocol = value;
-            if (key === 'EndpointSuffix') endpointSuffix = value;
-        }
-
-        // Build URL after we've parsed all parts so accountName is available
-        let url;
-        if (protocol && accountName && endpointSuffix) {
-            url = `${protocol}://${accountName}.blob.${endpointSuffix}`;
-        } else if (protocol && accountName) {
-            url = `${protocol}://${accountName}.blob.core.windows.net`;
-        }
-
-        return { accountName, accountKey, url };
-    }
-};
-*/
-
 /**
  * Shared utilities for Azure Static Web Apps (SWA) authenticated functions.
  *
@@ -38,7 +10,6 @@ module.exports = {
  */
 
 const { getUsernameKey } = require('./auth0Mgmt');
-//const CONTAINER_NAME = "timelines";  doesn't work for some reason
 
 /* --------------------------------- Responses --------------------------------- */
 
@@ -214,6 +185,71 @@ function publicPrefixForUsername(usernameKey) {
 }
 
 
+/* ------------------------ Blob Storage access via SAS (Shared Access Signature) -------------------- */
+
+const {
+  StorageSharedKeyCredential,
+  BlobSASPermissions,
+  generateBlobSASQueryParameters
+} = require('@azure/storage-blob');
+
+function generateBlobSas(connectionString, containerName, blobName, mode) {
+  const { accountName, accountKey, url } = extractConnectionStringParts(connectionString);
+
+  if (!accountName || !accountKey || !url) {
+    throw new Error('Invalid storage connection string (missing accountName/accountKey/url)');
+  }
+
+  // Your existing parser returns accountKey as a base64 string. Convert to bytes for the credential.
+  // (If your shared extractConnectionStringParts returns a Buffer instead, remove the Buffer.from() call.)
+  const sharedKeyCredential = new StorageSharedKeyCredential(
+    accountName,
+    Buffer.from(accountKey, 'base64')
+  );
+
+  const expiresOn = new Date();
+  expiresOn.setMinutes(expiresOn.getMinutes() + 30);
+
+  const permissions = getBlobPermissions(mode);
+
+  const sas = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions,
+      expiresOn
+    },
+    sharedKeyCredential
+  ).toString();
+
+  const blobUrl = `${url}/${containerName}/${blobName}`;
+
+  return {
+    // convenient full URL
+    sasUrl: `${blobUrl}?${sas}`,
+
+    // fields that can be handy for debugging / clients
+    url,
+    container: containerName,
+    blobName,
+    blobUrl,
+    sasKey: sas,
+    mode
+  };
+}
+
+/**
+ * Least-privilege mapping:
+ * - read  => r
+ * - write => r + c + w
+ */
+function getBlobPermissions(mode) {
+  const m = String(mode || '').toLowerCase();
+  //if (m === 'delete' || m === 'd') return BlobSASPermissions.parse('d');   not supporting deletes (yet?)
+  if (m === 'read' || m === 'r') return BlobSASPermissions.parse('r');
+  return BlobSASPermissions.parse('rcw');
+}
+
 
 /* --------------------------------- Exports ---------------------------------- */
 
@@ -241,5 +277,8 @@ module.exports = {
   // username
   requireUsernameFolderKey,
   privatePrefixForUsername,
-  publicPrefixForUsername
+  publicPrefixForUsername,
+
+  // sas
+  generateBlobSas
 };

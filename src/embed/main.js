@@ -1,6 +1,6 @@
 import {appState, canvas, initializeCanvas, resize, tick, draw, followURLParams} from '../canvas.js';
 import {getConfiguration} from '../database.js';
-import {initializeMobileCanvas} from './mobile.js';
+//import {initializeMobileCanvas} from '../mobile.js';
 
 async function initializeEmbed() {
   resize();
@@ -18,6 +18,6 @@ async function initializeEmbed() {
 
 appState.mode = "embed";
 initializeCanvas();
-initializeMobileCanvas();
+//initializeMobileCanvas(); todo: remove dependency on panelEdit.js
 
 initializeEmbed();

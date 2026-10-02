@@ -3,12 +3,6 @@ import {appState} from './canvas.js';
 
 /******************* Utility functions *******************/
 
-/*
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-*/
-
 function formatURL(file, url, container, sasKey) {
   const base = url.replace(/\/+$/, '');
   const encodedFile = (file || '')
@@ -57,40 +51,119 @@ async function acquireBlobSas(scope, filename, mode) {
 
     const {sasUrl, sasKey, blobName} = await response.json();
 
-    return {url:sasUrl, sasKey};
+    return {
+      url: sasUrl,
+      sasKey,
+      file: blobName
+    };
 
   } catch (err) {
-    throw new Error(`Failed to aquire SAS token: ${err.message}`);
+    throw new Error(`Failed to acquire SAS token: ${err.message}`);
   }
 }
 
+async function loadTimelineFromSas(url, blobName, scope) {
+  // use acquired blob SAS URL to perform the actual fetch
+  const resp = await fetch(url);
+
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch blob: ${resp.status} ${resp.statusText}`
+    );
+  }
+
+  const text = await resp.text();
+
+  const parts = blobName.split('/');
+
+  let file;
+
+  if (scope === 'private') {
+    // private/<username>/<file>
+    if (parts.length < 3 || parts[0] !== 'private') {
+      throw new Error(`Unexpected private blob name: ${blobName}`);
+    }
+
+    file = parts.slice(2).join('/');
+
+  } else if (scope === 'public') {
+    // public/<username>/<file>
+    if (parts.length < 3 || parts[0] !== 'public') {
+      throw new Error(`Unexpected public blob name: ${blobName}`);
+    }
+
+    file = parts.slice(1).join('/');
+
+  } else {
+    throw new Error(`Invalid timeline scope: ${scope}`);
+  }
+
+  return {
+    timeline: JSON.parse(text),
+    file: Util.removeTimelineFileExt(file)
+  };
+}
+
+
 /******************* Timeline management *******************/
 
+
 export async function loadTimelineFromStorage(scope, file) {
-  //Util.showGlobalBusyCursor();
 
   const isLocal = await Util.isLocalEnv();
-  if (isLocal) return await tempSimulateLoadFile(scope, file);
+  if (isLocal) {
+    const timeline = await tempSimulateLoadFile(scope, file);
+    return {timeline, file};
+  }
 
   try {
     const filename = Util.addTimelineFileExt(file);
 
-    // acquire SAS token
-    const {url, sasKey} = await acquireBlobSas(scope, filename, "read");
+    const {url, file: blobName} =
+      await acquireBlobSas(scope, filename, "read");
 
-    // fetch the blob
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`Failed to fetch blob: ${resp.status} ${resp.statusText}`);
-    const text = await resp.text();
-
-    //Util.hideGlobalBusyCursor();
-  
-    // parse and return JSON
-    return JSON.parse(text);
+    return await loadTimelineFromSas(
+      url,
+      blobName,
+      scope
+    );
 
   } catch (e) {
-    //Util.hideGlobalBusyCursor();
-    console.error(`Failed to load ${file} from storage: ${e.message}`);
+    console.error(
+      `Failed to load ${file} from storage: ${e.message}`
+    );
+  }
+}
+
+export async function loadTimelineFromStorageById(id) {
+  // works for public timelines only
+  try {
+    const response = await fetch(
+      `/api/getPublicTimelineById?id=${encodeURIComponent(id)}`,
+      {
+        method: 'GET',
+        headers: {'Accept': 'application/json'}
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to resolve public timeline ID: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const {sasUrl, blobName} = await response.json();
+
+    return await loadTimelineFromSas(
+      sasUrl,
+      blobName,
+      'public'
+    );
+
+  } catch (e) {
+    console.error(
+      `Failed to load public timeline ${id}: ${e.message}`
+    );
   }
 }
 
@@ -200,37 +273,6 @@ export async function loadItemImageFromStorage(scope, imageFile) {
     throw new Error(`Failed to load item image ${imageFile}: ${e.message}`);
   }
 }
-/*
-export async function getItemImageUrl(scope, imageFile) {
-  try {
-    if (!imageFile) return null;
-
-    const {url} = await acquireBlobSas(scope, imageFile, "read");
-
-    // For <img src>, return the temporary browser-readable SAS URL.
-    // Do not persist this value in JSON.
-    return url;
-
-  } catch (e) {
-    throw new Error(`Failed to get item image URL ${imageFile}: ${e.message}`);
-  }
-}
-*/
-/*
-export async function deleteItemImageFromStorage(scope, imageFile) {
-  if (!imageFile) return false;
-
-  const { url } = await acquireBlobSas(scope, imageFile, "delete");
-
-  const resp = await fetch(url, { method: 'DELETE' });
-
-  if (resp.status === 404) return false;
-  if (!resp.ok) {
-    throw new Error(`Failed to delete image blob: ${resp.status} ${resp.statusText}`);
-  }
-  return true;
-}
-*/
 
 export async function deleteOrphanedImages(scope, file) {
   const filename = Util.addTimelineFileExt(file);
@@ -255,6 +297,6 @@ async function tempSimulateLoadFile(scope, file) {
 
   const tl = await response.json();
 
-  await Util.sleep(350);  // simulate database access
+  await Util.sleep(35);  // simulate database access
   return tl;
 }

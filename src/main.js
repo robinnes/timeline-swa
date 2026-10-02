@@ -2,7 +2,7 @@ import {appState, canvas, initializeCanvas, resize, tick, draw, followURLParams}
 import {getConfiguration} from './database.js';
 import {getAuthState, restoreSessionState} from './session.js';
 import {initializeDragging} from './dragging.js';
-import {editSelectedView, editSelectedItem} from './panelEdit.js';
+import {openSelectedViewAll, openSelectedItemAll} from './panelEdit.js';
 import {registerEditPanelHandlers} from './panel.js';
 import {initializeMobileCanvas} from './mobile.js';
 
@@ -30,8 +30,8 @@ appState.mode = "app";
 
 // allows embed mode to avoid loading panelEdit and its dependents
 registerEditPanelHandlers({
-  editSelectedView,
-  editSelectedItem
+  openSelectedViewAll,
+  openSelectedItemAll
 });
 
 // order counts here - dragging events must happen first
