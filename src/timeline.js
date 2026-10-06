@@ -141,6 +141,9 @@ export function initializeItem(i) {
       delete i.date;
     }
 
+    if (!i.fadeLeft) i.fadeLeft = {...i.dateFrom};
+    if (!i.fadeRight) i.fadeRight = {...i.dateTo};
+
     i.dateFrom._mid = Math.round((i.dateFrom.ts + tickSpec.get(i.dateFrom.prec).step(i.dateFrom.ts, 1)) / 2);
     i.fadeLeft._mid = Math.round((i.fadeLeft.ts + tickSpec.get(i.fadeLeft.prec).step(i.fadeLeft.ts, 1)) / 2);
     i.fadeRight._mid = Math.round((i.fadeRight.ts + tickSpec.get(i.fadeRight.prec).step(i.fadeRight.ts, tickSpec.get(i.fadeRight.prec).inclusive ? 1 : -1)) / 2); 
